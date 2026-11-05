@@ -1,0 +1,239 @@
+# Reusable live evaluation of the complete RND2 workflow against the REAL
+# uploaded corpus (no synthetic documents). Run with the backend live:
+#   python tests/eval_live_corpus.py [--quick]
+#
+# It records, per question: document name/type, question, expected evidence,
+# expected answer or abstention, retrieved chunks + pages, the actual answer,
+# citation correctness, final status, response time and failure reason.
+# Results are written to:
+#   C:\Users\Admin\AppData\Local\Temp\opencode\rnd_live_eval_<stamp>.json
+import argparse
+import json
+import re
+import sqlite3
+import sys
+import time
+from datetime import datetime, timezone
+from urllib.request import Request, urlopen
+
+API = "http://127.0.0.1:8000"
+OUT_DIR = r"C:\Users\Admin\AppData\Local\Temp\opencode"
+
+
+def call_chat(question, history=None, timeout=1200):
+    body = json.dumps({"question": question, "history": history or []}).encode()
+    started = time.time()
+    with urlopen(Request(API + "/chat", data=body,
+                         headers={"Content-Type": "application/json"}), timeout=timeout) as resp:
+        data = json.loads(resp.read().decode())
+    data["wall_seconds"] = round(time.time() - started, 3)
+    return data
+
+
+def citation_check(answer, sources):
+    refs = []
+    for group in re.findall(r"\[(\d{1,3}(?:\s*,\s*\d{1,3})*)\]", answer or ""):
+        refs.extend(int(n) for n in group.replace(" ", "").split(","))
+    refs = sorted(set(refs))
+    cited = []
+    for n in refs:
+        if 1 <= n <= len(sources):
+            src = sources[n - 1]
+            cited.append({"ref": n, "filename": src.get("filename"),
+                          "page": src.get("source_location")})
+    invalid = [n for n in refs if n < 1 or n > len(sources)]
+    return {"refs": refs, "all_refs_valid": not invalid, "cited_sources": cited,
+            "invalid_refs": invalid}
+
+
+def doc_types():
+    con = sqlite3.connect(r"file:"
+                          r"C:\Users\Admin\Downloads\RND2_1\RND\data\metadata\documents.sqlite3?mode=ro",
+                          uri=True)
+    types = {row[0]: json.loads(row[1] or "{}").get("document_type")
+             for row in con.execute("SELECT filename, source_metadata_json FROM documents")}
+    con.close()
+    return types
+
+
+# ---------------------------------------------------------------------------
+# The evaluation matrix. `expect` fields are manually verified against the
+# corpus during the diagnosis phase (see rnd_corpus_probe.json).
+# ---------------------------------------------------------------------------
+CASES = [
+    {"id": "C1_factual_direct", "category": "direct_factual_retrieval",
+     "question": "According to the Enchiridion, what things are in our control?",
+     "expect_status": "success",
+     "expect": "Enchiridion: 'things in our control are opinion, aim, desire...' (Enchiridion page 4)"},
+    {"id": "C2_keyword_exact", "category": "exact_keyword_retrieval",
+     "question": "What does Chapter 49 of the Enchiridion say about people who interpret the works of Chrysippus?",
+     "expect_status": "success",
+     "expect": "Enchiridion Chapter 49, Page 67: vanity of those who can understand/interpret Chrysippus' works"},
+    {"id": "C3_semantic_concept", "category": "semantic_retrieval",
+     "question": "What does the Science of Getting Rich mean by thinking in a certain way?",
+     "expect_status": "success",
+     "expect": "Science of Getting Rich (Chapter 4 'The First Principle...', pages 9-17): thinking in the Certain Way"},
+    {"id": "C4_chapter_specific", "category": "chapter_section_questions",
+     "question": "What does Chapter 51 say are the three topics of philosophy, and which does Epictetus consider most necessary?",
+     "expect_status": "success",
+     "expect": "Enchiridion Chapter 51, Page 71: three topics; practical application most necessary"},
+    {"id": "C5_multi_part", "category": "multi_part_questions",
+     "question": "What are the three topics of Chapter 51? What things in the book are in our control?",
+     "expect_status": "success",
+     "expect": "Two addressed parts: Chapter 51 topics (Page 71) + things in our control (Page 4)"},
+    {"id": "C6_cross_document", "category": "cross_document_questions",
+     "question": "According to the documents, what did Benjamin Franklin and Napoleon Hill each describe as a club or alliance for improvement?",
+     "expect_status": "success",
+     "expect": "Franklin's Junto (autobiography ~Page 61) and Hill's Master Mind alliance (Think and Grow Rich)"},
+    {"id": "C7_numeric", "category": "numerical_questions",
+     "question": "How many chapters make up the Enchiridion?",
+     "expect_status": "success",
+     "expect": ("A chapter count stated by the evidence (page 5 synopsis: 52 chapters in this edition; "
+                "page 126 note), or clean abstention if the edition's count is unavailable")},
+    {"id": "C8_date_identifier", "category": "date_identifier_questions",
+     "question": "What year did Benjamin Franklin arrive in Philadelphia?",
+     "expect_status": "success",
+     "expect": "Autobiography: October 1723 arrival (Franklin text or edition notes)"},
+    {"id": "C9_long_document", "category": "long_document_retrieval",
+     "question": "What are the six steps Think and Grow Rich describes to turn desire into gold?",
+     "expect_status": "success",
+     "expect": "Think and Grow Rich (Page 201): the six definite, practical steps"},
+    {"id": "C10_short_document", "category": "short_document_retrieval",
+     "question": "According to the Enchiridion, when do people consider things good or bad?",
+     "expect_status": "success",
+     "expect": "Enchiridion Page 45: as not in the interest of the whole / when regarding themselves"},
+    {"id": "C11_summary", "category": "summary_generation",
+     "question": "Summarize what the Enchiridion teaches about dealing with other people.",
+     "expect_status": "success",
+     "expect": "Summary grounded in several Enchiridion passages, all cited"},
+    {"id": "C12_comparison", "category": "comparison_questions",
+     "question": "How do the Science of Getting Rich and Think and Grow Rich each describe the way a person gets rich?",
+     "expect_status": "success",
+     "expect": "Each side cited separately (Wattles' Certain Way; Hill's six steps / definiteness of purpose)"},
+    {"id": "C13_calculation", "category": "calculation_questions",
+     "question": "What is 10% of 250?",
+     "expect_status": "success",
+     "expect": "Deterministic result 25, no abstention"},
+    {"id": "C14_followup", "category": "followup_questions",
+     "turns": [("What club did Benjamin Franklin found in Philadelphia?", None),
+               ("What was the purpose of it?", "Franklin's Junto for mutual improvement")],
+     "expect_status": "success", "expect": "Follow-up resolves 'it' to the Junto and answers from evidence"},
+    {"id": "C15_abstention_missing", "category": "missing_information_abstention",
+     "question": "Which chapter of the Enchiridion discusses quidditch?",
+     "expect_status": "abstain",
+     "expect": "Abstention - no quidditch content exists in any document"},
+    {"id": "C16_cache_consistency", "category": "cache_consistency",
+     "question": "What does Chapter 51 say are the three topics of philosophy, and which does Epictetus consider most necessary?",
+     "repeat_of": "C4_chapter_specific",
+     "expect_status": "success",
+     "expect": "Repeat must return the same (cached) answer, near-zero latency"},
+    {"id": "C17_similar_terminology", "category": "similar_terminology_documents",
+     "question": "Which book uses the phrase 'Certain Way' and what does it define?",
+     "expect_status": "success",
+     "expect": "The Science of Getting Rich defines the Certain Way; the answer names that document"},
+    {"id": "C18_boilerplate", "category": "noisy_boilerplate_chunks",
+     "question": "How can I order more books from InfoBooks?",
+     "expect_status": "any",
+     "expect": "Either an answer citing the InfoBooks pages that exist in the corpus, or clean abstention; "
+               "the InfoBooks download-store chunks must never be presented as evidence for unrelated claims"},
+    {"id": "C19_franklin_substance", "category": "answer_completeness",
+     "question": "What trade did Benjamin Franklin apprentice in as a boy?",
+     "expect_status": "success",
+     "expect": "The named trade from the autobiography (candle-making / cutting wick for candles), "
+               "not a restatement of the question without the fact"},
+]
+
+
+def run_case(case, types):
+    turns = case.get("turns") or [(case["question"], None)]
+    history = []
+    records = []
+    for turn_index, (question, _) in enumerate(turns, 1):
+        answer = call_chat(question, history=history)
+        history = history + [{"role": "user", "content": question[:2000]},
+                             {"role": "assistant", "content": (answer.get("answer") or "")[:2000]}]
+        record = {
+            "case_id": case["id"], "category": case["category"], "turn": turn_index,
+            "question": question, "expected_evidence": case.get("expect"),
+            "expected_status": case.get("expect_status"),
+            "status": answer.get("status"),
+            "abstained": answer.get("abstained"),
+            "actual_answer": answer.get("answer"),
+            "question_type": answer.get("question_type"),
+            "confidence": (answer.get("confidence") or {}).get("score"),
+            "response_seconds": answer.get("response_seconds"),
+            "wall_seconds": answer.get("wall_seconds"),
+            "retrieval": {
+                "indexed_documents": (answer.get("retrieval") or {}).get("indexed_documents"),
+                "candidate_chunks": (answer.get("retrieval") or {}).get("candidate_chunks"),
+                "selected_chunks": (answer.get("retrieval") or {}).get("selected_chunks"),
+                "best_similarity": (answer.get("retrieval") or {}).get("best_similarity"),
+                "document_types": (answer.get("retrieval") or {}).get("document_types"),
+                "answer_cache": answer.get("answer_cache"),
+            },
+            "sources": [{"rank": s.get("rank"), "filename": s.get("filename"),
+                         "page": s.get("source_location"),
+                         "relevance": s.get("relevance_score"),
+                         "supporting_text": (s.get("supporting_text") or "")[:200]}
+                        for s in (answer.get("sources") or [])],
+            "citation": citation_check(answer.get("answer"), answer.get("sources") or []),
+            "potential_conflicts": answer.get("potential_conflicts"),
+            "failure_reason": answer.get("status") if answer.get("status") == "success" else
+            (answer.get("abstention_classification") or
+             (answer.get("retrieval") or {}).get("failure_stage") or answer.get("error") or
+             answer.get("status")),
+        }
+        for src in record["sources"]:
+            src["document_type"] = types.get(src.get("filename"))
+        records.append(record)
+        print("%-22s t%d %-28s %6.1fs conf=%s refs=%s" % (
+            case["id"], turn_index, record["status"],
+            record["wall_seconds"], record["confidence"],
+            record["citation"]["refs"]))
+    return records
+
+
+def run(selected):
+    types = doc_types()
+    results = []
+    for case in selected:
+        records = run_case(case, types)
+        results.extend(records)
+
+    stamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+    out_path = OUT_DIR + "\\rnd_live_eval_%s.json" % stamp
+    totals = {"success": 0, "abstain": 0, "other": 0}
+    for record in results:
+        status = record["status"]
+        expect = record.get("expected_status")
+        if status == "success":
+            totals["success"] += 1
+        elif expect == "abstain" and record.get("abstained"):
+            totals["abstain"] += 1
+        else:
+            totals["other"] += 1
+    summary = {"started": stamp, "api": API, "results": results, "totals": totals}
+    with open(out_path, "w", encoding="utf-8") as fh:
+        json.dump(summary, fh, indent=1, ensure_ascii=False)
+    print("saved", out_path)
+    print("totals:", totals)
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--quick", action="store_true")
+    parser.add_argument("--cases", default="",
+                        help="Comma-separated case ids to re-run "
+                             "(e.g. C3_semantic_concept,C8_date_identifier)")
+    args = parser.parse_args()
+    if args.cases:
+        keep = {item.strip() for item in args.cases.split(",") if item.strip()}
+        unknown = keep - {case["id"] for case in CASES}
+        assert not unknown, unknown
+        selected = [case for case in CASES if case["id"] in keep]
+    else:
+        quick_set = {"C1_factual_direct", "C4_chapter_specific", "C13_calculation",
+                     "C15_abstention_missing", "C18_boilerplate"}
+        selected = [case for case in CASES
+                    if case["id"] in quick_set] if args.quick else list(CASES)
+    run(selected)

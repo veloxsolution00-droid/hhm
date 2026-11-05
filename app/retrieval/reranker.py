@@ -1,0 +1,78 @@
+"""Deterministic local reranker using relevance, coverage and answer-bearing cues."""
+import re
+
+_STOP = {"the", "and", "for", "with", "what", "when", "where", "which", "who", "does",
+         "from", "that", "this", "are", "was", "how", "about", "into", "you", "is",
+         "a", "an", "of", "to", "in", "on", "it", "be", "by", "as"}
+_BOILERPLATE = re.compile(
+    r"(about this edition|table of contents|^\s*contents\s*$|copyright|isbn|"
+    r"transcription, correction|editorial commentary|\[UVAstudstaff\]|"
+    r"^\s*glossary\s*$|^\s*index\s*$|"
+    # Publisher/vendor advertising pages ("READ AND DOWNLOAD FREE BOOKS ...
+    # infobooks.org", "was lagally downloaded from InfoBooks"). These are
+    # corpus-independent download-store boilerplate that otherwise occupies an
+    # evidence slot without answering anything about the documents themselves.
+    r"read and download free books|infobooks\.org|downloaded from infobooks)",
+    re.I | re.M
+)
+_NUMBER = re.compile(r"(?<!\w)(?:₹|rs\.?\s*)?\d[\d,]*(?:\.\d+)?%?(?!\w)", re.I)
+
+
+def _tokens(text):
+    return [t.lower() for t in re.findall(r"[\w-]+", text or "", flags=re.UNICODE)]
+
+
+def _boilerplate(text):
+    return bool(_BOILERPLATE.search(text or ""))
+
+
+def rerank(query: str, hits: list[dict], limit: int | None = None) -> list[dict]:
+    terms = {t for t in _tokens(query) if len(t) > 2 and t not in _STOP}
+    # The boilerplate penalty exists to keep generic publisher/advertising
+    # passages from occupying evidence slots. When the question itself asks
+    # about that boilerplate content (for example ordering behaviour of the
+    # download store), the passages are the correct evidence and must be
+    # ranked on their own merits.
+    # A publisher/download notice is boilerplate for unrelated questions, but
+    # it becomes primary evidence when the user asks about that publisher,
+    # ordering books, or downloading titles. Detect the topic in the query
+    # rather than penalizing the very passage the user is asking about.
+    boilerplate_query = bool(
+        _BOILERPLATE.search(query or "")
+        or re.search(r"\b(?:infobooks|bookstore|publisher|download(?:ing)?|order(?:ing)? books?)\b",
+                     query or "", re.I)
+    )
+    query_numbers = set(_NUMBER.findall(query or ""))
+    ranked = []
+    for hit in hits:
+        text = hit.get("text", "") or ""
+        text_terms = set(_tokens(text))
+        coverage = len(terms & text_terms) / max(1, len(terms))
+        semantic = hit.get("semantic_similarity")
+        hybrid = max(0.0, min(1.0, float(hit.get("similarity", 0) or 0)))
+        fusion = float(hit.get("fusion_score") or 0)
+        query_phrase = " ".join(_tokens(query))
+        normalized_text = " ".join(_tokens(text))
+        phrase = 1.0 if len(terms) > 1 and query_phrase and query_phrase in normalized_text else 0.0
+        # Exact requested figures/identifiers should be prominent when present.
+        number_match = bool(query_numbers and query_numbers.intersection(_NUMBER.findall(text)))
+        answer_cue = bool(re.search(
+            r"\b(is|was|were|has|had|amount|total|revenue|date|dated|signed|"
+            r"appointed|located|requires|required|means|defined as)\b", text, re.I
+        ))
+        semantic_signal = float(semantic) if semantic is not None else hybrid
+        item = dict(hit)
+        item.update({
+            "query_term_coverage": round(coverage, 4),
+            "exact_number_match": number_match,
+            "answer_bearing_cue": answer_cue,
+            "rerank_score": (0.50 * hybrid + 0.22 * coverage
+                             + 0.12 * semantic_signal + 0.10 * min(1.0, fusion * 60)
+                             + 0.02 * phrase + 0.02 * number_match + 0.02 * answer_cue),
+        })
+        if _boilerplate(text) and not boilerplate_query:
+            item["rerank_score"] *= 0.65
+            item["boilerplate"] = True
+        ranked.append(item)
+    ranked.sort(key=lambda h: h["rerank_score"], reverse=True)
+    return ranked[:limit] if limit else ranked

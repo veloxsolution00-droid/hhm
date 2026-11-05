@@ -1,0 +1,16 @@
+.env.example
+CHANGED_FILES_RND2.txt
+README.md
+RND2_IMPLEMENTATION_REPORT.md
+app/core/config.py
+app/rag/chat.py
+app/retrieval/evidence_selector.py
+app/retrieval/ollama.py
+app/retrieval/pipeline.py
+app/retrieval/reranker.py
+app/storage/database.py
+evaluation/README.md
+evaluation/baseline_test_results.json
+evaluation/implementation_test_results.json
+scripts/evaluate_retrieval.py
+tests/test_rnd2_quality_upgrade.py
