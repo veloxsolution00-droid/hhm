@@ -274,6 +274,16 @@ st.markdown(
         background: linear-gradient(90deg, #8798ff, #37c99a);
     }
 
+    .chat-hint {
+        margin: 10px 0 20px;
+        padding: 18px 20px;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        color: var(--muted);
+        background: rgba(17, 26, 45, .58);
+        line-height: 1.6;
+    }
+
     hr {
         border-color: rgba(148, 163, 184, .13);
     }
@@ -345,23 +355,31 @@ with st.sidebar:
         unsafe_allow_html=True,
     )
 
-    st.markdown("### ◉ System status")
+    st.markdown("### System status")
     health_limits = {}
     try:
-        h = requests.get(API + "/health", timeout=5).json()
+        health_response = requests.get(API + "/health", timeout=5)
+        health_response.raise_for_status()
+        h = health_response.json()
         health_limits = h.get("limits") or {}
-        st.write("Backend:", h.get("status"))
+        if h.get("status") == "ok":
+            st.success("Local API online", icon=":material/check_circle:")
+        else:
+            st.warning(f"API status: {h.get('status', 'unknown')}")
         ollama = h.get("ollama", {})
-        st.write("Ollama:", "Connected" if ollama.get("available") else "Unavailable")
-        st.write("Generation model:", ollama.get("generation_model"), "✓" if ollama.get("generation_model_available") else "missing")
-        st.write("Embedding model:", ollama.get("embedding_model"), "✓" if ollama.get("embedding_model_available") else "missing")
-        st.write("ChromaDB:", h.get("chromadb", {}).get("available"), "· chunks:", h.get("chromadb", {}).get("count", 0))
-        st.caption(f"Per file: {h.get('limits',{}).get('max_file_mb',100)} MB · Batch: {h.get('limits',{}).get('max_batch_mb',500)} MB")
+        if ollama.get("available") and ollama.get("generation_model_available") and ollama.get("embedding_model_available"):
+            st.success("Local models ready", icon=":material/memory:")
+        else:
+            st.warning("One or more local models are unavailable.")
+        st.caption(f"Answer model: {ollama.get('generation_model', 'unknown')}")
+        st.caption(f"Embedding model: {ollama.get('embedding_model', 'unknown')}")
+        st.caption(f"Indexed chunks: {h.get('chromadb', {}).get('count', 0)}")
+        st.caption(f"File limit: {health_limits.get('max_file_mb',100)} MB | Batch limit: {health_limits.get('max_batch_mb',500)} MB")
     except Exception as e:
         st.warning(f"Backend not reachable. Start FastAPI first. {e}")
 
     st.divider()
-    st.markdown("### ⤒ Upload documents")
+    st.markdown("### Upload documents")
     st.caption("Add one or more files to the local ingestion queue.")
 
     if "uploader_id" not in st.session_state:
@@ -373,7 +391,7 @@ with st.sidebar:
         key=f"uploader_{st.session_state.uploader_id}",
     )
 
-    if st.button("Upload and process", disabled=not up, use_container_width=True, type="primary"):
+    if st.button("Upload and process", disabled=not up, width="stretch", type="primary"):
         try:
             total = sum(f.size for f in up)
             max_batch_mb = int(health_limits.get("max_batch_mb", 500) or 500)
@@ -399,7 +417,7 @@ def show_jobs_and_documents():
     jobs_column, documents_column = st.columns([1, 1], gap="large")
 
     with jobs_column:
-        st.markdown("### ◷ Ingestion jobs")
+        st.markdown("### Processing queue")
         st.caption("Live progress for document extraction, chunking, embedding and indexing.")
 
         try:
@@ -446,11 +464,22 @@ def show_jobs_and_documents():
             st.info(f"Jobs are not available: {e}")
 
     with documents_column:
-        st.markdown("### ▤ Your documents")
+        st.markdown("### Your library")
         st.caption("Indexed files and their current processing status.")
 
         try:
             docs = api_get("/documents", timeout=10).get("documents", [])
+            indexed_docs = [
+                doc for doc in docs
+                if doc.get("processing_status") == "indexed"
+                and doc.get("indexing_status", "complete") == "complete"
+            ]
+            metric_docs, metric_chunks = st.columns(2)
+            metric_docs.metric("Indexed files", len(indexed_docs))
+            metric_chunks.metric(
+                "Searchable passages",
+                sum(int(doc.get("chunk_count", 0) or 0) for doc in indexed_docs),
+            )
             if not docs:
                 st.info("No documents have been indexed yet.")
             for d in docs:
@@ -468,15 +497,16 @@ def show_jobs_and_documents():
             st.info(f"Document inventory unavailable: {e}")
 
 
-show_jobs_and_documents()
-
-
 # ---------------------------------------------------------------------------
 # Chat — same message history, payload, response parsing, and evidence checks.
 # ---------------------------------------------------------------------------
 st.divider()
-st.markdown("### ✧ Ask your documents")
-st.caption("Ask questions grounded in the files you have uploaded and indexed.")
+chat_title, clear_column = st.columns([5, 1], vertical_alignment="center")
+chat_title.markdown("### Ask your documents")
+chat_title.caption("Answers use passages retrieved from your indexed files, with source references.")
+if clear_column.button("Clear chat", icon=":material/delete_sweep:", width="stretch"):
+    st.session_state.messages = []
+    st.rerun()
 
 if not st.session_state.messages:
     st.markdown(
@@ -499,7 +529,8 @@ for m in st.session_state.messages:
                 st.write("Relevance:", src.get("relevance_score", "—"))
                 st.write(src.get("supporting_text", ""))
 
-q = st.chat_input("Ask a question about your uploaded documents")
+with st.bottom:
+    q = st.chat_input("Ask a question about your uploaded documents")
 
 if q:
     st.session_state.messages.append({"role": "user", "content": q})
@@ -521,25 +552,25 @@ if q:
             st.markdown(data.get("answer", "No answer returned."))
             retrieval = data.get("retrieval", {})
 
-            if data.get("question_resolved"):
-                st.caption("Interpreted follow-up as: " + data["question_resolved"])
-            if data.get("question_type"):
-                st.caption("Question type: " + data["question_type"])
+            with st.expander("Answer details", expanded=False):
+                if data.get("question_resolved"):
+                    st.caption("Interpreted follow-up as: " + data["question_resolved"])
+                if data.get("question_type"):
+                    st.caption("Question type: " + data["question_type"])
 
-            st.caption(f"Status: {data.get('status','unknown')} · Response time: {data.get('response_seconds', '—')} seconds")
+                st.caption(f"Status: {data.get('status', 'unknown')} | Response time: {data.get('response_seconds', '—')} seconds")
+                confidence = data.get("confidence") or {}
+                if confidence.get("label"):
+                    score = confidence.get("score")
+                    label = confidence["label"]
+                    heading = f"Confidence: {label}" + (f" ({score:.0%})" if isinstance(score, (int, float)) else "")
+                    (st.success if label == "high" else st.info if label == "medium" else st.warning)(heading)
+                    signals = confidence.get("signals") or {}
+                    if signals:
+                        st.caption(f"Retrieval similarity: {signals.get('retrieval_similarity', '—')} | Term coverage: {signals.get('term_coverage', '—')} | Citation coverage: {signals.get('citation_coverage', '—')} | Verifier: {signals.get('verified', '—')}")
 
-            confidence = data.get("confidence") or {}
-            if confidence.get("label"):
-                score = confidence.get("score")
-                label = confidence["label"]
-                heading = f"Confidence: {label}" + (f" ({score:.0%})" if isinstance(score, (int, float)) else "")
-                (st.success if label == "high" else st.info if label == "medium" else st.warning)(heading)
-                signals = confidence.get("signals") or {}
-                if signals:
-                    st.caption(f"Signals: retrieval similarity {signals.get('retrieval_similarity', '—')} · term coverage {signals.get('term_coverage', '—')} · citation coverage {signals.get('citation_coverage', '—')} · verifier {signals.get('verified', '—')}")
-
-            if retrieval:
-                st.caption(f"Retrieval diagnostics: {retrieval.get('selected_chunks', 0)} chunk(s) selected / {retrieval.get('candidate_chunks', 0)} candidate(s) · best similarity: {retrieval.get('best_similarity', '—')} · threshold: {retrieval.get('min_similarity', '—')} · pass(es): {retrieval.get('retrieval_passes', 1)}")
+                if retrieval:
+                    st.caption(f"Evidence: {retrieval.get('selected_chunks', 0)} passage(s) selected from {retrieval.get('candidate_chunks', 0)} candidates | Best similarity: {retrieval.get('best_similarity', '—')} | Retrieval passes: {retrieval.get('retrieval_passes', 1)}")
 
             citation_check = data.get("citation_validation")
             # An abstention also carries an invalid citation block (the refusal has
@@ -560,7 +591,8 @@ if q:
                 st.error(data["error"])
 
             if data.get("sources"):
-                st.caption("Sources: " + citation_line(data["sources"]))
+                st.markdown("**Evidence used**")
+                st.caption(citation_line(data["sources"]))
 
             for src in data.get("sources", []):
                 with st.expander(f"{src.get('filename')} — {src.get('source_location')}"):
@@ -576,3 +608,9 @@ if q:
         except Exception as e:
             st.error(f"Chat request failed: {e}")
             st.session_state.messages.append({"role": "assistant", "content": str(e)})
+
+
+st.divider()
+st.markdown("### Library and processing")
+st.caption("Manage uploaded files and monitor extraction, embedding, and indexing.")
+show_jobs_and_documents()

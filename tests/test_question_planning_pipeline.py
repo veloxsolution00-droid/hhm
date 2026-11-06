@@ -19,6 +19,31 @@ def test_simple_question_is_not_needlessly_decomposed():
     assert not plan["decomposed"]
 
 
+def test_how_many_document_facts_stay_on_retrieval_path():
+    from app.rag.planner import classify_question
+
+    assert classify_question("How many chapters make up the Enchiridion?") == "factual"
+    assert classify_question("What is 10% of 250?") == "calculation"
+
+
+def test_query_variants_expand_document_form_and_group_wording():
+    from app.rag.planner import query_variants
+
+    record_variants = query_variants("What kinds of records make up Dracula's narrative?")
+    assert any("journals" in value and "letters" in value for value in record_variants)
+    group_variants = query_variants("What club did Benjamin Franklin found in Philadelphia?")
+    assert any("association" in value and "mutual improvement" in value for value in group_variants)
+
+
+def test_each_question_about_multiple_named_people_uses_comparison_guidance():
+    from app.rag.planner import classify_question, task_guidance
+
+    query = ("According to the documents, what did Benjamin Franklin and Napoleon Hill "
+             "each describe as a club or alliance for improvement?")
+    assert classify_question(query) == "comparison"
+    assert "never transfer a relation" in task_guidance("comparison")
+
+
 def test_rank_candidates_combines_dense_and_keyword_signals():
     from app.retrieval.pipeline import rank_candidates
     candidates = [

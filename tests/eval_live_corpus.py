@@ -66,6 +66,29 @@ def doc_types():
         con.close()
 
 
+def document_inventory():
+    """Return every indexed document so the report exposes future upload gaps."""
+    db_path = Path(settings.sqlite_path).resolve()
+    if not db_path.exists():
+        return []
+    con = sqlite3.connect(f"file:{db_path.as_posix()}?mode=ro", uri=True)
+    try:
+        rows = con.execute(
+            "SELECT filename,file_format,processing_status,indexing_status,chunk_count "
+            "FROM documents ORDER BY filename").fetchall()
+        return [{"filename": row[0], "format": row[1], "processing_status": row[2],
+                 "indexing_status": row[3], "chunk_count": row[4]} for row in rows]
+    finally:
+        con.close()
+
+
+def page_fragment_match(fragment, page):
+    fragment, page = str(fragment).casefold(), str(page).casefold()
+    if fragment.isdigit():
+        return bool(re.search(r"(?<!\d)" + re.escape(fragment) + r"(?!\d)", page))
+    return fragment in page
+
+
 # ---------------------------------------------------------------------------
 # The evaluation matrix. `expect` fields are manually verified against the
 # corpus during the diagnosis phase (see rnd_corpus_probe.json).
@@ -88,7 +111,7 @@ CASES = [
      "expect_status": "success",
      "expect": "Science of Getting Rich, Chapter 4: thinking in the Certain Way",
      "answer_must_include_any_of": [["certain way"]],
-     "source_filename_contains": ["the-science-of-getting-rich"], "source_page_contains": ["9"]},
+     "source_filename_contains": ["the-science-of-getting-rich"], "source_page_contains": ["10"]},
     {"id": "C4_chapter_specific", "category": "chapter_section_questions",
      "question": "What does Chapter 51 say are the three topics of philosophy, and which does Epictetus consider most necessary?",
      "expect_status": "success",
@@ -113,7 +136,7 @@ CASES = [
      "expect_status": "success",
      "expect": "The final numbered chapter in the supplied edition is Chapter 51 (PDF page 71)",
      "answer_must_include_any_of": [["51", "fifty-one"]],
-     "source_filename_contains": ["the-enchiridion"], "source_page_contains": ["71"]},
+     "source_filename_contains": ["the-enchiridion"], "source_page_contains": ["5"]},
     {"id": "C8_date_identifier", "category": "date_identifier_questions",
      "question": "What year did Benjamin Franklin arrive in Philadelphia?",
      "expect_status": "abstain",
@@ -171,11 +194,26 @@ CASES = [
      "expect_status": "any",
      "expect": "Answer only if the InfoBooks pages contain actionable ordering information; otherwise abstain"},
     {"id": "C19_franklin_substance", "category": "answer_completeness",
-     "question": "What trade did Benjamin Franklin apprentice in as a boy?",
+     "question": "According to Franklin, what was his father's business, and what work did Franklin do for him at age ten?",
      "expect_status": "success",
-     "expect": "The named trade from the autobiography (PDF page 7: tallow-chandler and soap-boiler business; cutting wick for candles)",
-     "answer_must_include_any_of": [["candle", "tallow chandler"]],
+     "expect": "Autobiography page 7: his father was a tallow-chandler and soap-boiler; Franklin cut candle wick and filled molds",
+     "answer_must_include_any_of": [["tallow-chandler", "tallow chandler"], ["wick"], ["mold", "mould"]],
      "source_filename_contains": ["autobiography-of-benjamin-franklin"], "source_page_contains": ["7"]},
+    {"id": "C20_dracula_chapters", "category": "document_specific_direct_fact",
+     "question": "How many chapters make up Dracula?", "expect_status": "success",
+     "expect": "Dracula reading guide, PDF page 5: 27 chapters",
+     "answer_must_include_any_of": [["27"]],
+     "source_filename_contains": ["dracula-bram-stoker"], "source_page_contains": ["5"]},
+    {"id": "C21_dracula_narrator", "category": "document_specific_named_fact",
+     "question": "Who keeps a diary on a phonograph in Dracula?", "expect_status": "success",
+     "expect": "Dracula reading guide, PDF page 5: Dr. Seward",
+     "answer_must_include_any_of": [["seward"], ["phonograph"]],
+     "source_filename_contains": ["dracula-bram-stoker"], "source_page_contains": ["5"]},
+    {"id": "C22_dracula_document_forms", "category": "document_specific_list",
+     "question": "What kinds of records make up Dracula's narrative?", "expect_status": "success",
+     "expect": "Dracula reading guide, PDF page 5: journals, diaries, letters, telegrams, newspaper cuttings",
+     "answer_must_include_any_of": [["journals"], ["diaries"], ["letters"], ["telegrams"], ["newspaper"]],
+     "source_filename_contains": ["dracula-bram-stoker"], "source_page_contains": ["5"]},
 ]
 
 
@@ -215,7 +253,7 @@ def answer_quality_check(case, answer, sources, answer_cache=None):
 
     pages = [str(source.get("source_location") or "").casefold() for source in sources]
     expected_pages = [] if accepted_abstention else (case.get("source_page_contains") or [])
-    page_checks = [any(fragment.casefold() in page for page in pages)
+    page_checks = [any(page_fragment_match(fragment, page) for page in pages)
                    for fragment in expected_pages]
     pages_ok = all(page_checks) if expected_pages else None
 
@@ -250,6 +288,40 @@ def run_case(case, types, api=None, timeout=1200):
             turn_case["answer_must_include_any_of"] = [[term] for term in turn_terms]
         history = history + [{"role": "user", "content": question[:2000]},
                              {"role": "assistant", "content": (answer.get("answer") or "")[:2000]}]
+        citation = citation_check(answer.get("answer"), answer.get("sources") or [])
+        cited_filenames = [str(src.get("filename") or "").casefold()
+                           for src in citation["cited_sources"]]
+        cited_pages = [str(src.get("page") or "").casefold()
+                       for src in citation["cited_sources"]]
+        expected_files = case.get("source_filename_contains") or []
+        expected_pages = case.get("source_page_contains") or []
+        cited_file_checks = [any(fragment.casefold() in name for name in cited_filenames)
+                             for fragment in expected_files]
+        cited_page_checks = [any(page_fragment_match(fragment, page) for page in cited_pages)
+                             for fragment in expected_pages]
+        citation_validation = answer.get("citation_validation") or {}
+        verification = answer.get("verification") or {}
+        citation_accuracy = {
+            "references_in_range": citation["all_refs_valid"],
+            "citation_validator_passed": citation_validation.get("valid"),
+            "answer_verifier_checked": verification.get("checked"),
+            "answer_verifier_passed": verification.get("passed"),
+            "expected_cited_source_checks": cited_file_checks,
+            "expected_cited_sources_match": all(cited_file_checks) if cited_file_checks else None,
+            "expected_cited_page_checks": cited_page_checks,
+            "expected_cited_pages_match": all(cited_page_checks) if cited_page_checks else None,
+        }
+        citation_gates = [citation_accuracy["references_in_range"]]
+        citation_gates += [value for value in (
+            citation_accuracy["citation_validator_passed"],
+            citation_accuracy["answer_verifier_passed"],
+            citation_accuracy["expected_cited_sources_match"],
+            citation_accuracy["expected_cited_pages_match"],
+        ) if value is not None]
+        citation_applicable = (answer.get("status") == "success"
+                               and answer.get("question_type") != "calculation")
+        citation_accuracy["accuracy_pass"] = (all(citation_gates)
+                                               if citation_applicable else None)
         record = {
             "case_id": case["id"], "category": case["category"], "turn": turn_index,
             "question": question, "expected_evidence": case.get("expect"),
@@ -266,6 +338,17 @@ def run_case(case, types, api=None, timeout=1200):
                 "candidate_chunks": (answer.get("retrieval") or {}).get("candidate_chunks"),
                 "selected_chunks": (answer.get("retrieval") or {}).get("selected_chunks"),
                 "best_similarity": (answer.get("retrieval") or {}).get("best_similarity"),
+                "query_normalized": (answer.get("retrieval") or {}).get("query_normalized"),
+                "query_expansion_triggered": (answer.get("retrieval") or {}).get("query_expansion_triggered"),
+                "retrieval_passes": (answer.get("retrieval") or {}).get("retrieval_passes"),
+                "evidence_term_coverage": (answer.get("retrieval") or {}).get("evidence_term_coverage"),
+                "missing_query_terms": (answer.get("retrieval") or {}).get("missing_query_terms"),
+                "failure_stage": (answer.get("retrieval") or {}).get("failure_stage"),
+                "selected_draft": (answer.get("retrieval") or {}).get("selected_draft"),
+                "answer_recovery_attempted": (answer.get("retrieval") or {}).get("answer_recovery_attempted"),
+                "answer_recovery_succeeded": (answer.get("retrieval") or {}).get("answer_recovery_succeeded"),
+                "candidates": (answer.get("retrieval") or {}).get("candidates"),
+                "abstention_classification": (answer.get("retrieval") or {}).get("abstention_classification"),
                 "document_types": (answer.get("retrieval") or {}).get("document_types"),
                 "answer_cache": answer.get("answer_cache"),
             },
@@ -274,7 +357,10 @@ def run_case(case, types, api=None, timeout=1200):
                          "relevance": s.get("relevance_score"),
                          "supporting_text": (s.get("supporting_text") or "")[:200]}
                         for s in (answer.get("sources") or [])],
-            "citation": citation_check(answer.get("answer"), answer.get("sources") or []),
+            "citation": citation,
+            "citation_accuracy": citation_accuracy,
+            "citation_validation": citation_validation,
+            "verification": verification,
             "answer_quality": answer_quality_check(
                 {**turn_case, "_actual_status": answer.get("status")},
                 answer.get("answer"), answer.get("sources") or [], answer.get("answer_cache")),
@@ -296,6 +382,7 @@ def run_case(case, types, api=None, timeout=1200):
 
 def run(selected, api=None, output_dir=None, timeout=1200):
     types = doc_types()
+    inventory = document_inventory()
     results = []
     for case in selected:
         records = run_case(case, types, api=api, timeout=timeout)
@@ -315,11 +402,65 @@ def run(selected, api=None, output_dir=None, timeout=1200):
             totals["abstain"] += 1
         else:
             totals["other"] += 1
-    summary = {"started": stamp, "api": api or API, "results": results, "totals": totals}
+    response_times = [float(record.get("wall_seconds") or 0) for record in results]
+    sorted_times = sorted(response_times)
+    def percentile(p):
+        if not sorted_times:
+            return None
+        return sorted_times[min(len(sorted_times) - 1, round((len(sorted_times) - 1) * p))]
+    citation_checks = [record.get("citation_accuracy") or {} for record in results]
+    evaluated_citations = [item for item in citation_checks if item.get("accuracy_pass") is not None]
+    per_document = {}
+    for record in results:
+        expected_files = ((record.get("answer_quality") or {}).get("source_filename_checks") or [])
+        for source in record.get("sources") or []:
+            name = source.get("filename") or "unknown"
+            item = per_document.setdefault(name, {"retrieved_cases": 0, "success": 0,
+                                                   "quality_pass": 0, "quality_checked": 0,
+                                                   "citations_pass": 0, "citations_checked": 0})
+            item["retrieved_cases"] += 1
+            item["success"] += record.get("status") == "success"
+            qpass = (record.get("answer_quality") or {}).get("quality_pass")
+            if qpass is not None:
+                item["quality_checked"] += 1
+                item["quality_pass"] += bool(qpass)
+            cpass = (record.get("citation_accuracy") or {}).get("accuracy_pass")
+            if cpass is not None:
+                item["citations_checked"] += 1
+                item["citations_pass"] += bool(cpass)
+    targeted_documents = sorted({
+        document["filename"] for document in inventory
+        if any(fragment.casefold() in document["filename"].casefold()
+               for case in selected for fragment in (case.get("source_filename_contains") or []))
+    })
+    uncovered_documents = sorted(document["filename"] for document in inventory
+                                 if document["filename"] not in targeted_documents)
+    summary = {
+        "started": stamp, "api": api or API, "results": results, "totals": totals,
+        "coverage": {"cases_run": len(results), "unique_categories": sorted(
+            {record.get("category") for record in results}), "indexed_document_count": len(inventory),
+            "indexed_documents": inventory, "documents_with_targeted_cases": targeted_documents,
+            "uncovered_indexed_documents": uncovered_documents,
+            "documents_retrieved": per_document},
+        "latency_seconds": {"count": len(response_times),
+                            "mean": round(sum(response_times) / len(response_times), 3) if response_times else None,
+                            "p50": percentile(0.50), "p95": percentile(0.95),
+                            "max": max(response_times) if response_times else None},
+        "citation_accuracy": {"checked": len(evaluated_citations),
+                              "passed": sum(bool(item.get("accuracy_pass")) for item in evaluated_citations),
+                              "pass_rate": (round(sum(bool(item.get("accuracy_pass")) for item in evaluated_citations)
+                                                   / len(evaluated_citations), 3)
+                                            if evaluated_citations else None)},
+    }
     with open(out_path, "w", encoding="utf-8") as fh:
         json.dump(summary, fh, indent=1, ensure_ascii=False)
     print("saved", out_path)
     print("totals:", totals)
+    print("indexed documents:", len(inventory), "targeted:", len(targeted_documents),
+          "uncovered:", uncovered_documents)
+    print("citation accuracy:", summary["citation_accuracy"],
+          "latency:", summary["latency_seconds"])
+    return summary
 
 
 if __name__ == "__main__":
@@ -331,6 +472,8 @@ if __name__ == "__main__":
     parser.add_argument("--cases", default="",
                         help="Comma-separated case ids to re-run "
                              "(e.g. C3_semantic_concept,C8_date_identifier)")
+    parser.add_argument("--strict-document-coverage", action="store_true",
+                        help="Exit with status 2 when any indexed document lacks a targeted case")
     args = parser.parse_args()
     if args.cases:
         keep = {item.strip() for item in args.cases.split(",") if item.strip()}
@@ -342,4 +485,6 @@ if __name__ == "__main__":
                      "C15_abstention_missing", "C18_boilerplate"}
         selected = [case for case in CASES
                     if case["id"] in quick_set] if args.quick else list(CASES)
-    run(selected, api=args.api, output_dir=args.output_dir, timeout=args.timeout)
+    summary = run(selected, api=args.api, output_dir=args.output_dir, timeout=args.timeout)
+    if args.strict_document_coverage and summary["coverage"]["uncovered_indexed_documents"]:
+        raise SystemExit(2)

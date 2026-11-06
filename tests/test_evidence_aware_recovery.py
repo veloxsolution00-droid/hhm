@@ -79,21 +79,18 @@ def test_cited_correct_answer_succeeds_without_recovery(monkeypatch):
     assert result["sources"][0]["source_location"] == "Page 71"
 
 
-# 2. Correct answer without citations: citation-format failure, never missing evidence.
-def test_uncited_correct_answer_is_citation_failure_not_missing_evidence(monkeypatch):
+# 2. Correct answer without citations: attach only the matching evidence ref.
+def test_uncited_correct_answer_is_repaired_from_matching_evidence(monkeypatch):
     chat, state = _setup(monkeypatch)
     state["drafts"] = [
         "Chapter 51 lists three topics: practical application, demonstrations, and logic.",
         "Chapter 51 lists three topics: practical application, demonstrations, and logic.",
     ]
     result = chat._answer_one(QUESTION, {"d1"}, "local")
-    assert result["status"] == "citation_validation_failed"
-    assert result["status"] != "insufficient_evidence"
-    # Original draft preserved separately from the repair draft.
-    stages = [c["stage"] for c in result["retrieval"]["candidates"]]
-    assert stages == ["generation", "citation_repair"]
-    assert result["retrieval"]["selected_draft"] == "none"
-    assert all(c["snippet"] for c in result["retrieval"]["candidates"])
+    assert result["status"] == "success"
+    assert result["citation_validation"]["valid"] is True
+    assert result["retrieval"]["selected_draft"] == "generation"
+    assert len(result["retrieval"]["candidates"]) == 1
     assert result["sources"][0]["source_location"] == "Page 71"
 
 
@@ -105,18 +102,10 @@ def test_abstention_retry_does_not_destroy_substantive_first_draft(monkeypatch):
         "Cannot find it in the documents.",
     ]
     result = chat._answer_one(QUESTION, {"d1"}, "local")
-    expected = [
-        result["status"] != "insufficient_evidence",
-        result["retrieval"]["answer_recovery_attempted"] is True,
-        result["retrieval"]["answer_recovery_succeeded"] is False,
-        result["citation_validation"] is not None,
-        len(result["sources"]) >= 1,
-        result["sources"][0]["source_location"] == "Page 71",
-    ]
-    assert all(expected), expected
-    assert result["retrieval"]["candidates"][0]["abstention"] is False
-    assert result["retrieval"]["candidates"][1]["abstention"] is True
-    assert result["retrieval"]["selected_draft"] == "none"
+    assert result["status"] == "success"
+    assert result["citation_validation"]["valid"] is True
+    assert len(result["retrieval"]["candidates"]) == 1
+    assert "Cannot find" not in result["answer"]
     assert result["retrieval"]["candidates"][0]["snippet"].startswith("Chapter 51")
 
 
@@ -140,7 +129,8 @@ def test_two_invalid_candidates_report_citation_failure(monkeypatch):
     state["drafts"] = ["Some claim appears here [9].", "Another claim appears there [8]."]
     result = chat._answer_one(QUESTION, {"d1"}, "local")
     assert result["status"] == "citation_validation_failed"
-    assert result["citation_validation"]["invalid_reference_numbers"] == [9]
+    assert result["citation_validation"]["invalid_reference_numbers"] == []
+    assert result["citation_validation"]["uncited_sentences"]
     assert result["retrieval"]["answer_recovery_attempted"] is True
     assert result["retrieval"]["answer_recovery_succeeded"] is False
 
@@ -179,8 +169,8 @@ def test_invalid_reference_repair_is_accepted_when_it_becomes_valid(monkeypatch)
     result = chat._answer_one(QUESTION, {"d1"}, "local")
     assert result["status"] == "success"
     assert result["citation_validation"]["references_found"] == [1]
-    assert result["retrieval"]["selected_draft"] == "citation_repair"
-    assert result["retrieval"]["answer_recovery_succeeded"] is True
+    assert result["retrieval"]["selected_draft"] == "generation"
+    assert len(state["calls"]) == 1
 
 
 # 9. Substantive cited answer with unsupported claims is rejected by the verifier.
@@ -290,22 +280,22 @@ def test_verifier_rejection_withholds_answer_without_recovery(monkeypatch):
     assert result["retrieval"]["answer_recovery_succeeded"] is False
 
 
-# 15. Recovery attempt failing or timing out leaves the first draft intact.
-def test_repair_generation_failure_preserves_first_draft(monkeypatch):
+# 15. Strong lexical evidence makes another citation-generation call unnecessary.
+def test_matching_uncited_draft_skips_model_citation_repair(monkeypatch):
     chat, state = _setup(monkeypatch)
     state["drafts"] = ["Chapter 51 lists three topics: practical application, demonstrations, and logic."]
     state["fail_at"] = 2
     state["fail_exc"] = TimeoutError("simulated Ollama timeout")
     result = chat._answer_one(QUESTION, {"d1"}, "local")
-    assert result["status"] == "citation_validation_failed"
+    assert result["status"] == "success"
     assert result["status"] != "insufficient_evidence"
-    assert result["retrieval"]["answer_recovery_attempted"] is True
-    assert result["retrieval"]["answer_recovery_succeeded"] is False
+    assert "answer_recovery_attempted" not in result["retrieval"]
+    assert len(state["calls"]) == 1
     assert result["retrieval"]["candidates"][0]["snippet"].startswith("Chapter 51")
 
 
 # Prompt-contract checks: no literal refusal strings anywhere in the factual path.
-def test_generation_and_repair_prompts_contain_no_refusal_strings(monkeypatch):
+def test_generation_prompt_and_local_citation_recovery_contract(monkeypatch):
     chat, state = _setup(monkeypatch)
     state["drafts"] = [
         "Chapter 51 lists three topics: practical application, demonstrations, and logic.",
@@ -317,8 +307,7 @@ def test_generation_and_repair_prompts_contain_no_refusal_strings(monkeypatch):
         assert "you cannot find" not in prompt.lower()
     generation_prompt = state["calls"][0]
     assert "Answer every part that the EVIDENCE supports" in generation_prompt
-    assert "CITATION REPAIR:" in state["calls"][1]
-    assert "Preserve the factual content" in state["calls"][1]
+    assert len(state["calls"]) == 1
     # Evidence-only policy is preserved.
     assert "Use ONLY the EVIDENCE" in generation_prompt
     assert "never use outside knowledge" in generation_prompt
@@ -334,6 +323,8 @@ def test_abstention_classifier_distinguishes_refusal_partial_and_substantive():
     assert chat._classify_draft("No relevant information was found in the uploaded documents.") == "refusal"
     assert chat._classify_draft(
         "The document does not contain the three topics of philosophy.") == "partial"
+    assert chat._is_abstention(
+        "The provided evidence does not contain any information about when Benjamin Franklin arrived.") is True
     assert chat._classify_draft(
         "I cannot find the exact page, but Chapter 51 lists three topics of philosophy.") == "partial"
     assert chat._classify_draft(
@@ -376,3 +367,26 @@ def test_verifier_focuses_all_sources_in_comma_separated_citations(monkeypatch):
     assert "First cited fact" in captured["prompt"]
     assert "Second cited fact" in captured["prompt"]
     assert "Uncited unrelated passage" not in captured["prompt"]
+
+
+def test_unmatched_specific_question_subject_rejected_as_missing_evidence(monkeypatch):
+    chat, state = _setup(monkeypatch, verify=True)
+    state["drafts"] = [
+        "The Enchiridion has 51 chapters, so none discusses quidditch [1].",
+        "The book has 51 chapters [1].",
+    ]
+    state["verdict"] = "UNSUPPORTED ANSWERED"
+    result = chat._answer_one(
+        "Which chapter of the Enchiridion discusses quidditch?", {"d1"}, "local")
+    assert result["status"] == "insufficient_evidence"
+    assert result["abstained"] is True
+    assert result["retrieval"]["failure_stage"] == "unmatched_question_anchor"
+
+
+def test_unmatched_subject_guard_does_not_match_substrings():
+    from app.rag.chat import _has_unmatched_question_anchor
+
+    assert _has_unmatched_question_anchor(
+        "Which chapter discusses quidditch?", "A chapter discusses chess.")
+    assert not _has_unmatched_question_anchor(
+        "Which chapter discusses chess?", "A chapter discusses chess.")

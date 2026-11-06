@@ -7,7 +7,8 @@ An AI-powered, local-only document chatbot. Upload documents and ask questions g
 - **Offline AI:** Run language models locally using Ollama.
 - **Multi-Format Support:** Process PDFs, Word documents, spreadsheets, images, presentations, and more.
 - **Grounded RAG Chat:** Generate answers from relevant document content; unrelated questions return a clear no-relevant-information response.
-- **Hybrid Retrieval & Verification:** Combine semantic and exact-term matching, then verify that each draft answer is supported by the retrieved evidence.
+- **Adaptive Hybrid Retrieval:** Search semantic and exact-term indexes, expand with conservative query variants when candidate coverage is weak or scores are ambiguous, then pass selected source passages to the answer model.
+- **Evidence Verification:** Check generated claims against the retrieved passages and require valid source references before returning an answer.
 - **Visible Citations:** Show the filenames and source locations used for every answer.
 - **Persistent Storage:** Preserve uploaded files, extracted text, metadata, and embeddings across restarts.
 - **Multi-Question Support:** Answer each explicitly separated question in one message.
@@ -20,6 +21,7 @@ An AI-powered, local-only document chatbot. Upload documents and ask questions g
 - **Loopback Guard:** Reject non-loopback Ollama endpoints to help enforce local-only runtime operation.
 - **Evaluation Harness:** Run local API regression cases for answer content, abstention, source filenames, question type, and follow-up context.
 - **Background Processing:** Process documents asynchronously using an ingestion queue.
+- **Workspace UI:** Keep chat and its cited evidence prominent, with live ingestion status and a document library in a separate management section.
 - **OCR Support:** Extract text from scanned documents and images using Tesseract.
 - **Duplicate Detection:** Identify duplicate uploads using SHA-256 hashing.
 - **Recovery Mechanism:** Recover interrupted ingestion operations.

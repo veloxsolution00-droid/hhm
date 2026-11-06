@@ -1,0 +1,108 @@
+{
+ "started": "20261105_125253",
+ "api": "http://127.0.0.1:8000",
+ "results": [
+  {
+   "case_id": "C1_factual_direct",
+   "category": "direct_factual_retrieval",
+   "turn": 1,
+   "question": "According to the Enchiridion, what things are in our control?",
+   "expected_evidence": "Enchiridion page 4: opinion, aim, desire",
+   "expected_status": "success",
+   "status": "success",
+   "abstained": false,
+   "actual_answer": "According to the Enchiridion, things within our power are opinion, desire, aversion, and whatever affairs are our own [3].",
+   "question_type": "factual",
+   "confidence": 0.903,
+   "response_seconds": 40.568,
+   "wall_seconds": 40.606,
+   "retrieval": {
+    "indexed_documents": 5,
+    "candidate_chunks": 49,
+    "selected_chunks": 4,
+    "best_similarity": 0.6438,
+    "document_types": [
+     "prose"
+    ],
+    "answer_cache": null
+   },
+   "sources": [
+    {
+     "rank": 1,
+     "filename": "the-enchiridion-epictetus.pdf",
+     "page": "Page 4",
+     "relevance": 0.6438,
+     "supporting_text": "SYNOPSIS\nThe Enchiridion, whose Greek title means “handbook”, gathers what \nEpictetus taught. Epictetus had been a slave before he became a Stoic \nteacher, and his pupil Arrian drew this book from his",
+     "document_type": "prose"
+    },
+    {
+     "rank": 2,
+     "filename": "think-and-grow-rich-napoleon-hill.pdf",
+     "page": "Page 57",
+     "relevance": 0.5519,
+     "supporting_text": "Think and Grow Rich\nhave informed us that we are the Masters of our Fate, the \nCaptains of our Souls, because we have the power to control \nour thoughts.\nHe should have told us that the ether in which",
+     "document_type": "prose"
+    },
+    {
+     "rank": 3,
+     "filename": "the-enchiridion-epictetus.pdf",
+     "page": "Page 9",
+     "relevance": 0.5805,
+     "supporting_text": "Chapter 1\nThere are things which are within our power, and there are \nthings which are beyond our power. Within our power are \nopinion, aim, desire, aversion, and, in one word, whatever \naffairs are o",
+     "document_type": "prose"
+    },
+    {
+     "rank": 4,
+     "filename": "the-enchiridion-epictetus.pdf",
+     "page": "Page 49",
+     "relevance": 0.5695,
+     "supporting_text": "The Enchiridion\nAvoid public and vulgar entertainments; but if ever an \noccasion calls you to them, keep your attention upon the \nstretch, that you may not imperceptibly slide into vulgarity. \nFor be ",
+     "document_type": "prose"
+    }
+   ],
+   "citation": {
+    "refs": [
+     3
+    ],
+    "all_refs_valid": true,
+    "cited_sources": [
+     {
+      "ref": 3,
+      "filename": "the-enchiridion-epictetus.pdf",
+      "page": "Page 9"
+     }
+    ],
+    "invalid_refs": []
+   },
+   "answer_quality": {
+    "status_match": true,
+    "answer_term_groups": [
+     true,
+     false,
+     true
+    ],
+    "answer_terms_match": false,
+    "source_filename_checks": [
+     true
+    ],
+    "source_filenames_match": true,
+    "source_page_checks": [
+     true
+    ],
+    "source_pages_match": true,
+    "quality_checkable": true,
+    "cache_hit_expected": null,
+    "cache_hit_actual": null,
+    "cache_hit_match": null,
+    "quality_pass": false
+   },
+   "potential_conflicts": [],
+   "failure_reason": "success"
+  }
+ ],
+ "totals": {
+  "success": 1,
+  "abstain": 0,
+  "other": 0
+ }
+}

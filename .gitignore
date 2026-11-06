@@ -19,4 +19,4 @@ data/logs/*
 !data/logs/.gitkeep
 data/jobs/*
 !data/jobs/.gitkeep
-C:\Users\Admin\Downloads\RND2_2\RND2_1\RND\offline
+offline/*

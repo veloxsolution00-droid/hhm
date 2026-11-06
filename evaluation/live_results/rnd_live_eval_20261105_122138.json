@@ -1,0 +1,192 @@
+{
+ "started": "20261105_122138",
+ "api": "http://127.0.0.1:8000",
+ "results": [
+  {
+   "case_id": "C1_factual_direct",
+   "category": "direct_factual_retrieval",
+   "turn": 1,
+   "question": "According to the Enchiridion, what things are in our control?",
+   "expected_evidence": "Enchiridion page 4: opinion, aim, desire",
+   "expected_status": "success",
+   "status": "success",
+   "abstained": false,
+   "actual_answer": "According to the Enchiridion, the things within our power are opinion, aim, desire, aversion, and whatever affairs are our own [2].",
+   "question_type": "factual",
+   "confidence": 0.943,
+   "response_seconds": 36.977,
+   "wall_seconds": 36.986,
+   "retrieval": {
+    "indexed_documents": 5,
+    "candidate_chunks": 49,
+    "selected_chunks": 4,
+    "best_similarity": 0.6438,
+    "document_types": [
+     "prose"
+    ],
+    "answer_cache": null
+   },
+   "sources": [
+    {
+     "rank": 1,
+     "filename": "the-enchiridion-epictetus.pdf",
+     "page": "Page 45",
+     "relevance": 0.52,
+     "supporting_text": "The Enchiridion\nwho, as he thinks, hurts him, just as it is impossible to \nrejoice in the hurt itself. Hence, also, a father is reviled by \nhis son when he does not impart the things which seem to \nbe",
+     "document_type": "prose"
+    },
+    {
+     "rank": 2,
+     "filename": "the-enchiridion-epictetus.pdf",
+     "page": "Page 9",
+     "relevance": 0.5805,
+     "supporting_text": "Chapter 1\nThere are things which are within our power, and there are \nthings which are beyond our power. Within our power are \nopinion, aim, desire, aversion, and, in one word, whatever \naffairs are o",
+     "document_type": "prose"
+    },
+    {
+     "rank": 3,
+     "filename": "the-enchiridion-epictetus.pdf",
+     "page": "Page 4",
+     "relevance": 0.6438,
+     "supporting_text": "SYNOPSIS\nThe Enchiridion, whose Greek title means “handbook”, gathers what \nEpictetus taught. Epictetus had been a slave before he became a Stoic \nteacher, and his pupil Arrian drew this book from his",
+     "document_type": "prose"
+    },
+    {
+     "rank": 4,
+     "filename": "think-and-grow-rich-napoleon-hill.pdf",
+     "page": "Page 57",
+     "relevance": 0.5519,
+     "supporting_text": "Think and Grow Rich\nhave informed us that we are the Masters of our Fate, the \nCaptains of our Souls, because we have the power to control \nour thoughts.\nHe should have told us that the ether in which",
+     "document_type": "prose"
+    }
+   ],
+   "citation": {
+    "refs": [
+     2
+    ],
+    "all_refs_valid": true,
+    "cited_sources": [
+     {
+      "ref": 2,
+      "filename": "the-enchiridion-epictetus.pdf",
+      "page": "Page 9"
+     }
+    ],
+    "invalid_refs": []
+   },
+   "answer_quality": {
+    "status_match": true,
+    "answer_term_groups": [
+     true,
+     true,
+     true
+    ],
+    "answer_terms_match": true,
+    "source_filename_checks": [
+     true
+    ],
+    "source_filenames_match": true,
+    "source_page_checks": [
+     true
+    ],
+    "source_pages_match": true,
+    "quality_checkable": true,
+    "cache_hit_expected": null,
+    "cache_hit_actual": null,
+    "cache_hit_match": null,
+    "quality_pass": true
+   },
+   "potential_conflicts": [],
+   "failure_reason": "success"
+  },
+  {
+   "case_id": "C18_boilerplate",
+   "category": "noisy_boilerplate_chunks",
+   "turn": 1,
+   "question": "How can I order more books from InfoBooks?",
+   "expected_evidence": "Answer only if the InfoBooks pages contain actionable ordering information; otherwise abstain",
+   "expected_status": "any",
+   "status": "citation_validation_failed",
+   "abstained": true,
+   "actual_answer": "The document passages were retrieved, but the generated answer did not pass citation validation. Please retry or inspect the listed source passages.",
+   "question_type": "factual",
+   "confidence": 0.0,
+   "response_seconds": 50.518,
+   "wall_seconds": 50.52,
+   "retrieval": {
+    "indexed_documents": 5,
+    "candidate_chunks": 46,
+    "selected_chunks": 4,
+    "best_similarity": 0.5744,
+    "document_types": [
+     "prose"
+    ],
+    "answer_cache": null
+   },
+   "sources": [
+    {
+     "rank": 1,
+     "filename": "the-science-of-getting-rich.pdf",
+     "page": "Page 3",
+     "relevance": 0.5744,
+     "supporting_text": "Read. Learn. Grow\nThis document was lagally downloaded from InfoBooks, and \nthat's great!\nAt InfoBooks, we strive to make exceptional books available for \nfree to everyone.\nBut this book is not the en",
+     "document_type": "prose"
+    },
+    {
+     "rank": 2,
+     "filename": "the-enchiridion-epictetus.pdf",
+     "page": "Page 3",
+     "relevance": 0.5391,
+     "supporting_text": "READ AND DOWNLOAD FREE BOOKS\nScan the code or go to\ninfobooks.org\nThousands of PDF books, free and with no sign-up:\ninfobooks.org/free-pdf-books/\nThis work in other languages:\nIn Spanish: infolibros.o",
+     "document_type": "prose"
+    },
+    {
+     "rank": 3,
+     "filename": "think-and-grow-rich-napoleon-hill.pdf",
+     "page": "Page 3",
+     "relevance": 0.534,
+     "supporting_text": "READ AND DOWNLOAD FREE BOOKS\nScan the code or go to\ninfobooks.org\nThousands of PDF books, free and with no sign-up:\ninfobooks.org/free-pdf-books/\nThis work in other languages:\nIn Spanish: infolibros.o",
+     "document_type": "prose"
+    },
+    {
+     "rank": 4,
+     "filename": "dracula-bram-stoker.pdf",
+     "page": "Page 3",
+     "relevance": 0.5348,
+     "supporting_text": "READ AND DO WNLOAD FREE BOOKS\nScan the code or go to\ninfobooks.org\nThousands of PDF books, free and with no sign-up:\ninfobooks.org/free-pdf-books/\nThis work in other languages:\nIn Spanish: infolibros.",
+     "document_type": "prose"
+    }
+   ],
+   "citation": {
+    "refs": [],
+    "all_refs_valid": true,
+    "cited_sources": [],
+    "invalid_refs": []
+   },
+   "answer_quality": {
+    "status_match": null,
+    "answer_term_groups": [],
+    "answer_terms_match": null,
+    "source_filename_checks": [],
+    "source_filenames_match": null,
+    "source_page_checks": [],
+    "source_pages_match": null,
+    "quality_checkable": false,
+    "cache_hit_expected": null,
+    "cache_hit_actual": null,
+    "cache_hit_match": null,
+    "quality_pass": null
+   },
+   "potential_conflicts": [],
+   "failure_reason": {
+    "generation": "substantive",
+    "citation_repair": "substantive"
+   }
+  }
+ ],
+ "totals": {
+  "success": 1,
+  "abstain": 0,
+  "other": 1
+ }
+}

@@ -1,0 +1,462 @@
+{
+ "started": "20261106_045307",
+ "api": "http://127.0.0.1:8000",
+ "results": [
+  {
+   "case_id": "C1_factual_direct",
+   "category": "direct_factual_retrieval",
+   "turn": 1,
+   "question": "According to the Enchiridion, what things are in our control?",
+   "expected_evidence": "Enchiridion page 4: opinion, aim, desire",
+   "expected_status": "success",
+   "status": "success",
+   "abstained": false,
+   "actual_answer": "According to the Enchiridion, the things within our power are opinion, aim, desire, aversion, and whatever affairs are our own [3]. The things beyond our power are the body, property, reputation, office, and whatever are not properly our own affairs [3]. The evidence also lists by nature free, unrestricted, unhindered, dependent, restricted, alien [3].",
+   "question_type": "factual",
+   "confidence": 0.943,
+   "response_seconds": 105.874,
+   "wall_seconds": 106.017,
+   "retrieval": {
+    "indexed_documents": 5,
+    "candidate_chunks": 49,
+    "selected_chunks": 4,
+    "best_similarity": 0.6438,
+    "document_types": [
+     "prose"
+    ],
+    "answer_cache": null
+   },
+   "sources": [
+    {
+     "rank": 1,
+     "filename": "the-enchiridion-epictetus.pdf",
+     "page": "Page 4",
+     "relevance": 0.6438,
+     "supporting_text": "SYNOPSIS\nThe Enchiridion, whose Greek title means “handbook”, gathers what \nEpictetus taught. Epictetus had been a slave before he became a Stoic \nteacher, and his pupil Arrian drew this book from his",
+     "document_type": "prose"
+    },
+    {
+     "rank": 2,
+     "filename": "think-and-grow-rich-napoleon-hill.pdf",
+     "page": "Page 57",
+     "relevance": 0.5519,
+     "supporting_text": "Think and Grow Rich\nhave informed us that we are the Masters of our Fate, the \nCaptains of our Souls, because we have the power to control \nour thoughts.\nHe should have told us that the ether in which",
+     "document_type": "prose"
+    },
+    {
+     "rank": 3,
+     "filename": "the-enchiridion-epictetus.pdf",
+     "page": "Page 9",
+     "relevance": 0.5805,
+     "supporting_text": "Chapter 1\nThere are things which are within our power, and there are \nthings which are beyond our power. Within our power are \nopinion, aim, desire, aversion, and, in one word, whatever \naffairs are o",
+     "document_type": "prose"
+    },
+    {
+     "rank": 4,
+     "filename": "the-enchiridion-epictetus.pdf",
+     "page": "Page 45",
+     "relevance": 0.52,
+     "supporting_text": "The Enchiridion\nwho, as he thinks, hurts him, just as it is impossible to \nrejoice in the hurt itself. Hence, also, a father is reviled by \nhis son when he does not impart the things which seem to \nbe",
+     "document_type": "prose"
+    }
+   ],
+   "citation": {
+    "refs": [
+     3
+    ],
+    "all_refs_valid": true,
+    "cited_sources": [
+     {
+      "ref": 3,
+      "filename": "the-enchiridion-epictetus.pdf",
+      "page": "Page 9"
+     }
+    ],
+    "invalid_refs": []
+   },
+   "answer_quality": {
+    "status_match": true,
+    "answer_term_groups": [
+     true,
+     true,
+     true
+    ],
+    "answer_terms_match": true,
+    "source_filename_checks": [
+     true
+    ],
+    "source_filenames_match": true,
+    "source_page_checks": [
+     true
+    ],
+    "source_pages_match": true,
+    "quality_checkable": true,
+    "cache_hit_expected": null,
+    "cache_hit_actual": null,
+    "cache_hit_match": null,
+    "quality_pass": true
+   },
+   "potential_conflicts": [],
+   "failure_reason": "success"
+  },
+  {
+   "case_id": "C4_chapter_specific",
+   "category": "chapter_section_questions",
+   "turn": 1,
+   "question": "What does Chapter 51 say are the three topics of philosophy, and which does Epictetus consider most necessary?",
+   "expected_evidence": "Enchiridion Chapter 51, page 71: practical application, demonstrations, logic; practical application most necessary",
+   "expected_status": "success",
+   "status": "success",
+   "abstained": false,
+   "actual_answer": "Chapter 51 says the three topics of philosophy are the practical application of principles, demonstrations, and the third point which gives strength and logical connection to the other two [3]. Epictetus considers the practical application of principles most necessary [3]. The evidence also lists lost [1].",
+   "question_type": "factual",
+   "confidence": 0.868,
+   "response_seconds": 83.267,
+   "wall_seconds": 83.268,
+   "retrieval": {
+    "indexed_documents": 5,
+    "candidate_chunks": 51,
+    "selected_chunks": 4,
+    "best_similarity": 0.6275,
+    "document_types": [
+     "prose"
+    ],
+    "answer_cache": null
+   },
+   "sources": [
+    {
+     "rank": 1,
+     "filename": "the-enchiridion-epictetus.pdf",
+     "page": "Page 67",
+     "relevance": 0.5856,
+     "supporting_text": "Chapter 49\nWhen anyone shows himself vain on being able to \nunderstand and interpret the works of Chrysippus,7 say to \nyourself: “Unless Chrysippus had written obscurely, this \nperson would have had n",
+     "document_type": "prose"
+    },
+    {
+     "rank": 2,
+     "filename": "the-enchiridion-epictetus.pdf",
+     "page": "Page 5",
+     "relevance": 0.5272,
+     "supporting_text": "HOW TO READ THIS BOOK\nThe Enchiridion is made up of 51 short chapters, numbered and \nwithout titles, and each chapter stands on its own, so you can read \nthem in order or open the book at any chapter.",
+     "document_type": "prose"
+    },
+    {
+     "rank": 3,
+     "filename": "the-enchiridion-epictetus.pdf",
+     "page": "Page 71",
+     "relevance": 0.6275,
+     "supporting_text": "Chapter 51\nThe first and most necessary topic in philosophy is the \npractical application of principles, as, We ought not to lie; the \nsecond is that of demonstrations, as, Why it is that we ought \nno",
+     "document_type": "prose"
+    },
+    {
+     "rank": 4,
+     "filename": "the-enchiridion-epictetus.pdf",
+     "page": "Page 4",
+     "relevance": 0.4986,
+     "supporting_text": "SYNOPSIS\nThe Enchiridion, whose Greek title means “handbook”, gathers what \nEpictetus taught. Epictetus had been a slave before he became a Stoic \nteacher, and his pupil Arrian drew this book from his",
+     "document_type": "prose"
+    }
+   ],
+   "citation": {
+    "refs": [
+     1,
+     3
+    ],
+    "all_refs_valid": true,
+    "cited_sources": [
+     {
+      "ref": 1,
+      "filename": "the-enchiridion-epictetus.pdf",
+      "page": "Page 67"
+     },
+     {
+      "ref": 3,
+      "filename": "the-enchiridion-epictetus.pdf",
+      "page": "Page 71"
+     }
+    ],
+    "invalid_refs": []
+   },
+   "answer_quality": {
+    "status_match": true,
+    "answer_term_groups": [
+     true,
+     true,
+     true
+    ],
+    "answer_terms_match": true,
+    "source_filename_checks": [
+     true
+    ],
+    "source_filenames_match": true,
+    "source_page_checks": [
+     true
+    ],
+    "source_pages_match": true,
+    "quality_checkable": true,
+    "cache_hit_expected": null,
+    "cache_hit_actual": null,
+    "cache_hit_match": null,
+    "quality_pass": true
+   },
+   "potential_conflicts": [],
+   "failure_reason": "success"
+  },
+  {
+   "case_id": "C13_calculation",
+   "category": "calculation_questions",
+   "turn": 1,
+   "question": "What is 10% of 250?",
+   "expected_evidence": "Deterministic result 25",
+   "expected_status": "success",
+   "status": "success",
+   "abstained": false,
+   "actual_answer": "Calculation: (10.0 / 100) * 250.0 = 25",
+   "question_type": "calculation",
+   "confidence": 1.0,
+   "response_seconds": 0.038,
+   "wall_seconds": 0.042,
+   "retrieval": {
+    "indexed_documents": null,
+    "candidate_chunks": null,
+    "selected_chunks": null,
+    "best_similarity": null,
+    "document_types": null,
+    "answer_cache": null
+   },
+   "sources": [],
+   "citation": {
+    "refs": [],
+    "all_refs_valid": true,
+    "cited_sources": [],
+    "invalid_refs": []
+   },
+   "answer_quality": {
+    "status_match": true,
+    "answer_term_groups": [
+     true
+    ],
+    "answer_terms_match": true,
+    "source_filename_checks": [],
+    "source_filenames_match": null,
+    "source_page_checks": [],
+    "source_pages_match": null,
+    "quality_checkable": true,
+    "cache_hit_expected": null,
+    "cache_hit_actual": null,
+    "cache_hit_match": null,
+    "quality_pass": true
+   },
+   "potential_conflicts": null,
+   "failure_reason": "success"
+  },
+  {
+   "case_id": "C15_abstention_missing",
+   "category": "missing_information_abstention",
+   "turn": 1,
+   "question": "Which chapter of the Enchiridion discusses quidditch?",
+   "expected_evidence": "Abstention: no quidditch content exists in the uploaded corpus",
+   "expected_status": "abstain",
+   "status": "insufficient_evidence",
+   "abstained": true,
+   "actual_answer": "No relevant information was found in the uploaded documents.",
+   "question_type": "factual",
+   "confidence": 0.0,
+   "response_seconds": 85.037,
+   "wall_seconds": 85.041,
+   "retrieval": {
+    "indexed_documents": 5,
+    "candidate_chunks": 55,
+    "selected_chunks": 4,
+    "best_similarity": 0.6322,
+    "document_types": [
+     "prose"
+    ],
+    "answer_cache": null
+   },
+   "sources": [
+    {
+     "rank": 1,
+     "filename": "the-enchiridion-epictetus.pdf",
+     "page": "Page 5",
+     "relevance": 0.6322,
+     "supporting_text": "HOW TO READ THIS BOOK\nThe Enchiridion is made up of 51 short chapters, numbered and \nwithout titles, and each chapter stands on its own, so you can read \nthem in order or open the book at any chapter.",
+     "document_type": "prose"
+    },
+    {
+     "rank": 2,
+     "filename": "the-enchiridion-epictetus.pdf",
+     "page": "Page 4",
+     "relevance": 0.5341,
+     "supporting_text": "SYNOPSIS\nThe Enchiridion, whose Greek title means “handbook”, gathers what \nEpictetus taught. Epictetus had been a slave before he became a Stoic \nteacher, and his pupil Arrian drew this book from his",
+     "document_type": "prose"
+    },
+    {
+     "rank": 3,
+     "filename": "the-enchiridion-epictetus.pdf",
+     "page": "Page 27",
+     "relevance": 0.5006,
+     "supporting_text": "Chapter 18\nWhen a raven happens to croak unluckily, be not overcome \nby appearances, but discriminate and say, “Nothing is \nportended to me, either to my paltry body, or property, or \nreputation, or c",
+     "document_type": "prose"
+    },
+    {
+     "rank": 4,
+     "filename": "the-science-of-getting-rich.pdf",
+     "page": "Page 49",
+     "relevance": 0.4998,
+     "supporting_text": "CHAPTER 11. ACTING IN THE CERTAIN WAY\n\nTHOUGHT is the creative power, or the impelling force which causes the \ncreative power to act; thinking in a Certain Way will bring riches to you, \nbut you must ",
+     "document_type": "prose"
+    }
+   ],
+   "citation": {
+    "refs": [],
+    "all_refs_valid": true,
+    "cited_sources": [],
+    "invalid_refs": []
+   },
+   "answer_quality": {
+    "status_match": true,
+    "answer_term_groups": [],
+    "answer_terms_match": null,
+    "source_filename_checks": [],
+    "source_filenames_match": null,
+    "source_page_checks": [],
+    "source_pages_match": null,
+    "quality_checkable": true,
+    "cache_hit_expected": null,
+    "cache_hit_actual": null,
+    "cache_hit_match": null,
+    "quality_pass": true
+   },
+   "potential_conflicts": [],
+   "failure_reason": {
+    "generation": "substantive",
+    "verification_retry": "substantive"
+   }
+  },
+  {
+   "case_id": "C18_boilerplate",
+   "category": "noisy_boilerplate_chunks",
+   "turn": 1,
+   "question": "How can I order more books from InfoBooks?",
+   "expected_evidence": "Answer only if the InfoBooks pages contain actionable ordering information; otherwise abstain",
+   "expected_status": "any",
+   "status": "success",
+   "abstained": false,
+   "actual_answer": "To order more books from InfoBooks, visit [3] and [4]. On these pages, you will find the URL to visit InfoBooks.org/free-pdf-books/ to read and download free books[3].",
+   "question_type": "factual",
+   "confidence": 1.0,
+   "response_seconds": 42.934,
+   "wall_seconds": 42.938,
+   "retrieval": {
+    "indexed_documents": 5,
+    "candidate_chunks": 53,
+    "selected_chunks": 4,
+    "best_similarity": 0.7905,
+    "document_types": [
+     "prose"
+    ],
+    "answer_cache": null
+   },
+   "sources": [
+    {
+     "rank": 1,
+     "filename": "think-and-grow-rich-napoleon-hill.pdf",
+     "page": "Page 495",
+     "relevance": 0.7405,
+     "supporting_text": "ABOUT THIS EDITION\nFirst published in 1937, while the United States was still climbing out of the \nGreat Depression. It gathers twenty years of interviews with industrialists and \nfinanciers, and it i",
+     "document_type": "prose"
+    },
+    {
+     "rank": 2,
+     "filename": "the-autobiography-of-benjamin-franklin-benjamin-franklin.pdf",
+     "page": "Page 60",
+     "relevance": 0.52,
+     "supporting_text": "xt meeting. As we play'd pretty equally, we thus beat\none another into that language. I afterwards with a little painstaking, acquir'd as much of the Spanish as to\nread their books\n\nalso.\nI have alrea",
+     "document_type": "prose"
+    },
+    {
+     "rank": 3,
+     "filename": "the-science-of-getting-rich.pdf",
+     "page": "Page 3",
+     "relevance": 0.7905,
+     "supporting_text": "Read. Learn. Grow\nThis document was lagally downloaded from InfoBooks, and \nthat's great!\nAt InfoBooks, we strive to make exceptional books available for \nfree to everyone.\nBut this book is not the en",
+     "document_type": "prose"
+    },
+    {
+     "rank": 4,
+     "filename": "dracula-bram-stoker.pdf",
+     "page": "Page 727",
+     "relevance": 0.7203,
+     "supporting_text": "ABOU T THIS EDI TION\nDracula is a novel told through letters, journals and newspaper cuttings, \nwritten by the Irish author Bram Stoker and first published in London in\n\n1897 by Archibald Constable an",
+     "document_type": "prose"
+    }
+   ],
+   "citation": {
+    "refs": [
+     3,
+     4
+    ],
+    "all_refs_valid": true,
+    "cited_sources": [
+     {
+      "ref": 3,
+      "filename": "the-science-of-getting-rich.pdf",
+      "page": "Page 3"
+     },
+     {
+      "ref": 4,
+      "filename": "dracula-bram-stoker.pdf",
+      "page": "Page 727"
+     }
+    ],
+    "invalid_refs": []
+   },
+   "answer_quality": {
+    "status_match": null,
+    "answer_term_groups": [],
+    "answer_terms_match": null,
+    "source_filename_checks": [],
+    "source_filenames_match": null,
+    "source_page_checks": [],
+    "source_pages_match": null,
+    "quality_checkable": false,
+    "cache_hit_expected": null,
+    "cache_hit_actual": null,
+    "cache_hit_match": null,
+    "quality_pass": null
+   },
+   "potential_conflicts": [
+    {
+     "left_filename": "think-and-grow-rich-napoleon-hill.pdf",
+     "left_location": "Page 495",
+     "right_filename": "dracula-bram-stoker.pdf",
+     "right_location": "Page 727",
+     "shared_terms": [
+      "about",
+      "aldus",
+      "best",
+      "books",
+      "born",
+      "classics",
+      "depend",
+      "digital",
+      "does",
+      "domain",
+      "download",
+      "edition"
+     ],
+     "signals": [
+      "different numeric values"
+     ]
+    }
+   ],
+   "failure_reason": "success"
+  }
+ ],
+ "totals": {
+  "success": 4,
+  "abstain": 1,
+  "other": 0
+ }
+}

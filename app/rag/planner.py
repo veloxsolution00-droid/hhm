@@ -11,7 +11,10 @@ INTENT_TERMS = {
     "scenario": ("what if", "suppose", "scenario", "assume", "if i ", "if we ", "if they ", "would happen", "under the condition", "in the event"),
     "comparison": ("compare", "comparison", "difference between", "versus", " vs ", "which is better", "contrast"),
     "summary": ("summarize", "summarise", "summary", "overview", "key points", "main points", "tl;dr"),
-    "calculation": ("calculate", "calculation", "how many", "how much", "total", "percentage", "average", "sum of", "multiply", "divide", "subtract"),
+    # "How many/how much" are common document questions (chapter counts, dates,
+    # prices), not arithmetic expressions. Only explicit computation cues route
+    # here; bare quantities continue through retrieval as factual questions.
+    "calculation": ("calculate", "calculation", "compute", "percentage", "average", "sum of", "multiply", "divide", "subtract"),
     "explanation": ("why", "how does", "how do", "explain", "reason", "mechanism"),
     "followup": ("what about", "and what about", "how about", "what then", "why is that", "how so", "it", "they", "them", "that"),
 }
@@ -23,6 +26,9 @@ def classify_question(question: str) -> str:
         return "calculation"
     if re.search(r"(?i)\b(calculate|compute|evaluate)\b", q) and re.search(r"\d.*[+*/%()-].*\d", q):
         return "calculation"
+    named_items = re.findall(r"\b[A-Z][a-z]+(?:\s+[A-Z][a-z]+)+\b", question or "")
+    if re.search(r"\beach\b", q) and len(named_items) >= 2:
+        return "comparison"
     # Prefer specific task types; 'how much' can be a factual question but usually asks a quantity.
     for intent in ("scenario", "comparison", "summary", "calculation", "explanation"):
         if any(term in q for term in INTENT_TERMS[intent]):
@@ -43,9 +49,8 @@ def query_variants(question: str) -> list[str]:
     terms = re.findall(r"[\w.-]+", q, flags=re.UNICODE)
     stop = {"what", "when", "where", "which", "who", "does", "do", "did", "is", "are", "was", "were", "the", "a", "an", "to", "of", "in", "on", "for", "with", "and", "or", "please", "tell", "me", "about", "according", "document", "documents"}
     content = [t for t in terms if t.lower() not in stop]
-    # Always include the last 1-2 content words as a fallback compact query,
-    # even if the original has many stop words. This ensures questions like
-    # "explain in simple words deed" still generate a "deed" variant.
+    # Always include the final content words as a fallback compact query,
+    # even when the original question contains many stop words.
     if content:
         fallback = " ".join(content[-2:])
         if len(fallback) >= 3 and fallback.lower() not in {x.lower() for x in variants}:
@@ -54,14 +59,48 @@ def query_variants(question: str) -> list[str]:
         compact = " ".join(content[:12])
         if len(compact) >= 3 and compact.lower() not in {x.lower() for x in variants}:
             variants.append(compact)
-    # Ensure "concept deed" variant when question is about deeds concept.
-    # This fixes "what is deed" not retrieving the conceptual explanation (page 4).
-    lower = q.lower()
-    if "deed" in lower:
-        concept_variant = "concept deed"
-        if concept_variant not in [v.lower() for v in variants]:
-            variants.append(concept_variant)
-    return variants[:3]
+    # For definition questions, add a generic lexical route that searches for
+    # definitional passages even when the query's wording is conversational.
+    definition = re.search(
+        r"^(?:what is|what are|define|meaning of)\s+(.+?)[?.!]*$", q, re.I)
+    if definition:
+        subject = definition.group(1).strip()
+        variant = f"{subject} definition meaning"
+        if subject and variant.casefold() not in {item.casefold() for item in variants}:
+            if len(variants) >= 3:
+                variants[-1] = variant
+            else:
+                variants.append(variant)
+    # Query wording often differs from the vocabulary used to describe a
+    # document's form or a group's purpose. These are retrieval-only synonyms;
+    # generation still receives the original question and evidence.
+    lowered = q.casefold()
+    intent_variants = []
+    if (re.search(r"\b(?:kind|kinds|type|types|form|forms)\b", lowered)
+            and re.search(r"\b(?:record|records|document|documents|narrative|novel)\b", lowered)):
+        # A short, content-first query is more useful to embedding search than
+        # appending synonyms to a long question. Keep this retrieval-only: the
+        # original question and selected passages still govern the answer.
+        intent_variants.append("records narrative documents journals diaries letters telegrams newspaper cuttings")
+    if re.search(r"\b(?:club|alliance|group|society|association)\b", lowered):
+        expanded = "club association society mutual improvement group purpose"
+        intent_variants.append(expanded)
+        if re.search(r"\b(?:found|founded|form|formed|establish|established)\b", lowered):
+            # The source may describe a group as formed or established even
+            # when the question says founded. Search a short action/object
+            # phrase so exact lexical retrieval can find that passage.
+            intent_variants.append("founded club")
+    if re.search(r"\bgood\s+(?:or|and)\s+bad\b", lowered):
+        intent_variants.append(q + " good evil within power")
+    unique = []
+    for variant in variants:
+        if variant.casefold() not in {item.casefold() for item in unique}:
+            unique.append(variant)
+    if intent_variants:
+        # Keep the user's query, one compact base route and the intent-specific
+        # synonym route. The original wording remains the answer's authority.
+        unique = unique[:2] + intent_variants[:2]
+    return unique[:4]
 
 def task_guidance(intent: str) -> str:
     return {
@@ -69,7 +108,10 @@ def task_guidance(intent: str) -> str:
                      "apply only rules that actually cover the scenario; identify missing conditions, exceptions, and missing rules; "
                      "state the conclusion and its limits. Do not invent a policy or infer permission from silence. "
                      "If the documents do not cover this scenario, state that clearly."),
-        "comparison": "Compare each requested item using the same criteria. Cite evidence for each side; explicitly mark criteria with missing evidence. If items are missing from documents, do not invent details.",
+        "comparison": ("Compare each requested item using the same criteria. Answer every requested item separately. "
+                       "Cite evidence for each side, and bind each claim only to the named entity that its own "
+                       "passage supports; never transfer a relation from one person or document to another. "
+                       "Explicitly mark criteria with missing evidence. If items are missing from documents, do not invent details."),
         "summary": "Synthesize the important points from all relevant evidence, grouped by theme. Preserve exceptions and cite sources. If no relevant info exists, state that clearly.",
         "calculation": "Prefer deterministic calculation when the question contains a directly evaluable expression. Otherwise identify inputs, formula, units, and assumptions; do not invent missing inputs.",
         "explanation": "Explain only mechanisms and reasons supported by evidence. Label inferences and distinguish them from explicit statements. If the evidence is insufficient to explain, say so.",

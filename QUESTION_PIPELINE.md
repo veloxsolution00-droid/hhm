@@ -16,9 +16,14 @@ This build adds the requested modular layout while preserving the existing FastA
 
 When the incoming question is long and contains recognizable separate requirements, the planner creates up to 10 subquestions. Each subquestion independently calls the existing answer/retrieval path, so one weak requirement does not prevent retrieval for the others. The response includes `question_plan`, per-question `answers`, and `coverage` with answered/unanswered requirement counts. If the configured maximum is exceeded, `truncated_to_limit` is set; increase `max_question_parts` if your questions routinely contain more than 10 requirements.
 
+## Candidate recall and evidence selection
+
+Each question searches the owner-scoped semantic and full-text indexes. The bounded candidate pool is checked for direct query-term coverage and close competing scores as well as candidate count and similarity. If those signals indicate uncertainty, conservative lexical variants are searched and merged before reranking. The evidence selector then chooses distinct passages under the model context budget; the selected passage text and source locations are sent to the answer model. A cache fingerprint change prevents results ranked by an older pipeline from being reused.
+
 ## Honest implementation boundaries
 
 - The dense and keyword modules are adapters over the current store's shared candidate results; they do not create separate persistent indexes. The existing store already combines Chroma semantic results and SQLite FTS keyword hits.
+- Search remains bounded for large corpora. Adaptive query variants improve recall when the first pool has weak lexical coverage or ambiguous scores, but they cannot guarantee retrieval of a passage outside all candidate routes.
 - The reranker is deterministic lexical/score reranking, not a trained cross-encoder.
 - Term coverage is a diagnostic, not proof that a passage entails the answer. It can mark synonymous wording as missing or unrelated word overlap as covered.
 - Intent classification and decomposition are heuristic; unusual prose may not split perfectly. Inspect `question_plan` and validate with real labeled documents.

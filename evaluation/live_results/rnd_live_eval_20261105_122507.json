@@ -1,0 +1,100 @@
+{
+ "started": "20261105_122507",
+ "api": "http://127.0.0.1:8000",
+ "results": [
+  {
+   "case_id": "C18_boilerplate",
+   "category": "noisy_boilerplate_chunks",
+   "turn": 1,
+   "question": "How can I order more books from InfoBooks?",
+   "expected_evidence": "Answer only if the InfoBooks pages contain actionable ordering information; otherwise abstain",
+   "expected_status": "any",
+   "status": "success",
+   "abstained": false,
+   "actual_answer": "The document describes free PDF downloads: scan the code or visit infobooks.org/free-pdf-books/ [2].",
+   "question_type": "factual",
+   "confidence": 0.786,
+   "response_seconds": 12.209,
+   "wall_seconds": 12.229,
+   "retrieval": {
+    "indexed_documents": 5,
+    "candidate_chunks": 46,
+    "selected_chunks": 4,
+    "best_similarity": 0.5744,
+    "document_types": [
+     "prose"
+    ],
+    "answer_cache": null
+   },
+   "sources": [
+    {
+     "rank": 1,
+     "filename": "the-science-of-getting-rich.pdf",
+     "page": "Page 3",
+     "relevance": 0.5744,
+     "supporting_text": "Read. Learn. Grow\nThis document was lagally downloaded from InfoBooks, and \nthat's great!\nAt InfoBooks, we strive to make exceptional books available for \nfree to everyone.\nBut this book is not the en",
+     "document_type": "prose"
+    },
+    {
+     "rank": 2,
+     "filename": "the-enchiridion-epictetus.pdf",
+     "page": "Page 3",
+     "relevance": 0.5391,
+     "supporting_text": "READ AND DOWNLOAD FREE BOOKS\nScan the code or go to\ninfobooks.org\nThousands of PDF books, free and with no sign-up:\ninfobooks.org/free-pdf-books/\nThis work in other languages:\nIn Spanish: infolibros.o",
+     "document_type": "prose"
+    },
+    {
+     "rank": 3,
+     "filename": "think-and-grow-rich-napoleon-hill.pdf",
+     "page": "Page 3",
+     "relevance": 0.534,
+     "supporting_text": "READ AND DOWNLOAD FREE BOOKS\nScan the code or go to\ninfobooks.org\nThousands of PDF books, free and with no sign-up:\ninfobooks.org/free-pdf-books/\nThis work in other languages:\nIn Spanish: infolibros.o",
+     "document_type": "prose"
+    },
+    {
+     "rank": 4,
+     "filename": "dracula-bram-stoker.pdf",
+     "page": "Page 3",
+     "relevance": 0.5348,
+     "supporting_text": "READ AND DO WNLOAD FREE BOOKS\nScan the code or go to\ninfobooks.org\nThousands of PDF books, free and with no sign-up:\ninfobooks.org/free-pdf-books/\nThis work in other languages:\nIn Spanish: infolibros.",
+     "document_type": "prose"
+    }
+   ],
+   "citation": {
+    "refs": [
+     2
+    ],
+    "all_refs_valid": true,
+    "cited_sources": [
+     {
+      "ref": 2,
+      "filename": "the-enchiridion-epictetus.pdf",
+      "page": "Page 3"
+     }
+    ],
+    "invalid_refs": []
+   },
+   "answer_quality": {
+    "status_match": null,
+    "answer_term_groups": [],
+    "answer_terms_match": null,
+    "source_filename_checks": [],
+    "source_filenames_match": null,
+    "source_page_checks": [],
+    "source_pages_match": null,
+    "quality_checkable": false,
+    "cache_hit_expected": null,
+    "cache_hit_actual": null,
+    "cache_hit_match": null,
+    "quality_pass": null
+   },
+   "potential_conflicts": [],
+   "failure_reason": "success"
+  }
+ ],
+ "totals": {
+  "success": 1,
+  "abstain": 0,
+  "other": 0
+ }
+}

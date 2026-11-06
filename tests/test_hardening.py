@@ -49,6 +49,67 @@ def test_citation_validation_accepts_fully_cited_sentences():
     assert result["citation_coverage"] == 1.0
 
 
+def test_citation_validation_keeps_bare_domain_and_path_in_one_sentence():
+    from app.rag.citations import validate_citation_references
+
+    result = validate_citation_references(
+        "Visit library.example.org/free-guides/ for free books [1].", 1)
+    assert result["valid"] is True
+    assert result["citation_coverage"] == 1.0
+    assert result["uncited_sentences"] == []
+
+
+def test_markdown_url_is_not_mistaken_for_phantom_source_label():
+    from app.rag.citations import validate_citation_references
+
+    result = validate_citation_references(
+        "Scan the code or visit [library.example.org/free-guides/] [1] "
+        "to download free books.", 1)
+    assert result["phantom_labels"] == []
+    assert result["valid"] is True
+
+
+def test_verbatim_evidence_url_gets_citation_but_unmatched_url_does_not():
+    from app.rag.citations import cite_verbatim_urls, validate_citation_references
+
+    answer = "Visit [library.example.org/free-guides/] to download books."
+    sources = [{"text": "Scan the code or go to library.example.org/free-guides/"}]
+    cited = cite_verbatim_urls(answer, sources)
+    assert cited.endswith("[1].")
+    assert validate_citation_references(cited, 1)["valid"] is True
+
+    unrelated = cite_verbatim_urls(
+        "Visit [other.example.org/free-books/] for details.", sources)
+    assert "[1]" not in unrelated
+
+
+def test_uncited_sentence_gets_reference_only_when_its_words_match_evidence():
+    from app.rag.citations import cite_supported_uncited_sentences, validate_citation_references
+
+    sources = [{"text": "The Science of Getting Rich explains that thinking in a certain way "
+                        "and focused thought help a person create value."}]
+    answer = cite_supported_uncited_sentences(
+        "The Science of Getting Rich says thinking in a certain way helps create value.", sources)
+    assert "[1]" in answer
+    assert validate_citation_references(answer, 1)["valid"] is True
+
+    unrelated = cite_supported_uncited_sentences(
+        "The author was born in London and became a famous actor.", sources)
+    assert "[1]" not in unrelated
+    assert validate_citation_references(unrelated, 1)["valid"] is False
+
+
+def test_out_of_range_page_number_reference_is_reselected_from_matching_evidence():
+    from app.rag.citations import cite_supported_uncited_sentences, validate_citation_references
+
+    sources = [{"text": "Dracula was first published in 1897 as an epistolary novel."}]
+    repaired = cite_supported_uncited_sentences(
+        "Dracula was first published in 1897 [29].", sources)
+    assert "[29]" not in repaired
+    assert "[1]" in repaired
+    assert validate_citation_references(repaired, 1)["valid"] is True
+
+
 def test_semantic_cache_anchors_capitalized_acronyms():
     from app.cache.manager import _anchors
 

@@ -143,7 +143,7 @@ def test_direct_percentage_calculation_is_deterministic_without_ollama(monkeypat
     assert "25" in result["answer"]
 
 
-def test_invalid_citation_reference_forces_abstention(monkeypatch):
+def test_invalid_citation_reference_is_remapped_when_evidence_matches(monkeypatch):
     import sys, types
     monkeypatch.setitem(sys.modules, "chromadb", types.ModuleType("chromadb"))
     import app.rag.chat as chat
@@ -157,9 +157,11 @@ def test_invalid_citation_reference_forces_abstention(monkeypatch):
     }])
     monkeypatch.setattr(chat, "generate", lambda prompt: "Approval is required [9].")
     result = chat._answer_one("What is required?", {"d1"}, "local")
-    assert result["status"] == "citation_validation_failed"
-    assert result["citation_validation"]["invalid_reference_numbers"] == [9]
-    assert result["retrieval"]["answer_recovery_attempted"] is True
+    assert result["status"] == "success"
+    assert result["citation_validation"]["valid"] is True
+    assert "[1]" in result["answer"]
+    assert "[9]" not in result["answer"]
+    assert "answer_recovery_attempted" not in result["retrieval"]
 
 
 def test_retrieval_retries_with_conservative_query_variant_when_first_pass_is_empty(monkeypatch):
@@ -183,6 +185,40 @@ def test_retrieval_retries_with_conservative_query_variant_when_first_pass_is_em
     assert len(calls) >= 2
     assert result["retrieval"]["retrieval_passes"] >= 2
     assert result["status"] == "success"
+
+
+def test_retrieval_expands_when_high_score_candidates_have_weak_query_coverage(monkeypatch):
+    import sys, types
+    monkeypatch.setitem(sys.modules, "chromadb", types.ModuleType("chromadb"))
+    import app.rag.chat as chat
+    calls = []
+
+    def fake_search(question, owner_id):
+        calls.append(question)
+        if question == "manager approval":
+            return [{"id": "direct", "text": "Manager approval is required by the policy.",
+                     "metadata": {"document_id": "d1", "filename": "policy.pdf",
+                                  "source_location": "page 4"},
+                     "similarity": 0.84, "lexical_similarity": 0.75,
+                     "semantic_similarity": 0.80}]
+        return [{"id": "generic", "text": "The policy is available in the records.",
+                 "metadata": {"document_id": "d1", "filename": "policy.pdf",
+                              "source_location": "page 1"},
+                 "similarity": 0.86, "lexical_similarity": 0.10,
+                 "semantic_similarity": 0.88}]
+
+    monkeypatch.setattr(chat, "search", fake_search)
+    monkeypatch.setattr(chat, "indexed_vocabulary", lambda: [])
+    monkeypatch.setattr(chat.settings, "min_similarity", 0.25)
+    monkeypatch.setattr(chat.settings, "top_k", 1)
+    monkeypatch.setattr(chat.settings, "verify_answers", False)
+    monkeypatch.setattr(chat, "generate", lambda prompt: "Manager approval is required [1].")
+    result = chat._answer_one(
+        "What does the policy say about manager approval?", {"d1"}, "local")
+    assert "manager approval" in calls
+    assert result["status"] == "success"
+    assert result["sources"][0]["supporting_text"].startswith("Manager approval")
+    assert result["retrieval"]["initial_lexical_coverage"] == 0.10
 
 
 def test_multi_question_citations_are_remapped_to_combined_source_list(monkeypatch):
@@ -276,6 +312,22 @@ def test_elliptical_followup_still_uses_context(monkeypatch):
     assert chat._resolve_followup("What about his role?", history) == "What is Dracula's role in the book?"
 
 
+def test_followup_keeps_user_topic_when_prior_answer_abstained(monkeypatch):
+    import sys, types
+    monkeypatch.setitem(sys.modules, "chromadb", types.ModuleType("chromadb"))
+    import app.rag.chat as chat
+    monkeypatch.setattr(chat, "generate", lambda prompt: (_ for _ in ()).throw(
+        AssertionError("a prior refusal must not trigger another model rewrite")))
+    history = [
+        {"role": "user", "content": "What club did Benjamin Franklin found in Philadelphia?"},
+        {"role": "assistant", "content": chat.ABSTENTION},
+    ]
+    resolved = chat._resolve_followup("What was the purpose of it?", history)
+    assert "Benjamin Franklin" in resolved
+    assert "club" in resolved
+    assert "purpose of it" in resolved
+
+
 def test_normalization_removes_punctuation_inserted_inside_word(monkeypatch):
     import sys, types
     monkeypatch.setitem(sys.modules, "chromadb", types.ModuleType("chromadb"))
@@ -283,7 +335,7 @@ def test_normalization_removes_punctuation_inserted_inside_word(monkeypatch):
     assert chat.normalize_question("who is bra,m stroke") == "who is bram stroke"
 
 
-def test_citation_recovery_retries_and_accepts_valid_citation(monkeypatch):
+def test_matching_uncited_answer_gets_citation_without_second_generation(monkeypatch):
     import sys, types
     monkeypatch.setitem(sys.modules, "chromadb", types.ModuleType("chromadb"))
     import app.rag.chat as chat
@@ -305,9 +357,8 @@ def test_citation_recovery_retries_and_accepts_valid_citation(monkeypatch):
     result = chat._answer_one("Who is Dracula?", {"d1"}, "local")
     assert result["status"] == "success"
     assert result["citation_validation"]["valid"] is True
-    assert result["retrieval"]["answer_recovery_attempted"] is True
-    assert result["retrieval"]["answer_recovery_succeeded"] is True
-    assert len(calls) == 2
+    assert "answer_recovery_attempted" not in result["retrieval"]
+    assert len(calls) == 1
 
 
 def test_balanced_top_k_expands_for_complex_question_types(monkeypatch):

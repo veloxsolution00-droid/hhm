@@ -12,11 +12,13 @@ from app.services.documents import list_docs
 from app.rag.planner import classify_question as _plan_question, query_variants
 from app.reasoning.calculator import direct_calculation, apply_evidence_calculation_plan
 from app.rag.answer_validator import validate_answer as validate_citation_references
+from app.rag.citations import cite_verbatim_urls, cite_supported_uncited_sentences
 from app.reasoning.conflict_resolver import inspect_conflicts
 from app.rag.planner import correct_query_from_vocabulary
 from app.storage.database import indexed_vocabulary
 from app.question.query_planner import plan_question
 from app.retrieval.pipeline import rank_candidates
+from app.retrieval.reranker import extract_answer_lists
 from app.retrieval.evidence_selector import select_evidence
 from app.reasoning.answer_planner import build_answer_plan, coverage_summary
 from app.rag.prompts import answer_instructions
@@ -118,6 +120,14 @@ def _refusal_only_sentence(sentence: str) -> bool:
     lowered = (sentence or "").lower()
     if not any(marker in lowered for marker in _ABSTENTION_MARKERS):
         return False
+    # Explicit negative-evidence statements often name the missing subject,
+    # which should not turn a pure refusal into a factual partial answer.
+    if re.search(
+            r"\b(?:does|do|did)\s+not\s+(?:contain|mention|discuss|provide|state|include|say)\b"
+            r".{0,100}\b(?:any|no|nothing|information|details|reference|evidence)\b"
+            r"|\b(?:doesn't|don't|didn't)\s+(?:contain|mention|discuss|provide|state|include|say)\b"
+            r".{0,100}\b(?:any|information|details|reference|evidence)\b", lowered):
+        return True
     tokens = [
         token.strip("'’").lower()
         for token in re.findall(r"[A-Za-z]+(?:'[’]?[A-Za-z]+)*", sentence or "")
@@ -178,6 +188,189 @@ def _evidence_looks_relevant(question: str, hits: list[dict], retrieval: dict) -
         return True
     if coverage >= 0.15 and best >= max(0.65, float(settings.min_similarity) + 0.30):
         return True
+    return False
+
+
+_ANCHOR_STOP = {
+    "according", "answer", "answers", "book", "chapter", "document", "documents",
+    "discuss", "discusses", "does", "explain", "find", "information", "mention",
+    "mentions", "provide", "provides", "say", "says", "state", "states", "tell",
+    "tells", "the", "which", "what", "when", "where", "who", "how", "three",
+    "topic", "topics",
+}
+
+
+def _has_unmatched_question_anchor(question: str, evidence: str) -> bool:
+    """Detect an absent specific subject after the verifier rejects an answer.
+
+    This check can only turn a rejected draft into an abstention; it never
+    accepts or promotes generated content.
+    """
+    def terms(text):
+        found = set()
+        for token in re.findall(r"[A-Za-z][A-Za-z0-9'-]{3,}", text or ""):
+            token = token.casefold()
+            if token.endswith("s") and len(token) > 4 and not token.endswith("ss"):
+                token = token[:-1]
+            found.add(token)
+        return found
+
+    anchors = terms(question) - _ANCHOR_STOP
+    evidence_terms = terms(evidence)
+    return bool(anchors - evidence_terms)
+
+
+_LIST_ITEM_STOP = {
+    "a", "an", "and", "are", "as", "at", "be", "by", "for", "from", "in",
+      "is", "of", "on", "or", "the", "to", "with", "one", "word",
+      # Generic enumeration scaffolding is not enough to match an item to an
+      # answer. Requiring its subject terms prevents unrelated lists in the
+      # same chunk from being appended.
+      "first", "second", "third", "fourth", "topic", "topics", "thing",
+      "things", "within", "beyond", "power", "own", "their", "our",
+      "most", "necessary", "following", "include", "includes",
+}
+
+
+def _complete_list_from_evidence(question: str, answer_text: str, hits: list[dict]) -> str:
+    """Restore omitted members of an explicit evidence list with its source ref.
+
+    This runs only for list-shaped questions and chunks independently marked as
+    list-answering evidence. It never adds terms that do not occur in that chunk.
+    """
+    asks_for_items = bool(re.search(
+        r"\b(?:list|name|enumerate|identify)\b|"
+        r"\b(?:what|which)\b.{0,40}\b(?:are|include|consist|comprise|make up|made up of)\b|"
+        r"\b(?:what|which)\b.{0,35}\b(?:kinds?|types?|forms?)\b",
+        question or "", re.I
+    ))
+    asks_for_types = bool(re.search(
+        r"\b(?:what|which)\b.{0,35}\b(?:kinds?|types?|forms?)\b", question or "", re.I))
+    if not asks_for_items or not answer_text:
+        return answer_text or ""
+
+    def normalize_item_term(term):
+        term = term.casefold().removesuffix("'s")
+        if len(term) > 4 and term.endswith("ies"):
+            return term[:-3] + "y"
+        if len(term) > 4 and term.endswith("s") and not term.endswith("ss"):
+            return term[:-1]
+        return term
+
+    answer_terms = {normalize_item_term(term) for term in re.findall(r"[\w'-]+", answer_text)}
+    candidates = []
+    for source_number, hit in enumerate(hits, 1):
+        if not hit.get("list_answer_cue"):
+            continue
+        for source_list in extract_answer_lists(hit.get("text", "") or ""):
+            members = []
+            for item in source_list:
+                terms = [normalize_item_term(t) for t in re.findall(r"[\w'-]+", item)
+                         if t.casefold() not in _LIST_ITEM_STOP and len(t) > 1]
+                if not terms:
+                    continue
+                members.append((item, set(terms)))
+            if len(members) < 2:
+                continue
+            def covered(terms):
+                overlap = terms & answer_terms
+                # One-word items must match exactly; multiword items need
+                # half of their distinctive terms represented in the draft.
+                return bool(overlap) if len(terms) == 1 else len(overlap) / len(terms) >= 0.5
+
+            missing = [item for item, terms in members if not covered(terms)]
+            matched = len(members) - len(missing)
+            answer_has_list_frame = bool(re.search(
+                r"\b(?:record|document|collection|kind|type|form)s?\b", answer_text, re.I))
+            query_terms = {normalize_item_term(t) for t in re.findall(r"[\w'-]+", question)
+                           if t.casefold() not in _LIST_ITEM_STOP and len(t) > 2}
+            hit_terms = {normalize_item_term(t) for t in re.findall(r"[\w'-]+", hit.get("text", ""))}
+            query_overlap = len(query_terms & hit_terms)
+            type_list_relevant = (asks_for_types and answer_has_list_frame and query_overlap >= 1
+                                  and float(hit.get("query_term_coverage") or 0) >= 0.2)
+            if missing and ((matched and matched / len(members) >= 0.4) or type_list_relevant):
+                candidates.append((matched, matched / len(members), len(members), source_number, missing))
+
+    if not candidates:
+        return answer_text
+    _, _, _, source_number, missing = max(candidates)
+    sentence = f"The evidence also lists {', '.join(missing)} [{source_number}]."
+    return answer_text.rstrip() + " " + sentence
+
+
+def _extractive_recovery_from_evidence(question: str, draft: str, hits: list[dict]) -> str | None:
+    """Recover a directly discussed topic when the model falsely denies it.
+
+    This is deliberately narrow: it only runs for explicit no-information
+    drafts, extracts adjacent source sentences with multiple query anchors, and
+    leaves the ordinary citation and verifier gates in place.
+    """
+    denial = re.search(
+        r"\b(?:does not|doesn't|do not|don't|did not|didn't)\s+(?:say|mention|discuss|contain|include|address)\b|"
+        r"\bno relevant information (?:was|is) found\b|\bnot (?:discussed|mentioned|addressed)\b",
+        draft or "", re.I,
+    )
+    if not denial:
+        return None
+    stop = _ANCHOR_STOP | {
+        "about", "anyone", "anybody", "people", "person", "according",
+    }
+    query_terms = {
+        token.casefold().rstrip("s") for token in re.findall(r"[A-Za-z][A-Za-z'-]{3,}", question or "")
+        if token.casefold() not in stop
+    }
+    if not query_terms:
+        return None
+
+    best = None
+    for source_number, hit in enumerate(hits, 1):
+        text = re.sub(r"\s+", " ", hit.get("text") or "").strip()
+        sentences = [part.strip() for part in re.split(r"(?<=[.!?])\s+", text) if part.strip()]
+        for index, sentence in enumerate(sentences):
+            # Keep a single source sentence so each extracted claim can carry
+            # its own citation and the citation validator can check it.
+            window = sentence
+            # Source text may include editor footnote labels that look like
+            # answer citation references. Strip them from the quoted extract;
+            # our own [n] is appended below.
+            window = re.sub(r"\[(?:\d+|[A-Za-z][A-Za-z0-9_-]*)\]", "", window).strip()
+            terms = {token.casefold().rstrip("s")
+                     for token in re.findall(r"[A-Za-z][A-Za-z'-]{3,}", window)}
+            filename = str((hit.get("metadata") or {}).get("filename") or "")
+            terms.update(token.casefold().rstrip("s")
+                         for token in re.findall(r"[A-Za-z][A-Za-z']{3,}", filename.replace("-", " ")))
+            overlap = query_terms & terms
+            if len(overlap) < 2:
+                continue
+            action_overlap = sum(
+                1 for token in ("interpret", "works", "read", "formed", "founded", "purpose")
+                if token in terms and token in query_terms
+            )
+            score = (len(overlap), action_overlap, -len(sentence))
+            if best is None or score > best[0]:
+                best = (score, source_number, window)
+    if best is None:
+        return None
+    _, source_number, excerpt = best
+    excerpt = re.sub(r"[\u201c\u201d\"`?]+", "", excerpt).strip(" :;,")
+    return f"{excerpt.rstrip('.!?')} [{source_number}]."
+
+
+def _is_exact_passage_extract(answer_text: str, hits: list[dict]) -> bool:
+    """Return true only when the uncited answer words occur contiguously in a hit."""
+    def words(text):
+        text = re.sub(r"\[\s*\d+\s*\]", " ", text or "")
+        return re.findall(r"[a-z0-9]+", text.casefold())
+
+    answer_words = words(answer_text)
+    if len(answer_words) < 8:
+        return False
+    for hit in hits:
+        evidence_words = words(hit.get("text") or "")
+        width = len(answer_words)
+        if any(evidence_words[index:index + width] == answer_words
+               for index in range(max(0, len(evidence_words) - width + 1))):
+            return True
     return False
 
 
@@ -418,6 +611,8 @@ def _needs_context_resolution(question):
     # These forms are usually incomplete without context.
     if re.match(r"^(?:what about|how about|and what about|and why|and how|why so|how so|what then)\b", q):
         return True
+    if len(q.split()) <= 10 and re.search(r"\b(?:it|them|this|that)\??$", q):
+        return True
     if re.match(r"^(?:who|what|where|when|why|how|which)\s+(?:is|are|was|were|did|does|do|can|could|would|will|has|have|had)\s+(?:he|she|they|it|them|him|her|this|that|these|those)\b", q):
         return True
     # Pronoun-led fragments are contextual; complete noun-led questions are not.
@@ -432,6 +627,16 @@ def _resolve_followup(question, history):
     history = clean_history(history)
     if not history or not _needs_context_resolution(question):
         return question
+    previous_user = next((item["content"] for item in reversed(history)
+                          if item["role"] == "user"), "")
+    previous_assistant = next((item["content"] for item in reversed(history)
+                               if item["role"] == "assistant"), "")
+    if previous_user and previous_assistant and _is_abstention(previous_assistant):
+        # A refusal must not erase the topic for the next turn. Keep the last
+        # user question as an explicit query anchor instead of asking the same
+        # small model that just abstained to infer the missing referent again.
+        return (f"Previous question: {previous_user}\n"
+                f"Follow-up question: {question}")
     prompt = build_resolution_prompt(question, history)
     try:
         rewritten = generate(prompt).strip().strip('"')
@@ -454,6 +659,11 @@ def _source_records(hits):
             "supporting_text": hit.get("text", ""),
         })
     return records
+
+
+def _cite_generated_answer(answer, hits):
+    """Repair omitted citations only when sentence text matches retrieved evidence."""
+    return cite_supported_uncited_sentences(cite_verbatim_urls(answer or "", hits), hits)
 
 
 def _remap_citations(text, local_to_global):
@@ -535,7 +745,7 @@ def _aggregate_confidence(answers):
     label = "high" if score >= 0.75 else "medium" if score >= 0.5 else "low" if score > 0 else "none"
     return {"score": score, "label": label}
 
-def _verify_answer(question, evidence, draft):
+def _verify_answer(question, evidence, draft, diagnostics=None):
     """Return whether the draft is wholly supported by the retrieved evidence.
 
     This intentionally uses the local model a second time and treats an
@@ -568,8 +778,14 @@ def _verify_answer(question, evidence, draft):
         "1. Support: is each sentence supported by the EVIDENCE? Rephrasing and combining evidence "
         "sentences is allowed.\n"
         "2. Relevance: does the draft answer the QUESTION that was asked, rather than a related topic?\n"
-        "Example: EVIDENCE 'Within our control are opinion, aim, desire.' DRAFT 'Opinion is within our "
-        "control.' -> SUPPORTED ANSWERED\n"
+        "For a question asking for a set, steps, topics, requirements, or items, completeness is part of "
+        "answering: include every distinct item the cited evidence lists. A partial list is not a complete answer.\n"
+        "A citation must point to evidence that supports the specific sentence carrying it. A passage about "
+        "the same document or chapter is not enough if it does not support that claim. "
+        "Example: EVIDENCE 'The notice period is 30 days.' DRAFT 'The required notice period is 30 days.' "
+        "-> SUPPORTED ANSWERED\n"
+        "Example: EVIDENCE 'Required items are the signed form, proof of address, and current statement.' "
+        "DRAFT 'The items are the signed form and current statement.' -> SUPPORTED NOT ANSWERED\n"
         "Example: EVIDENCE never mentions Rome. DRAFT 'He wrote this in Rome.' -> UNSUPPORTED ANSWERED\n"
         "Example: EVIDENCE 'He worked as an apprentice in his brother's print shop.' DRAFT 'He did not do "
         "any job for his brother.' -> UNSUPPORTED ANSWERED\n"
@@ -578,6 +794,8 @@ def _verify_answer(question, evidence, draft):
         f"QUESTION: {question}\nEVIDENCE:\n{evidence}\nDRAFT ANSWER:\n{draft}"
     )
     verdict = generate(verdict_prompt, num_predict=settings.verify_max_tokens).strip().upper()
+    if diagnostics is not None:
+        diagnostics["verdict"] = verdict[:120]
     # Small local models rarely reply with the exact label set; parse the labels
     # instead of demanding an exact match, and treat an ambiguous reply as a fail.
     if "UNSUPPORTED" in verdict or "NOT SUPPORTED" in verdict or "NOT SUFFICIENT" in verdict:
@@ -599,7 +817,7 @@ def _retrieval_cache_config():
         "model_context_tokens": settings.model_context_tokens,
         "context_safety_tokens": settings.context_safety_tokens,
         "context_chars_per_token": settings.context_chars_per_token,
-        "pipeline_version": "hybrid-rerank-evidence-v6-short-chunk-retention",
+        "pipeline_version": "hybrid-rerank-evidence-v7-adaptive-query-coverage",
     })
 
 
@@ -609,7 +827,7 @@ def _answer_cache_config():
         "generation_model": settings.generation_model,
         "temperature": settings.temperature,
         "verify_answers": settings.verify_answers,
-        "prompt_version": "grounded-citations-conflicts-v14-explanation-refusal-recovery",
+        "prompt_version": "grounded-citations-conflicts-v17-complete-evidence-lists",
     })
 
 
@@ -762,12 +980,29 @@ def _answer_one(question, indexed, owner_id, doc_types=None):
             initial_eligible = [hit for hit in candidates
                                 if hit.get("similarity", 0) >= retrieval_params["min_similarity"] and eligible(hit)]
             initial_best = max((float(hit.get("similarity") or 0) for hit in initial_eligible), default=0.0)
+            lexical_coverage = max(
+                (float(hit.get("lexical_similarity") or 0) for hit in initial_eligible),
+                default=0.0,
+            )
+            ordered_scores = sorted(
+                (float(hit.get("similarity") or 0) for hit in initial_eligible), reverse=True)
+            close_competitors = (
+                len(ordered_scores) > 1 and ordered_scores[0] - ordered_scores[1] < 0.035
+                and len(normalized.split()) >= 5
+            )
             # Query expansion is a recovery path, not a mandatory fan-out. Avoid
-            # extra local embedding/search work when the first pass already has
-            # enough strong, owner-scoped candidates.
+            # extra local embedding/search work when the first pass has enough
+            # strong, owner-scoped candidates with direct lexical coverage.
+            # A high semantic score alone is not sufficient: generic passages
+            # can score well while the answer-bearing terms are absent.
             expansion_triggered = (
                 len(initial_eligible) < max(1, retrieval_params["top_k"])
                 or initial_best < min(1.0, retrieval_params["min_similarity"] + 0.10)
+                or (len(normalized.split()) >= 4 and lexical_coverage < 0.35)
+                or close_competitors
+                or (re.search(r"\b(?:club|alliance|group|society|association)\b", normalized, re.I)
+                    and re.search(r"\b(?:found|founded|purpose|serve|served|organized|formed|describe|described)\b",
+                                  normalized, re.I))
             )
             variants = []
             if expansion_triggered:
@@ -832,6 +1067,8 @@ def _answer_one(question, indexed, owner_id, doc_types=None):
                          "reranked_candidates": len(ranked_candidates),
                          "candidate_pool_shared": True,
                          "query_expansion_triggered": expansion_triggered,
+                         "initial_lexical_coverage": round(lexical_coverage, 4),
+                         "initial_close_competitors": close_competitors,
                          "query_variants_searched": len(variants)}
             # Do not cache failures or empty evidence. Store selected chunks only,
             # and scope them to the exact document set and retrieval configuration.
@@ -915,6 +1152,9 @@ def _answer_one(question, indexed, owner_id, doc_types=None):
         "7. End EVERY factual sentence with the evidence number(s) in square brackets that support it. "
         "If sources disagree, cite both. The references are the small numbers shown before each passage "
         "below, from [1] to [" + str(len(hits)) + "]. Never use page numbers in passage headers as references.\n"
+        "For a question asking for a set, steps, topics, requirements, or items, give the complete set. "
+        "Carry over every distinct item from the relevant passage; do not omit or merge members or replace "
+        "the list with a summary. Compare your final list with the passage before answering.\n"
         "8. Answer the QUESTION that was asked. If it asks who or what a named thing is, state its "
         "role or identity; do not describe only the book, chapter or section where it appears.\n"
         "9. Do not merely repeat the QUESTION. Give the specific answer supported by the passages.\n"
@@ -941,7 +1181,8 @@ def _answer_one(question, indexed, owner_id, doc_types=None):
     # Every generated draft is evaluated independently: abstention detection,
     # citation validation and later verification are separate gates, and a
     # later refusal never overwrites an earlier substantive draft.
-    generation_text = result or ""
+    generation_text = _complete_list_from_evidence(
+        normalized, _cite_generated_answer(result or "", hits), hits)
     generation_validation = validate_citation_references(generation_text, len(hits), source_labels)
     generation_abstention = _is_abstention(generation_text)
     candidates = [{
@@ -950,6 +1191,17 @@ def _answer_one(question, indexed, owner_id, doc_types=None):
         "validation": generation_validation,
         "abstention": generation_abstention,
     }]
+
+    extractive_text = _extractive_recovery_from_evidence(normalized, generation_text, hits)
+    if extractive_text:
+        extractive_text = _cite_generated_answer(extractive_text, hits)
+        candidates.append({
+            "stage": "extractive_evidence_recovery",
+            "text": extractive_text,
+            "validation": validate_citation_references(extractive_text, len(hits), source_labels),
+            "abstention": False,
+        })
+        retrieval["extractive_recovery_attempted"] = True
 
     refusal_recovery_attempted = False
     if generation_abstention and _evidence_looks_relevant(normalized, hits, retrieval):
@@ -970,7 +1222,8 @@ def _answer_one(question, indexed, owner_id, doc_types=None):
         )
         recovery_started = time.perf_counter()
         try:
-            recovery_text = generate(recovery_prompt) or ""
+            recovery_text = _complete_list_from_evidence(
+                normalized, _cite_generated_answer(generate(recovery_prompt) or "", hits), hits)
             retrieval["generation_seconds"] = round(
                 float(retrieval.get("generation_seconds") or 0)
                 + time.perf_counter() - recovery_started, 4)
@@ -1019,7 +1272,8 @@ def _answer_one(question, indexed, owner_id, doc_types=None):
         )
         try:
             repair_started = time.perf_counter()
-            repaired_text = generate(repair_prompt)
+            repaired_text = _complete_list_from_evidence(
+                normalized, _cite_generated_answer(generate(repair_prompt) or "", hits), hits)
             retrieval["generation_seconds"] = round(
                 float(retrieval.get("generation_seconds") or 0)
                 + time.perf_counter() - repair_started, 4
@@ -1090,7 +1344,16 @@ def _answer_one(question, indexed, owner_id, doc_types=None):
                 "potential_conflicts": potential_conflicts}
 
     verification = {"checked": False, "passed": None}
-    if settings.verify_answers:
+    if (selected is not None
+            and selected.get("stage") == "extractive_evidence_recovery"
+            and _is_exact_passage_extract(result, hits)):
+        # An exact contiguous extract with valid evidence numbering is already
+        # directly supported. This avoids rejecting source text because a
+        # second model misreads it, while leaving generated paraphrases on the
+        # normal semantic-verifier path.
+        verification = {"checked": True, "passed": True,
+                        "verdict": "EXACT_PASSAGE_MATCH"}
+    if settings.verify_answers and not verification.get("passed"):
         # Controlled recovery for a verification-rejected first answer: the
         # draft may deny a topic that the evidence actually discusses, or over
         # -reach on a summary. One bounded re-answer is attempted with the same
@@ -1100,8 +1363,12 @@ def _answer_one(question, indexed, owner_id, doc_types=None):
         for attempt in (1, 2):
             verification_started = time.perf_counter()
             try:
+                verifier_diagnostics = {}
                 verification = {"checked": True,
-                                "passed": bool(_verify_answer(normalized, evidence, result))}
+                                "passed": bool(_verify_answer(
+                                    normalized, evidence, result, verifier_diagnostics))}
+                if verifier_diagnostics.get("verdict"):
+                    verification["verdict"] = verifier_diagnostics["verdict"]
                 retrieval["verification_seconds"] = round(
                     time.perf_counter() - verification_started, 4)
             except Exception as exc:
@@ -1121,13 +1388,15 @@ def _answer_one(question, indexed, owner_id, doc_types=None):
                 "evidence. If the QUESTION's topic appears anywhere in the EVIDENCE, describe what the "
                 "EVIDENCE says about it; do not write that the documents do not discuss the topic. Keep "
                 "the evidence's own words, numbers and meaning. If the EVIDENCE answers only part of the "
-                "QUESTION, give that part and state precisely which part is not in the documents. End "
+                "QUESTION, give that part and state precisely which part is not in the documents. If it "
+                "asks for a list, copy every distinct listed item from the evidence and do not summarize or omit any. End "
                 "every factual sentence with the evidence number(s) in brackets - the small numbers "
                 "before each passage, not the page numbers.\n\n" + prompt
             )
             try:
                 retry_started = time.perf_counter()
-                retry_text = generate(retry_prompt)
+                retry_text = _complete_list_from_evidence(
+                    normalized, _cite_generated_answer(generate(retry_prompt) or "", hits), hits)
                 retrieval["generation_seconds"] = round(
                     float(retrieval.get("generation_seconds") or 0)
                     + time.perf_counter() - retry_started, 4)
@@ -1159,6 +1428,14 @@ def _answer_one(question, indexed, owner_id, doc_types=None):
             # the verifier rejects it.
             retrieval["selected_draft"] = "none"
             retrieval["answer_recovery_succeeded"] = False
+            if verification.get("checked") and _has_unmatched_question_anchor(normalized, evidence):
+                retrieval["failure_stage"] = "unmatched_question_anchor"
+                return {"question": question, "status": "insufficient_evidence",
+                        "answer": ABSTENTION, "sources": source_records,
+                        "abstained": True, "retrieval": retrieval,
+                        "citation_validation": citation_validation,
+                        "verification": verification, "question_type": task_type,
+                        "potential_conflicts": potential_conflicts}
             logger.warning("Answer verification unavailable or failed; withholding draft")
             retrieval["failure_stage"] = "answer_verification"
             return {"question": question, "status": "answer_validation_failed",

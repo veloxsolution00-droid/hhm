@@ -8,11 +8,8 @@ _BOILERPLATE = re.compile(
     r"(about this edition|table of contents|^\s*contents\s*$|copyright|isbn|"
     r"transcription, correction|editorial commentary|\[UVAstudstaff\]|"
     r"^\s*glossary\s*$|^\s*index\s*$|"
-    # Publisher/vendor advertising pages ("READ AND DOWNLOAD FREE BOOKS ...
-    # infobooks.org", "was lagally downloaded from InfoBooks"). These are
-    # corpus-independent download-store boilerplate that otherwise occupies an
-    # evidence slot without answering anything about the documents themselves.
-    r"read and download free books|infobooks\.org|downloaded from infobooks)",
+    # Generic publisher marketing pages can crowd out substantive passages.
+    r"read and download free books|downloaded from [a-z0-9.-]+)",
     re.I | re.M
 )
 _NUMBER = re.compile(r"(?<!\w)(?:₹|rs\.?\s*)?\d[\d,]*(?:\.\d+)?%?(?!\w)", re.I)
@@ -26,28 +23,124 @@ def _boilerplate(text):
     return bool(_BOILERPLATE.search(text or ""))
 
 
+def extract_answer_lists(text: str) -> list[list[str]]:
+    """Extract explicit positive lists from prose, ordinals, and numbered lines."""
+    cue = re.compile(
+        r"\b(?:are|include|includes|consist of|consists of|comprise|comprises|following)\s+"
+        r"([^.!?]{0,320})", re.I
+    )
+    filler = {"a", "an", "and", "are", "as", "at", "be", "by", "for", "from",
+              "in", "is", "of", "on", "or", "the", "to", "with", "one", "word"}
+    text = text or ""
+    lists = []
+
+    # Numbered and bulleted lists are strong structure signals independent of
+    # document type or punctuation style.
+    marked = re.findall(r"(?m)^\s*(?:\d{1,3}[.)]|[-*•])\s+([^\r\n]+)", text)
+    marked = [re.sub(r"\s+", " ", item).strip(" \t;:-") for item in marked]
+    if len(marked) >= 2:
+        lists.append(marked)
+
+    # Ordered prose lists often use "first ...; second ...; third ..." rather
+    # than commas. Capture consecutive ordinals and the phrase following each.
+    ordinals = {"first": 1, "second": 2, "third": 3, "fourth": 4,
+                "fifth": 5, "sixth": 6, "seventh": 7, "eighth": 8,
+                "ninth": 9, "tenth": 10}
+    ordinal_matches = list(re.finditer(
+        r"\b(first|second|third|fourth|fifth|sixth|seventh|eighth|ninth|tenth)\b",
+        text, re.I))
+    for start_index, first_match in enumerate(ordinal_matches):
+        sequence = [first_match]
+        expected = ordinals[first_match.group(1).casefold()] + 1
+        for candidate in ordinal_matches[start_index + 1:]:
+            value = ordinals[candidate.group(1).casefold()]
+            if value == expected and candidate.start() - sequence[-1].end() < 500:
+                sequence.append(candidate)
+                expected += 1
+            elif value > expected or candidate.start() - sequence[-1].end() >= 500:
+                break
+        if len(sequence) < 2:
+            continue
+        items = []
+        for index, marker in enumerate(sequence):
+            end = sequence[index + 1].start() if index + 1 < len(sequence) else min(len(text), marker.end() + 350)
+            phrase = text[marker.end():end].split(".", 1)[0]
+            relation = re.search(r"\b(?:is|are)\b", phrase, re.I)
+            if relation:
+                phrase = phrase[relation.end():]
+            phrase = re.split(r",\s*as,?\s", phrase, maxsplit=1, flags=re.I)[0]
+            phrase = re.sub(r"\s+", " ", phrase).strip(" \t\r\n,;:-")
+            phrase = re.sub(r"^(?:that of|the)\s+", "", phrase, flags=re.I)
+            if phrase:
+                items.append(phrase)
+        if len(items) >= 2:
+            lists.append(items)
+            break
+
+    for match in cue.finditer(text):
+        raw = match.group(1)
+        if re.match(r"\s*(?:not|never|beyond|outside)\b", raw, re.I):
+            continue
+        # Stop at a contrast that introduces an excluded or opposite group.
+        contrast = re.search(
+            r",\s+(?:and\s+)?(?:the\s+)?(?:other|others|remaining|rest)\s+"
+            r"(?:are\s+)?(?:not|beyond|outside|except)\b|,\s+and\s+not\b", raw, re.I)
+        if contrast:
+            raw = raw[:contrast.start()]
+        raw = re.sub(r"^\s*(?:a|the)\s+(?:collection|set|group|series)\s+of\s+",
+                     "", raw, flags=re.I)
+        # Keep a candidate within one clause; semicolons commonly separate
+        # opposing properties or a new explanation.
+        raw = raw.split(";", 1)[0]
+        # In phrases such as "items include, for example, A, B, and C", the
+        # items begin after "such as" rather than with the surrounding clause.
+        if re.search(r"\bsuch as\b", raw, re.I):
+            raw = re.split(r"\bsuch as\b", raw, maxsplit=1, flags=re.I)[1]
+        if raw.count(",") < 2 and not (raw.count(",") and re.search(r"\band\b", raw, re.I)):
+            continue
+        sentence_start = max(text.rfind(mark, 0, match.start()) for mark in ".?!") + 1
+        clause_prefix = text[sentence_start:match.start()]
+        if (re.search(r"\b(?:not|never|neither|nor|beyond|outside|except)\b", clause_prefix, re.I)
+                or re.match(r"\s*(?:not|never|beyond|outside)\b", raw, re.I)):
+            continue
+        members = []
+        for part in re.split(r",|;|\band\b", raw, flags=re.I):
+            item = re.sub(r"\s+", " ", part).strip(" \t\r\n:;-—")
+            terms = [term for term in re.findall(r"[\w'-]+", item)
+                     if term.casefold() not in filler and len(term) > 1]
+            if terms and not re.fullmatch(r"in one word|in short|in other words", item, re.I):
+                members.append(item)
+        if len(members) >= 2:
+            lists.append(members)
+    return lists
+
+
 def rerank(query: str, hits: list[dict], limit: int | None = None) -> list[dict]:
     terms = {t for t in _tokens(query) if len(t) > 2 and t not in _STOP}
-    # The boilerplate penalty exists to keep generic publisher/advertising
-    # passages from occupying evidence slots. When the question itself asks
-    # about that boilerplate content (for example ordering behaviour of the
-    # download store), the passages are the correct evidence and must be
-    # ranked on their own merits.
-    # A publisher/download notice is boilerplate for unrelated questions, but
-    # it becomes primary evidence when the user asks about that publisher,
-    # ordering books, or downloading titles. Detect the topic in the query
-    # rather than penalizing the very passage the user is asking about.
-    boilerplate_query = bool(
-        _BOILERPLATE.search(query or "")
-        or re.search(r"\b(?:infobooks|bookstore|publisher|download(?:ing)?|order(?:ing)? books?)\b",
-                     query or "", re.I)
-    )
+    try:
+        from app.rag.planner import query_variants
+        variant_terms = [
+            {t for t in _tokens(variant) if len(t) > 2 and t not in _STOP}
+            for variant in query_variants(query)[1:]
+        ]
+    except Exception:
+        variant_terms = []
+    asks_for_items = bool(re.search(
+        r"\b(?:list|name|enumerate|identify)\b|\b(?:what|which)\b.{0,40}\b(?:are|include|consist|comprise)\b",
+        query or "", re.I
+    ) or re.search(r"\b(?:what|which)\b.{0,35}\b(?:kinds?|types?|forms?)\b", query or "", re.I))
+    asks_about_group = bool(re.search(
+        r"\b(?:club|alliance|group|society|association|organization)\b", query or "", re.I))
     query_numbers = set(_NUMBER.findall(query or ""))
     ranked = []
     for hit in hits:
         text = hit.get("text", "") or ""
         text_terms = set(_tokens(text))
-        coverage = len(terms & text_terms) / max(1, len(terms))
+        coverage = max(
+            [len(terms & text_terms) / max(1, len(terms))]
+            + [0.85 * len(variant & text_terms) / max(1, len(variant))
+               for variant in variant_terms]
+        )
         semantic = hit.get("semantic_similarity")
         hybrid = max(0.0, min(1.0, float(hit.get("similarity", 0) or 0)))
         fusion = float(hit.get("fusion_score") or 0)
@@ -57,20 +150,32 @@ def rerank(query: str, hits: list[dict], limit: int | None = None) -> list[dict]
         # Exact requested figures/identifiers should be prominent when present.
         number_match = bool(query_numbers and query_numbers.intersection(_NUMBER.findall(text)))
         answer_cue = bool(re.search(
-            r"\b(is|was|were|has|had|amount|total|revenue|date|dated|signed|"
-            r"appointed|located|requires|required|means|defined as)\b", text, re.I
+            r"\b(is|are|was|were|has|had|amount|total|revenue|date|dated|signed|"
+            r"appointed|located|requires|required|means|defined as|includes?|consists of|"
+            r"comprises|refers to|within .{0,50} are)\b", text, re.I
         ))
+        list_answer_cue = asks_for_items and bool(extract_answer_lists(text))
+        group_answer_cue = asks_about_group and bool(
+            re.search(r"\b(?:club|alliance|group|society|association|organization)\b", text, re.I)
+            and re.search(r"\b(?:form(?:ed)?|found|founded|establish(?:ed)?|organize(?:d)?|undertook|purpose|improvement)\b", text, re.I)
+        )
         semantic_signal = float(semantic) if semantic is not None else hybrid
         item = dict(hit)
         item.update({
             "query_term_coverage": round(coverage, 4),
             "exact_number_match": number_match,
             "answer_bearing_cue": answer_cue,
+            "list_answer_cue": list_answer_cue,
+            "group_answer_cue": group_answer_cue,
             "rerank_score": (0.50 * hybrid + 0.22 * coverage
                              + 0.12 * semantic_signal + 0.10 * min(1.0, fusion * 60)
-                             + 0.02 * phrase + 0.02 * number_match + 0.02 * answer_cue),
+                             + 0.02 * phrase + 0.02 * number_match + 0.06 * answer_cue
+                             + 0.14 * list_answer_cue + 0.18 * group_answer_cue),
         })
-        if _boilerplate(text) and not boilerplate_query:
+        # Penalize boilerplate only when it has little direct lexical relation
+        # to the query. This keeps it available when the question is actually
+        # about a notice, publisher route, edition, or other boilerplate topic.
+        if _boilerplate(text) and not _boilerplate(query) and coverage < 0.25:
             item["rerank_score"] *= 0.65
             item["boilerplate"] = True
         ranked.append(item)
