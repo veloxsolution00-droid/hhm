@@ -235,3 +235,5 @@ python tests/eval_live_corpus.py
 ```
 
 Optional flags: `--api http://127.0.0.1:8000`, `--output-dir evaluation/live_results`, `--timeout 1200`, and `--cases C4_chapter_specific,C15_abstention_missing`. The live matrix records source documents/pages, citation references, expected answer-term checks, answer status, and response time. Review its output manually; lexical answer checks are regression signals, not a semantic proof of correctness.
+#   h h m  
+ 
