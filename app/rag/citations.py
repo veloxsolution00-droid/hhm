@@ -205,8 +205,20 @@ def validate_citation_references(answer: str, source_count: int, source_labels: 
     uncited = [s[:120] for s in factual if not _CITATION.search(s)]
     coverage = round(1 - (len(uncited) / len(factual)), 3) if factual else 0.0
     present = bool(refs or filename_cites)
+    # Separate two independent questions:
+    #  * references_valid: every citation the answer does carry is legal (in
+    #    range, not a phantom label, not an unknown filename) and at least one
+    #    citation is present. This is what makes an answer trustworthy enough to
+    #    return at all.
+    #  * fully_cited: additionally, every factual sentence carries a citation.
+    # Treating the second as a hard requirement discarded correct, evidence-
+    # grounded answers whenever the local model omitted a single citation.
+    references_valid = bool(present and not invalid and not unknown_labels and not phantom)
+    fully_cited = coverage == 1.0
     return {
-        "valid": not invalid and not unknown_labels and not phantom and present and coverage == 1.0,
+        "valid": references_valid and fully_cited,
+        "references_valid": references_valid,
+        "fully_cited": fully_cited,
         "references_found": valid,
         "invalid_reference_numbers": invalid,
         "unknown_source_labels": unknown_labels,

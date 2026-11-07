@@ -1,4 +1,3 @@
-
 from pathlib import Path
 from typing import Any
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -29,13 +28,16 @@ ROOT = Path(__file__).resolve().parents[2]
 
 class Settings(BaseSettings):
 
-    # --------------------------------------------------
     # LOCAL LLM CONFIGURATION
-    # --------------------------------------------------
+
 
     ollama_base_url: str = "http://127.0.0.1:11434"
 
-    generation_model: str = "qwen3:8b"
+    # Pinned supported generation model. This default used to read "qwen3:8b",
+    # which is not the model the application is tuned for and is not installed
+    # in the supported Ollama setup, so a run without a .env file silently
+    # pointed at a missing model. It now matches GENERATION_MODEL in .env.
+    generation_model: str = "qwen2.5:3b"
 
     # Keep the existing embedding model to maintain
     # compatibility with the existing ChromaDB vectors.
@@ -77,8 +79,15 @@ class Settings(BaseSettings):
     # SEMANTIC RETRIEVAL
     # --------------------------------------------------
 
-    # Final number of relevant chunks sent to the LLM.
-    top_k: int = 4
+    # Final number of relevant chunks sent to the LLM. A four-chunk window was
+    # too narrow for long documents: the passage answering a factual question
+    # (for example the synopsis line naming a character's profession) often
+    # ranked just outside it. Six slots recovered most near-miss passages, but
+    # a single-fact question can still be answered by a passage ranked seventh
+    # (for example the line naming the ship whose log the novel includes), so
+    # eight slots are used; the context-character budget below still bounds the
+    # prompt size.
+    top_k: int = 8
 
     # Retrieve additional candidates before ranking.
     retrieval_candidate_multiplier: int = 5
@@ -118,8 +127,11 @@ class Settings(BaseSettings):
     # memory pressure on limited hardware.
     inference_concurrency: int = 1
 
-    tesseract_cmd: str = ""
-    ocr_enabled: bool = False
+    tesseract_cmd: str = "C:\Program Files\Tesseract-OCR\tesseract.exe"
+    # Matches OCR_ENABLED in .env. Image-only pages are common in the supported
+    # corpus, so OCR is on by default; set tesseract_cmd (or put Tesseract on
+    # PATH) in environments where the binary is not installed at the .env path.
+    ocr_enabled: bool = True
 
     max_pdf_pages: int = 5000
     max_image_pixels: int = 40_000_000
@@ -136,9 +148,7 @@ class Settings(BaseSettings):
     extraction_block_rows: int = 1000
     max_question_parts: int = 10
 
-    # --------------------------------------------------
     # LLM CONTEXT CONFIGURATION
-    # --------------------------------------------------
 
     max_context_chars: int = 16000
     model_context_tokens: int = 4096
@@ -148,9 +158,8 @@ class Settings(BaseSettings):
     # Verify answers against retrieved evidence.
     verify_answers: bool = True
 
-    # --------------------------------------------------
     # CACHE CONFIGURATION
-    # --------------------------------------------------
+
 
     cache_enabled: bool = True
     cache_ttl_seconds: int = 604800
@@ -163,15 +172,11 @@ class Settings(BaseSettings):
     semantic_answer_cache_enabled: bool = False
     semantic_answer_threshold: float = 0.975
 
-    # --------------------------------------------------
     # RECOVERY
-    # --------------------------------------------------
 
     recovery_on_startup: bool = True
-
-    # --------------------------------------------------
     # ENVIRONMENT CONFIGURATION
-    # --------------------------------------------------
+
 
     model_config = SettingsConfigDict(
         env_file=ROOT / ".env",
@@ -179,9 +184,8 @@ class Settings(BaseSettings):
         case_sensitive=False
     )
 
-    # --------------------------------------------------
+
     # INITIALIZATION AND PATH VALIDATION
-    # --------------------------------------------------
 
     def model_post_init(self, __context: Any) -> None:
 

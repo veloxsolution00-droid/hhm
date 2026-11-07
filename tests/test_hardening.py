@@ -49,6 +49,40 @@ def test_citation_validation_accepts_fully_cited_sentences():
     assert result["citation_coverage"] == 1.0
 
 
+def test_citation_validation_separates_legal_references_from_full_coverage():
+    """An answer whose citations are legal but incomplete is still grounded.
+
+    A submitted answer with one legal citation and one uncited factual sentence
+    must remain distinguishable from a broken answer: references_valid stays
+    True (so the answer can be returned) while fully_cited/valid stay False.
+    """
+    from app.rag.citations import validate_citation_references
+
+    result = validate_citation_references(
+        "Revenue was 10 crore [1]. The company had 25 employees.",
+        1,
+        ["annual-report.pdf"],
+    )
+    assert result["citation_present"] is True
+    assert result["citation_coverage"] < 1.0
+    assert result["references_valid"] is True
+    assert result["fully_cited"] is False
+    assert result["valid"] is False
+
+
+def test_citation_validation_rejects_illegal_references_even_when_incomplete():
+    """A partial answer that also cites an out-of-range number is not returned."""
+    from app.rag.citations import validate_citation_references
+
+    result = validate_citation_references(
+        "Revenue was 10 crore [7]. The company had 25 employees.",
+        1,
+        ["annual-report.pdf"],
+    )
+    assert result["references_valid"] is False
+    assert result["valid"] is False
+
+
 def test_citation_validation_keeps_bare_domain_and_path_in_one_sentence():
     from app.rag.citations import validate_citation_references
 
@@ -141,7 +175,8 @@ def test_multi_question_reports_partial_success(monkeypatch):
     assert result["abstained"] is False
 
 
-def test_verifier_exception_fails_closed(monkeypatch):
+def _verifier_outage_stack(monkeypatch, draft):
+    """Minimal retrieval stack whose model verifier raises, for fail-closed checks."""
     import sys
     monkeypatch.setitem(sys.modules, "chromadb", types.ModuleType("chromadb"))
     import app.rag.chat as chat
@@ -163,16 +198,33 @@ def test_verifier_exception_fails_closed(monkeypatch):
     monkeypatch.setattr(chat, "select_evidence", lambda *a, **k: {
         "hits": [hit], "term_coverage": 1.0, "missing_terms": []
     })
-    monkeypatch.setattr(chat, "generate", lambda prompt: "Revenue was 10 crore [1].")
+    monkeypatch.setattr(chat, "generate", lambda prompt: draft)
     monkeypatch.setattr(chat, "_verify_answer",
                         lambda *a: (_ for _ in ()).throw(RuntimeError("verifier offline")))
     monkeypatch.setattr(settings, "verify_answers", True)
+    return chat
 
+
+def test_verifier_exception_fails_closed(monkeypatch):
+    # The draft is not supported by the passage it cites, so the deterministic
+    # arbiter cannot decide it and the model verifier is required. An unavailable
+    # verifier must then withhold the unchecked draft rather than promote it.
+    chat = _verifier_outage_stack(monkeypatch, "The company hired fifty new engineers [1].")
     result = chat._answer_one("What was revenue?", {"d1"}, "local")
     assert result["status"] == "answer_validation_failed"
     assert result["abstained"] is True
     assert result["verification"]["checked"] is False
     assert "verifier offline" in result["verification"]["error"]
+
+
+def test_verifier_outage_keeps_deterministically_grounded_draft(monkeypatch):
+    # The deterministic lexical check is the primary arbiter: a fully cited draft
+    # whose words come from the passage it cites is accepted without consulting
+    # the model verifier, so a verifier outage cannot discard a grounded answer.
+    chat = _verifier_outage_stack(monkeypatch, "Revenue was 10 crore [1].")
+    result = chat._answer_one("What was revenue?", {"d1"}, "local")
+    assert result["status"] == "success"
+    assert result["verification"]["verdict"] == "LEXICAL_CORROBORATION"
 
 
 def test_reconcile_resets_partial_vectors_instead_of_promoting(monkeypatch, tmp_path):

@@ -249,14 +249,20 @@ def test_cached_answer_invalid_after_prompt_version_change(monkeypatch):
     assert len(state["calls"]) == 2  # regenerated under the new fingerprint
 
 
-# 13. Repair introducing an unsupported claim is not promoted to success.
+# 13. A draft the deterministic arbiter cannot corroborate still goes through
+# the model verifier, and a citation-valid repair that introduces an
+# unsupported claim is not promoted to success.
 def test_repair_introducing_unsupported_claim_is_rejected(monkeypatch):
     chat, state = _setup(monkeypatch, verify=True)
     state["drafts"] = [
-        "Chapter 51 lists three topics: practical application, demonstrations, and logic.",
+        "The text describes four cardinal virtues and how they are ordered in the soul.",
         "Chapter 51 lists three topics [1]. Epictetus also invented the pancakes of Carthage [2].",
     ]
-    state["verdict"] = "UNSUPPORTED ANSWERED"
+    # Neither draft's cited sentences draw their content words from the cited
+    # passage, so the deterministic lexical arbiter cannot confirm either and
+    # the model verifier decides. A grounded draft would instead be accepted by
+    # the deterministic arbiter without a verifier call (see test 13b).
+    state["verdict"] = "UNSUPPORTED NOT ANSWERED"
     result = chat._answer_one(QUESTION, {"d1"}, "local")
     assert result["status"] == "answer_validation_failed"
     assert result["status"] != "success"
@@ -264,6 +270,22 @@ def test_repair_introducing_unsupported_claim_is_rejected(monkeypatch):
     # its bounded retry both reject it, so no draft remains selected.
     assert result["retrieval"]["selected_draft"] == "none"
     assert result["retrieval"]["answer_recovery_succeeded"] is False
+
+
+# 13b. The deterministic lexical check is the primary arbiter: a fully cited,
+# grounded draft is accepted without calling the model verifier at all.
+def test_grounded_draft_accepted_without_calling_the_verifier(monkeypatch):
+    chat, state = _setup(monkeypatch, verify=True)
+    state["drafts"] = ["Chapter 51 lists three topics: practical application, demonstrations, and logic [1]."]
+    state["verdict"] = "UNSUPPORTED ANSWERED"
+    result = chat._answer_one(QUESTION, {"d1"}, "local")
+    assert result["status"] == "success"
+    assert result["verification"]["verdict"] == "LEXICAL_CORROBORATION"
+    assert result["retrieval"]["verification_overridden"] is True
+    # The verifier was never consulted and no retry generation was spent: only
+    # the initial answer call was made.
+    assert state["verdicts"] == []
+    assert len(state["calls"]) == 1
 
 
 # 14. A verifier rejection withholds the draft after one controlled retry.
@@ -390,3 +412,65 @@ def test_unmatched_subject_guard_does_not_match_substrings():
         "Which chapter discusses quidditch?", "A chapter discusses chess.")
     assert not _has_unmatched_question_anchor(
         "Which chapter discusses chess?", "A chapter discusses chess.")
+
+
+# 16. A correct, evidence-grounded answer whose citations are legal but not on
+# every factual sentence must be returned, not discarded as
+# "citation_validation_failed". This is the regression for the reported
+# "the answer is in the PDF, but the model replies citation-not-passed /
+# no relevant answer" failure.
+def test_partially_cited_grounded_answer_is_returned_not_discarded(monkeypatch):
+    chat, state = _setup(monkeypatch)
+    state["drafts"] = [
+        "Chapter 51 lists three topics: practical application, demonstrations, and logic [1]. "
+        "The author's birthplace is a separate matter of scholarly debate."
+    ]
+    result = chat._answer_one(QUESTION, {"d1"}, "local")
+    assert result["status"] == "success"
+    assert result["abstained"] is False
+    assert "practical application" in result["answer"]
+    # Citations are legal but incomplete: the answer is still returned.
+    assert result["citation_validation"]["references_valid"] is True
+    assert result["citation_validation"]["citation_coverage"] < 1.0
+    assert result["citation_validation"]["valid"] is False
+    assert result["retrieval"]["partial_citation_selected"] is True
+    assert result["status"] != "citation_validation_failed"
+
+
+# 16. A quantity question whose draft paraphrased the value away is answered with
+# the exact evidence sentence carrying the figure. The deterministic acceptor
+# matches words only, so it cannot see the dropped number on its own.
+def test_dropped_quantity_value_is_recovered_from_evidence(monkeypatch):
+    chunks = [
+        {"id": "c1",
+         "text": "Section 4 - Expenses. Travel expenses are reimbursed within 14 days of an approved claim.",
+         "metadata": {"document_id": "d1", "filename": "handbook.txt", "source_location": "Section 4"},
+         "similarity": 0.95},
+    ]
+    chat, state = _setup(monkeypatch, chunks=chunks, verify=True)
+    state["drafts"] = ["The travel expenses are reimbursed within [1]."]
+    result = chat._answer_one("Within how many days are travel expenses reimbursed?", {"d1"}, "local")
+    assert result["status"] == "success"
+    assert "14" in result["answer"]
+    assert result["retrieval"]["quantity_recovery"] is True
+    # The corrected, fully grounded extract is accepted deterministically.
+    assert state["verdicts"] == []
+    assert len(state["calls"]) == 1
+
+
+# 16b. The recovery never fires when the draft already carries a figure, so a
+# correct numeric answer is returned untouched.
+def test_present_quantity_value_is_not_rewritten(monkeypatch):
+    chunks = [
+        {"id": "c1",
+         "text": "Section 4 - Expenses. Travel expenses are reimbursed within 14 days of an approved claim.",
+         "metadata": {"document_id": "d1", "filename": "handbook.txt", "source_location": "Section 4"},
+         "similarity": 0.95},
+    ]
+    chat, state = _setup(monkeypatch, chunks=chunks)
+    state["drafts"] = ["Travel expenses are reimbursed within 14 days of an approved claim [1]."]
+    result = chat._answer_one("Within how many days are travel expenses reimbursed?", {"d1"}, "local")
+    assert result["status"] == "success"
+    assert result["retrieval"].get("quantity_recovery") is None
+    assert result["answer"].startswith("Travel expenses are reimbursed within 14 days")
+

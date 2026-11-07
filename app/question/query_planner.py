@@ -82,7 +82,11 @@ def plan_question(question: str, max_parts: int = 10) -> dict:
     parts = _explicit_parts(question or "")
     if not parts:
         parts = _long_compound_parts(original)
-    parts = _dedupe(parts)[:max(1, int(max_parts))]
+    limit = max(1, int(max_parts))
+    # Deduplicate once and compare against the limit before truncating, so the
+    # (relatively expensive) split/decompose pass is not run a second time.
+    untruncated = _dedupe(parts)
+    parts = untruncated[:limit]
     if not parts:
         parts = [original] if original else []
     return {
@@ -93,5 +97,5 @@ def plan_question(question: str, max_parts: int = 10) -> dict:
         "subquestions": parts,
         "decomposed": len(parts) > 1,
         "planned_parts": len(parts),
-        "truncated_to_limit": len(_dedupe(_explicit_parts(question or "") or _long_compound_parts(original))) > max(1, int(max_parts)),
+        "truncated_to_limit": len(untruncated) > limit,
     }

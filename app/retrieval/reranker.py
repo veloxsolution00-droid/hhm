@@ -125,8 +125,13 @@ def rerank(query: str, hits: list[dict], limit: int | None = None) -> list[dict]
         ]
     except Exception:
         variant_terms = []
+    # "name" is both a verb ("name the members") and a noun ("the name of").
+    # A bare noun use must not flag a single-value question as a list question:
+    # doing so inflated the score of any list-bearing chunk by +0.14 and pushed
+    # the genuinely answering passage out of the window.
     asks_for_items = bool(re.search(
-        r"\b(?:list|name|enumerate|identify)\b|\b(?:what|which)\b.{0,40}\b(?:are|include|consist|comprise)\b",
+        r"\b(?:list|enumerate|identify)\b|\bname\s+(?:the|all|each|every|any|both)\b"
+        r"|\b(?:what|which)\b.{0,40}\b(?:are|include|consist|comprise)\b",
         query or "", re.I
     ) or re.search(r"\b(?:what|which)\b.{0,35}\b(?:kinds?|types?|forms?)\b", query or "", re.I))
     asks_about_group = bool(re.search(

@@ -278,7 +278,15 @@ def retry_job(job_id: str):
         raise HTTPException(429, str(exc)) from exc
     if not queued:
         raise HTTPException(409, "Only failed jobs with a non-deleting document can be retried.")
-    submit(job_id)
+    try:
+        submit(job_id)
+    except Exception:
+        # The job is already durably queued, so a dispatch failure must not
+        # surface as a 500 that hides the successful requeue. Startup recovery
+        # will dispatch the retained queued job.
+        logger.exception("Could not dispatch retried job %s", job_id)
+        return {"job_id": job_id, "status": "queued_pending_worker",
+                "message": "Job is queued; the worker will pick it up on the next dispatch."}
     return {"job_id": job_id, "status": "queued"}
 
 

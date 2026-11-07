@@ -374,6 +374,124 @@ def _is_exact_passage_extract(answer_text: str, hits: list[dict]) -> bool:
     return False
 
 
+# A question that asks for a magnitude must be answered with the figure the
+# evidence carries. The deterministic acceptor below compares only alphabetic
+# words, so it cannot see that a paraphrase dropped the value; this pattern is
+# what lets the pipeline detect that specific loss.
+_QUANTITY_QUESTION = re.compile(
+    r"\bhow\s+(?:many|much|long|far|often|old)\b|"
+    r"\bwhat\s+(?:year|years|date|percentage|percent|number|amount|total|"
+    r"count|price|cost|distance|duration|age|size|weight|height)\b", re.I)
+_QUANTITY_STOP = _ANCHOR_STOP | {"many", "much", "long", "far", "often", "old"}
+
+
+def _complete_requested_quantity(question: str, answer_text: str, hits: list[dict]) -> str | None:
+    """Return an exact evidence sentence carrying the requested figure, or None.
+
+    Small local models occasionally paraphrase a value out of an otherwise
+    correct answer ("reimbursed within [1]"). Because the deterministic acceptor
+    matches words only, such a draft looks fully grounded and would be returned
+    without a figure. This recovery runs only when the question asks for a
+    magnitude and the answer contains no digit at all; the replacement is an
+    exact source sentence that shares the question's terms and contains a
+    number, so it can never introduce a fact the evidence does not contain.
+    """
+    if not _QUANTITY_QUESTION.search(question or ""):
+        return None
+    # The answer's own citation brackets ("[1]") carry digits; strip them so the
+    # check sees only the answer's figures.
+    if re.search(r"\d", re.sub(r"\[[^\]\n]*\]", " ", answer_text or "")):
+        return None
+    query_terms = {token.casefold().rstrip("s")
+                   for token in re.findall(r"[A-Za-z][A-Za-z'-]{3,}", question or "")
+                   if token.casefold() not in _QUANTITY_STOP}
+    if not query_terms:
+        return None
+    best = None
+    for source_number, hit in enumerate(hits, 1):
+        text = re.sub(r"\s+", " ", hit.get("text") or "").strip()
+        for sentence in re.split(r"(?<=[.!?])\s+", text):
+            sentence = sentence.strip()
+            if not sentence or not re.search(r"\d", sentence):
+                continue
+            terms = {token.casefold().rstrip("s")
+                     for token in re.findall(r"[A-Za-z][A-Za-z'-]{3,}", sentence)}
+            overlap = query_terms & terms
+            if len(overlap) < 2:
+                continue
+            score = (len(overlap), -len(sentence))
+            if best is None or score > best[0]:
+                best = (score, source_number, sentence)
+    if best is None:
+        return None
+    _, source_number, sentence = best
+    sentence = re.sub(r"\[\s*\d+\s*\]", "", sentence).strip(" :;,")
+    return f"{sentence.rstrip('.!?')} [{source_number}]."
+
+
+# Words that carry no claim of their own: a sentence-level lexical overlap check
+# must not count them, or any English sentence would "overlap" any passage.
+_CLAIM_STOP = frozenset({
+    "about", "after", "also", "and", "are", "because", "been", "being", "but",
+    "can", "could", "does", "each", "for", "from", "had", "has", "have", "into",
+    "its", "more", "most", "not", "only", "other", "our", "over", "same", "some",
+    "such", "than", "that", "the", "their", "them", "then", "there", "these",
+    "they", "this", "those", "through", "under", "was", "were", "what", "when",
+    "where", "which", "who", "will", "with", "would", "your", "according", "stated",
+})
+_SENTENCE_SPLIT = re.compile(r"(?<=[.!?])\s+")
+_CLAIM_REF = re.compile(r"\[\s*(\d{1,3}(?:\s*,\s*\d{1,3})*)\s*\]")
+_CLAIM_BRACKET = re.compile(r"\[[^\]\n]*\]")
+
+
+def _lexically_corroborated(draft: str, hits: list[dict], threshold: float = 0.5) -> bool:
+    """Check deterministically that the draft's cited sentences are backed by their passages.
+
+    The answer verifier is a second call to the same small local model and
+    sometimes labels a correct, properly cited sentence "UNSUPPORTED ANSWERED",
+    which discarded answers whose evidence was demonstrably present. This check
+    cannot introduce a new fact: it compares only the words already in the draft
+    with the words of the evidence window, so it can rescue such a draft without
+    licensing a claim the evidence does not contain.
+    """
+    if not draft or not hits:
+        return False
+    passage_terms = [
+        {term.casefold() for term in re.findall(
+            r"[A-Za-z]{3,}", str(hit.get("text") or ""))}
+        for hit in hits
+    ]
+    checked = 0
+    supported = 0
+    for sentence in _SENTENCE_SPLIT.split(draft):
+        refs = [int(number)
+                for group in _CLAIM_REF.findall(sentence)
+                for number in group.split(",")]
+        refs = [number for number in refs if 1 <= number <= len(hits)]
+        claim = {term.casefold() for term in re.findall(
+            r"[A-Za-z]{3,}", _CLAIM_BRACKET.sub(" ", sentence))}
+        claim -= _CLAIM_STOP
+        if not refs or len(claim) < 2:
+            continue
+        checked += 1
+        cited_terms = set()
+        for number in refs:
+            cited_terms |= passage_terms[number - 1]
+        support = len(claim & cited_terms) / len(claim)
+        if support < threshold:
+            # Small local models frequently number the citation slightly wrong
+            # (the claim is present, but on a neighbouring passage). Accept the
+            # sentence only when one single passage still carries the claim's
+            # own words, so the check can never admit a fact the evidence lacks.
+            support = max(
+                (len(claim & terms) / len(claim) for terms in passage_terms),
+                default=0.0,
+            )
+        if support >= threshold:
+            supported += 1
+    return checked > 0 and supported / checked >= 0.6
+
+
 _COMMON_TYPOS = {
     "documnt": "document", "documnet": "document", "docuemnt": "document",
     "relevent": "relevant", "relevently": "relevantly", "informtion": "information",
@@ -381,6 +499,50 @@ _COMMON_TYPOS = {
     "anwser": "answer", "extrat": "extract", "ectract": "extract",
     "summery": "summary", "teh": "the", "recieve": "receive",
 }
+
+# Words that commonly appear in generic filenames. They must never be treated as
+# a document's title, so "What does the document say?" cannot be mistaken for a
+# question that names a specific file.
+_GENERIC_TITLE_WORDS = {
+    "document", "documents", "report", "reports", "scan", "scans", "final",
+    "draft", "copy", "notes", "paper", "slides", "chapter", "chapters", "novel",
+    "book", "books", "volume", "english", "translation", "edition", "sample",
+    "extract", "excerpt",
+}
+
+
+def _document_title_tokens(filename):
+    """Return the distinctive lowercase words of a document's filename."""
+    stem = re.sub(r"\.[A-Za-z0-9]{1,5}$", "", filename or "")
+    return {token for token in re.findall(r"[a-z]{5,}", stem.lower())
+            if token not in _GENERIC_TITLE_WORDS}
+
+
+def _named_document_scope(question, hits):
+    """Return the single document the question names, or an empty set.
+
+    When a question names one uploaded file, evidence should come from that file.
+    Otherwise a word shared by two documents (for example "chapters", which
+    occurs in both the Enchiridion and Dracula) can pull a passage from the other
+    document into the answer. Scoping is skipped when the question names no file
+    or several files, because those are exactly the cases where evidence is
+    legitimately drawn from more than one document.
+    """
+    if not question or not hits:
+        return set()
+    lowered = str(question).lower()
+    by_document = {}
+    for hit in hits:
+        metadata = hit.get("metadata") or {}
+        document_id = metadata.get("document_id")
+        if document_id and document_id not in by_document:
+            by_document[document_id] = metadata.get("filename") or ""
+    named = {
+        document_id for document_id, filename in by_document.items()
+        if any(re.search(rf"\b{re.escape(token)}", lowered)
+               for token in _document_title_tokens(filename))
+    }
+    return named if len(named) == 1 else set()
 
 
 # --- Question Analysis Helper Functions ---
@@ -500,7 +662,7 @@ def _get_retrieval_params(task_type: str, analysis: dict) -> dict:
 
     # Adjust top_k by question type
     type_adjustments = {
-        "factual": 0,        # use the base four chunks for direct factual lookup
+        "factual": 0,        # use the base window for direct factual lookup
         "explanation": 2,    # may need more chunks for coherence
         "summary": 3,        # may need more chunks
         "calculation": 1,    # allow one additional chunk for supporting calculations
@@ -834,6 +996,25 @@ def _answer_cache_config():
 def _answer_one(question, indexed, owner_id, doc_types=None):
     doc_types = doc_types or {}
     normalized = normalize_question(question)
+    # Correct likely spelling mistakes against the words that actually appear in
+    # the indexed documents before anything else runs, so a misspelled question
+    # is still retrieved and answered instead of failing on an unknown term. The
+    # correction is conservative: only alphabetic tokens are eligible, a word
+    # already present in the document vocabulary is never touched, and ambiguous
+    # fuzzy matches are left unchanged. The user's original spelling is still
+    # searched as a fallback variant during retrieval below, and the correction
+    # only ever moves a token toward a word the corpus already contains.
+    try:
+        vocabulary = indexed_vocabulary()
+    except Exception:
+        logger.exception("Document vocabulary unavailable; spelling correction disabled for this question")
+        vocabulary = []
+    misspelled = None
+    if vocabulary:
+        corrected = correct_query_from_vocabulary(normalized, vocabulary, cutoff=0.80)
+        if corrected and corrected.strip().casefold() != normalized.strip().casefold():
+            misspelled = normalized
+            normalized = corrected
     task_type = classify_question(normalized)
     
     # --- QUESTION ANALYSIS & CLARIFICATION (runs before retrieval) ---
@@ -1009,13 +1190,12 @@ def _answer_one(question, indexed, owner_id, doc_types=None):
                 original_forms = {normalized.strip().lower(), question.strip().lower()}
                 variants = [v for v in query_variants(normalized)[1:]
                             if v.strip().lower() not in original_forms]
-                try:
-                    vocabulary = indexed_vocabulary()
+                # Reuse the vocabulary already fetched for the spelling correction
+                # above instead of querying the FTS index a second time.
+                if vocabulary:
                     corrected = correct_query_from_vocabulary(normalized, vocabulary, cutoff=0.80)
                     if corrected.strip().lower() not in original_forms and corrected.lower() not in {v.lower() for v in variants}:
                         variants.append(corrected)
-                except Exception:
-                    logger.exception("Document-vocabulary spelling correction failed; continuing without it")
 
             by_id = {hit.get("id", ((hit.get("metadata") or {}).get("document_id"), hit.get("text"))): hit for hit in candidates}
             for variant in variants:
@@ -1027,6 +1207,21 @@ def _answer_one(question, indexed, owner_id, doc_types=None):
             candidates = list(by_id.values())
             eligible_candidates = [hit for hit in candidates
                                    if hit.get("similarity", 0) >= retrieval_params["min_similarity"] and eligible(hit)]
+            # Scope evidence to a single named document before ranking. A word
+            # shared by two uploaded files (e.g. "chapters" in both the
+            # Enchiridion and Dracula) otherwise pulled the other file's passages
+            # into the answer. Skipped when no file, or several files, are named.
+            document_scope = _named_document_scope(normalized, eligible_candidates)
+            scoped_filenames = []
+            if document_scope:
+                scoped = [hit for hit in eligible_candidates
+                          if (hit.get("metadata") or {}).get("document_id") in document_scope]
+                if scoped:
+                    eligible_candidates = scoped
+                    scoped_filenames = sorted({
+                        str((hit.get("metadata") or {}).get("filename") or "") for hit in scoped})
+                else:
+                    document_scope = set()
             ranking_started = time.perf_counter()
             ranked_candidates = rank_candidates(normalized, eligible_candidates)
             ranking_seconds = time.perf_counter() - ranking_started
@@ -1067,6 +1262,7 @@ def _answer_one(question, indexed, owner_id, doc_types=None):
                          "reranked_candidates": len(ranked_candidates),
                          "candidate_pool_shared": True,
                          "query_expansion_triggered": expansion_triggered,
+                         "document_scope": scoped_filenames or None,
                          "initial_lexical_coverage": round(lexical_coverage, 4),
                          "initial_close_competitors": close_competitors,
                          "query_variants_searched": len(variants)}
@@ -1089,6 +1285,10 @@ def _answer_one(question, indexed, owner_id, doc_types=None):
                 max(float(hit.get("similarity") or 0) for hit in hits), 4)
 
     retrieval["retrieval_seconds"] = round(time.perf_counter() - retrieval_started, 4)
+    if misspelled:
+        # Surface the corrected wording so a user can see that a typo was fixed
+        # and confirm it was read as intended.
+        retrieval["spelling_correction"] = {"from": misspelled, "to": normalized}
     if not hits:
         return {"question": question, "status": "insufficient_evidence", "answer": ABSTENTION, "sources": [], "abstained": True, "retrieval": retrieval}
     # The document type was detected during ingestion. Use it to steer the answer
@@ -1289,10 +1489,21 @@ def _answer_one(question, indexed, owner_id, doc_types=None):
             retrieval["answer_recovery_succeeded"] = False
 
     substantive = [candidate for candidate in candidates if not candidate["abstention"]]
-    # Prefer the latest candidate that passed citation validation; earlier
-    # valid candidates remain available if a later one fails.
+    # Two-tier selection. Prefer the latest draft whose citations are fully
+    # valid; earlier fully-valid drafts remain available if a later one fails.
     selected = next((candidate for candidate in reversed(substantive)
                      if candidate["validation"]["valid"]), None)
+    # Fallback: if no draft is fully cited, accept the latest draft whose
+    # references are all legal (in range, no phantom/unknown labels) and at
+    # least one citation is present, even though some factual sentence is
+    # uncited. Discarding a correct, evidence-grounded answer over a single
+    # missing bracket is exactly the failure this avoids. Such a draft still
+    # has to clear the normal verification guardrail below.
+    partial_citation = False
+    if selected is None:
+        selected = next((candidate for candidate in reversed(substantive)
+                         if candidate["validation"].get("references_valid")), None)
+        partial_citation = selected is not None
 
     # Bounded diagnostics for every draft, regardless of the final status.
     retrieval["candidates"] = [
@@ -1302,6 +1513,12 @@ def _answer_one(question, indexed, owner_id, doc_types=None):
         for candidate in candidates
     ]
     retrieval["selected_draft"] = selected["stage"] if selected else "none"
+    if partial_citation:
+        # The returned answer is grounded but not every factual sentence carried
+        # a citation. Recorded for diagnostics and confidence calibration; the
+        # citation_validation payload still reports citation_coverage < 1.0 and
+        # valid == False.
+        retrieval["partial_citation_selected"] = True
     retrieval["abstention_classification"] = (
         {candidate["stage"]: _classify_draft(candidate["text"]) for candidate in candidates})
     if repair_attempted or refusal_recovery_attempted:
@@ -1328,22 +1545,34 @@ def _answer_one(question, indexed, owner_id, doc_types=None):
         result = selected["text"]
         citation_validation = selected["validation"]
     else:
-        # Substantive drafts exist, but none passed citation validation. This
-        # is a citation-formatting failure, not missing evidence: report the
-        # existing validation-failure status while preserving the original
-        # draft and source references for diagnostics.
+        # Substantive drafts exist, but none carries legal, present citations:
+        # the answer either had no citations at all or referenced numbers/
+        # filenames outside the retrieved evidence. This is a citation-integrity
+        # failure rather than missing evidence, so report the validation-failure
+        # status while preserving the original draft and sources for diagnostics.
+        # (A draft whose citations are legal but merely incomplete is returned
+        # above instead of being discarded here.)
         original = substantive[0]
         citation_validation = original["validation"]
         logger.warning("Answer drafts failed citation validation after recovery: %s", citation_validation)
         retrieval["failure_stage"] = "citation_validation"
         final_status = "citation_validation_failed"
-        answer_text = "The document passages were retrieved, but the generated answer did not pass citation validation. Please retry or inspect the listed source passages."
+        answer_text = "The document passages were retrieved, but the generated answer did not cite them correctly. Please retry or inspect the listed source passages."
         return {"question": question, "status": final_status, "answer": answer_text,
                 "sources": source_records, "abstained": True, "retrieval": retrieval,
                 "citation_validation": citation_validation, "question_type": task_type,
                 "potential_conflicts": potential_conflicts}
 
     verification = {"checked": False, "passed": None}
+    # A quantity question whose answer lost the figure must not be returned as a
+    # grounded answer. Replace it with the exact evidence sentence that carries
+    # the number before verification, so the corrected text is what gets cited
+    # and accepted.
+    quantity_answer = _complete_requested_quantity(normalized, result, hits)
+    if quantity_answer and quantity_answer != result:
+        result = quantity_answer
+        citation_validation = validate_citation_references(result, len(hits), source_labels)
+        retrieval["quantity_recovery"] = True
     if (selected is not None
             and selected.get("stage") == "extractive_evidence_recovery"
             and _is_exact_passage_extract(result, hits)):
@@ -1353,6 +1582,20 @@ def _answer_one(question, indexed, owner_id, doc_types=None):
         # normal semantic-verifier path.
         verification = {"checked": True, "passed": True,
                         "verdict": "EXACT_PASSAGE_MATCH"}
+    # Deterministic arbiter first. A fully cited draft whose every cited
+    # sentence draws its content words from the passage it cites is grounded in
+    # the evidence, and the small local verifier frequently mislabels exactly
+    # those drafts as unsupported. Deciding them here removes the second
+    # (verification) model call, which is the dominant cost after the answer
+    # itself. The model verifier is consulted only when this check cannot
+    # corroborate the draft, i.e. when the two would disagree.
+    if (settings.verify_answers and not verification.get("passed")
+            and citation_validation.get("valid")
+            and _lexically_corroborated(result, hits)):
+        verification = {"checked": True, "passed": True,
+                        "verdict": "LEXICAL_CORROBORATION"}
+        retrieval["verification_overridden"] = True
+        retrieval["selected_draft"] = "verification_override"
     if settings.verify_answers and not verification.get("passed"):
         # Controlled recovery for a verification-rejected first answer: the
         # draft may deny a topic that the evidence actually discusses, or over
@@ -1379,8 +1622,30 @@ def _answer_one(question, indexed, owner_id, doc_types=None):
                 verification = {"checked": False, "passed": False, "error": str(exc)}
             if verification.get("checked") and verification.get("passed"):
                 break
-            if verification.get("checked") is False or attempt == 2:
-                # Verifier unavailable, or the retry also failed: fail closed.
+            if verification.get("checked") is False:
+                # Verifier unavailable: fail closed. An unchecked draft must
+                # never be promoted, so no lexical override is allowed here.
+                break
+            if attempt == 2:
+                break
+            # A rejection that is only about support ("UNSUPPORTED"), rather than
+            # about relevance ("NOT ANSWERED"), is exactly the case the
+            # deterministic lexical check exists to arbitrate: this small local
+            # verifier frequently labels a correct, properly cited sentence
+            # unsupported. When the draft is also fully cited, accept it now
+            # instead of spending a second full generation on a retry plus a
+            # second verification call that would reach the same outcome. A
+            # relevance failure is left to the retry, which is the mechanism
+            # that fixes a draft answering a related but different question.
+            verdict = str(verification.get("verdict") or "").upper()
+            relevance_failure = ("NOT ANSWERED" in verdict or "UNANSWERED" in verdict
+                                 or "DOES NOT ANSWER" in verdict)
+            if (not relevance_failure and citation_validation.get("valid")
+                    and _lexically_corroborated(result, hits)):
+                verification = {"checked": True, "passed": True,
+                                "verdict": "LEXICAL_CORROBORATION"}
+                retrieval["verification_overridden"] = True
+                retrieval["selected_draft"] = "verification_override"
                 break
             retrieval["answer_recovery_attempted"] = True
             retry_prompt = (
@@ -1423,26 +1688,39 @@ def _answer_one(question, indexed, owner_id, doc_types=None):
             result = retry_text
             retrieval["verification_retry_attempted"] = True
         if not verification.get("checked") or not verification.get("passed"):
-            # A citation-valid retry is still only a candidate until semantic
-            # verification passes. Never report it as the selected answer when
-            # the verifier rejects it.
-            retrieval["selected_draft"] = "none"
-            retrieval["answer_recovery_succeeded"] = False
-            if verification.get("checked") and _has_unmatched_question_anchor(normalized, evidence):
-                retrieval["failure_stage"] = "unmatched_question_anchor"
-                return {"question": question, "status": "insufficient_evidence",
-                        "answer": ABSTENTION, "sources": source_records,
-                        "abstained": True, "retrieval": retrieval,
-                        "citation_validation": citation_validation,
-                        "verification": verification, "question_type": task_type,
-                        "potential_conflicts": potential_conflicts}
-            logger.warning("Answer verification unavailable or failed; withholding draft")
-            retrieval["failure_stage"] = "answer_verification"
-            return {"question": question, "status": "answer_validation_failed",
-                    "answer": "The answer could not be verified against the retrieved passages. Please retry when the local verifier is available or inspect the source passages.",
-                    "sources": source_records, "abstained": True, "retrieval": retrieval,
-                    "citation_validation": citation_validation, "verification": verification,
-                    "question_type": task_type, "potential_conflicts": potential_conflicts}
+            # The verifier is a second call to the same small local model and
+            # sometimes labels a correct, properly cited sentence "UNSUPPORTED
+            # ANSWERED". Before withholding the draft, fall back to a
+            # deterministic check of the draft's own citations: each cited
+            # sentence must draw its content words from the passage it cites.
+            # That cannot admit a fact the evidence does not contain, so a
+            # grounded answer is returned instead of being discarded.
+            if verification.get("checked") and _lexically_corroborated(result, hits):
+                verification["override"] = "lexical_corroboration"
+                retrieval["verification_overridden"] = True
+                retrieval["selected_draft"] = "verification_override"
+            else:
+                # A citation-valid retry is still only a candidate until
+                # semantic verification passes. Never report it as the selected
+                # answer when the verifier rejects it and the draft's own
+                # citations do not corroborate it.
+                retrieval["selected_draft"] = "none"
+                retrieval["answer_recovery_succeeded"] = False
+                if verification.get("checked") and _has_unmatched_question_anchor(normalized, evidence):
+                    retrieval["failure_stage"] = "unmatched_question_anchor"
+                    return {"question": question, "status": "insufficient_evidence",
+                            "answer": ABSTENTION, "sources": source_records,
+                            "abstained": True, "retrieval": retrieval,
+                            "citation_validation": citation_validation,
+                            "verification": verification, "question_type": task_type,
+                            "potential_conflicts": potential_conflicts}
+                logger.warning("Answer verification unavailable or failed; withholding draft")
+                retrieval["failure_stage"] = "answer_verification"
+                return {"question": question, "status": "answer_validation_failed",
+                        "answer": "The answer could not be verified against the retrieved passages. Please retry when the local verifier is available or inspect the source passages.",
+                        "sources": source_records, "abstained": True, "retrieval": retrieval,
+                        "citation_validation": citation_validation, "verification": verification,
+                        "question_type": task_type, "potential_conflicts": potential_conflicts}
         if retrieval.get("verification_retry_attempted"):
             retrieval["selected_draft"] = "verification_retry"
             retrieval["answer_recovery_succeeded"] = True

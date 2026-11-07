@@ -27,7 +27,14 @@ def select_evidence(requirement: str, hits: list[dict], max_chunks: int = 5,
             continue
         item = dict(hit)
         item["_terms"] = _terms(text)
-        item["_base"] = float(item.get("rerank_score") or item.get("similarity") or 0)
+        # Prefer the reranked score, falling back to raw similarity only when
+        # the reranker did not run. Test for None explicitly: a legitimate
+        # rerank_score of 0.0 must not fall through to a high `similarity` via
+        # `or`, which would silently reorder evidence selection.
+        base = item.get("rerank_score")
+        if base is None:
+            base = item.get("similarity")
+        item["_base"] = float(base) if base is not None else 0.0
         pool.append(item)
 
     selected, selected_ids, covered, chars = [], set(), set(), 0

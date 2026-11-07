@@ -161,13 +161,17 @@ def correct_query_from_vocabulary(question: str, vocabulary: list[str], cutoff: 
         if not matches:
             return token
         # If the two best candidates are too close in spelling distance, avoid a
-        # speculative replacement. This is deliberately conservative.
+        # speculative replacement. This is deliberately conservative. A shorter
+        # candidate that is contained in the best match is the same word stem
+        # (e.g. "hunt" vs "hunter" for "huntr"), not a competing correction, so
+        # it must not veto an otherwise confident fix.
         if len(matches) > 1:
             from difflib import SequenceMatcher
-            best = SequenceMatcher(None, low, matches[0]).ratio()
-            runner_up = SequenceMatcher(None, low, matches[1]).ratio()
-            if best - runner_up < 0.04:
-                return token
+            if matches[1] not in matches[0]:
+                best = SequenceMatcher(None, low, matches[0]).ratio()
+                runner_up = SequenceMatcher(None, low, matches[1]).ratio()
+                if best - runner_up < 0.04:
+                    return token
         return matches[0].capitalize() if capitalised else matches[0]
 
     return re.sub(r"\b[\w]+\b", replace, question)

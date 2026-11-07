@@ -47,6 +47,26 @@ def test_multiple_explicit_questions_are_kept_separate(monkeypatch):
 
     assert chat.split_questions("What is the date? Who signed it?") == ["What is the date", "Who signed it"]
 
+def test_named_document_scope_isolates_a_file_named_in_the_question(monkeypatch):
+    import sys, types
+    monkeypatch.setitem(sys.modules, "chromadb", types.ModuleType("chromadb"))
+    import app.rag.chat as chat
+
+    hits = [
+        {"metadata": {"document_id": "d1", "filename": "the-enchiridion-epictetus.pdf"}},
+        {"metadata": {"document_id": "d2", "filename": "dracula-bram-stoker.pdf"}},
+    ]
+    # A question naming one file resolves to that file only, so a word shared by
+    # both documents cannot pull the other file's passages into the answer.
+    assert chat._named_document_scope("How many chapters is the Enchiridion made of?", hits) == {"d1"}
+    assert chat._named_document_scope("Who is the vampire hunter in Dracula?", hits) == {"d2"}
+    # No file named, or several files named, must not narrow the scope.
+    assert chat._named_document_scope("Summarise the chapters.", hits) == set()
+    assert chat._named_document_scope("Compare the Enchiridion and Dracula.", hits) == set()
+    # Generic filename words are never treated as a document title.
+    document_hit = [{"metadata": {"document_id": "d3", "filename": "document.pdf"}}]
+    assert chat._named_document_scope("What does the document say?", document_hit) == set()
+
 def test_verifier_rejects_an_unsupported_draft(monkeypatch):
     import sys, types
     monkeypatch.setitem(sys.modules, "chromadb", types.ModuleType("chromadb"))
