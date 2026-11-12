@@ -1,4 +1,4 @@
-import logging, os, threading, time, uuid
+import importlib.util, logging, os, shutil, threading, time, uuid
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 from pathlib import Path
@@ -29,6 +29,22 @@ class ChatMessage(BaseModel):
 class ChatRequest(BaseModel):
     question: str = Field(min_length=1, max_length=5000)
     history: list[ChatMessage] = Field(default_factory=list, max_length=8)
+
+def _ocr_health():
+    """Report local OCR readiness without downloading or contacting any service."""
+    if not settings.ocr_enabled:
+        return {"enabled": False, "available": False, "reason": "OCR is disabled by configuration"}
+    if importlib.util.find_spec("pytesseract") is None:
+        return {"enabled": True, "available": False, "reason": "Python package pytesseract is not installed"}
+    configured = Path(settings.tesseract_cmd).expanduser() if settings.tesseract_cmd else None
+    binary = str(configured) if configured and configured.is_file() else shutil.which("tesseract")
+    if not binary:
+        return {
+            "enabled": True, "available": False,
+            "reason": "Tesseract executable was not found; configure TESSERACT_CMD or add it to PATH",
+        }
+    return {"enabled": True, "available": True, "executable": binary}
+
 
 def _warm_models():
     """Load both Ollama models before the first chat request.
@@ -114,9 +130,12 @@ def health():
         cache = {"enabled": None, "error": str(e)}
     o = status()
     models_ready = bool(o.get("generation_model_available")) and bool(o.get("embedding_model_available"))
-    healthy = bool(o.get("available")) and models_ready and db_health["available"] and metadata_health["available"]
+    ocr = _ocr_health()
+    ocr_ready = not ocr["enabled"] or ocr["available"]
+    healthy = (bool(o.get("available")) and models_ready and db_health["available"]
+               and metadata_health["available"] and ocr_ready)
     return {"status": "ok" if healthy else "degraded",
-            "ollama": o, "models_ready": models_ready,
+            "ollama": o, "models_ready": models_ready, "ocr": ocr,
             "chromadb": db_health, "metadata": metadata_health,
             "documents": document_count,
             "cache": cache,
