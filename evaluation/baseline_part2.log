@@ -1,0 +1,16 @@
+﻿C12_comparison         t1 insufficient_evidence         368.8s conf=0.0 refs=[]
+C13_calculation        t1 success                         0.1s conf=1.0 refs=[]
+C14_followup           t1 insufficient_evidence         142.6s conf=0.0 refs=[]
+C14_followup           t2 insufficient_evidence         285.7s conf=0.0 refs=[]
+C15_abstention_missing t1 citation_validation_failed     58.7s conf=0.0 refs=[]
+C16_cache_consistency  t1 success                        26.6s conf=0.868 refs=[1]
+C17_similar_terminology t1 insufficient_evidence         180.1s conf=0.0 refs=[]
+C18_boilerplate        t1 success                        86.4s conf=1.0 refs=[1, 2, 4, 5, 6]
+C19_franklin_substance t1 success                        91.2s conf=0.967 refs=[1]
+C20_dracula_chapters   t1 citation_validation_failed     58.2s conf=0.0 refs=[]
+C21_dracula_narrator   t1 success                       140.0s conf=1.0 refs=[1]
+C22_dracula_document_forms t1 insufficient_evidence         189.7s conf=0.0 refs=[]
+saved C:\Users\Admin\Downloads\RND2_2\RND2_1\RND\evaluation\live_results\rnd_live_eval_20261112_081629.json
+totals: {'success': 5, 'abstain': 1, 'other': 6}
+indexed documents: 5 targeted: 4 uncovered: ['the-enchiridion-epictetus.pdf']
+citation accuracy: {'checked': 4, 'passed': 4, 'pass_rate': 1.0} latency: {'count': 12, 'mean': 135.673, 'p50': 139.966, 'p95': 285.696, 'max': 368.823}

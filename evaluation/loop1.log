@@ -1,0 +1,15 @@
+﻿C4_chapter_specific    t1 success                        41.1s conf=0.868 refs=[1]
+C8_date_identifier     t1 success                        16.1s conf=0.894 refs=[5]
+C9_long_document       t1 citation_validation_failed    176.8s conf=0.0 refs=[]
+C12_comparison         t1 insufficient_evidence         227.7s conf=0.0 refs=[]
+C14_followup           t1 insufficient_evidence          24.9s conf=0.0 refs=[]
+C14_followup           t2 insufficient_evidence          86.4s conf=0.0 refs=[]
+C15_abstention_missing t1 insufficient_evidence          13.6s conf=0.0 refs=[]
+C16_cache_consistency  t1 success                         0.1s conf=0.868 refs=[1]
+C17_similar_terminology t1 insufficient_evidence          63.0s conf=0.0 refs=[]
+C20_dracula_chapters   t1 citation_validation_failed      7.0s conf=0.0 refs=[]
+C22_dracula_document_forms t1 insufficient_evidence          64.1s conf=0.0 refs=[]
+saved evaluation\live_results\loop1\rnd_live_eval_20261112_084254.json
+totals: {'success': 3, 'abstain': 1, 'other': 7}
+indexed documents: 5 targeted: 5 uncovered: []
+citation accuracy: {'checked': 3, 'passed': 3, 'pass_rate': 1.0} latency: {'count': 11, 'mean': 65.512, 'p50': 41.066, 'p95': 227.67, 'max': 227.67}

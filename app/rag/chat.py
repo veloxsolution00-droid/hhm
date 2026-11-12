@@ -201,6 +201,33 @@ _ANCHOR_STOP = {
 }
 
 
+# A draft that asserts the documents do not cover the asked subject is a
+# missing-information answer, not a factual claim about the documents.
+_DENIAL_CUE = re.compile(
+    r"\b(?:does not|doesn't|do not|don't|did not|didn't)\s+"
+    r"(?:say|mention|discuss|contain|include|address)\b|"
+    r"\bno relevant information (?:was|is) found\b|\bnot (?:discussed|mentioned|addressed)\b",
+    re.I,
+)
+
+
+def _denies_question_topic(text: str) -> bool:
+    """True when a draft claims the documents do not cover the asked subject."""
+    return bool(_DENIAL_CUE.search(text or ""))
+
+
+# Interrogative and request verbs are not the subject of a question. Excluding
+# them keeps an internal pipeline failure from being reported as "the document
+# does not contain this information": a rejected draft that merely missed the
+# word "kinds", "describe" or "phrase" is not a missing-fact abstention.
+_ANCHOR_GENERIC = {
+    "define", "defined", "defines", "definition", "describe", "described",
+    "describes", "example", "examples", "form", "forms", "kind", "kinds",
+    "mean", "meaning", "means", "phrase", "phrases", "type", "types", "use",
+    "used", "uses",
+}
+
+
 def _has_unmatched_question_anchor(question: str, evidence: str) -> bool:
     """Detect an absent specific subject after the verifier rejects an answer.
 
@@ -216,7 +243,7 @@ def _has_unmatched_question_anchor(question: str, evidence: str) -> bool:
             found.add(token)
         return found
 
-    anchors = terms(question) - _ANCHOR_STOP
+    anchors = terms(question) - _ANCHOR_STOP - _ANCHOR_GENERIC
     evidence_terms = terms(evidence)
     return bool(anchors - evidence_terms)
 
@@ -306,12 +333,7 @@ def _extractive_recovery_from_evidence(question: str, draft: str, hits: list[dic
     drafts, extracts adjacent source sentences with multiple query anchors, and
     leaves the ordinary citation and verifier gates in place.
     """
-    denial = re.search(
-        r"\b(?:does not|doesn't|do not|don't|did not|didn't)\s+(?:say|mention|discuss|contain|include|address)\b|"
-        r"\bno relevant information (?:was|is) found\b|\bnot (?:discussed|mentioned|addressed)\b",
-        draft or "", re.I,
-    )
-    if not denial:
+    if not _denies_question_topic(draft):
         return None
     stop = _ANCHOR_STOP | {
         "about", "anyone", "anybody", "people", "person", "according",
@@ -341,7 +363,11 @@ def _extractive_recovery_from_evidence(question: str, draft: str, hits: list[dic
             terms.update(token.casefold().rstrip("s")
                          for token in re.findall(r"[A-Za-z][A-Za-z']{3,}", filename.replace("-", " ")))
             overlap = query_terms & terms
-            if len(overlap) < 2:
+            # A single matching common word ("Philadelphia", "year") is not
+            # enough: the recovered sentence must cover a real share of the
+            # question's terms, otherwise a false denial is replaced by an
+            # unrelated sentence and reported as a success.
+            if len(overlap) < 2 or len(overlap) / len(query_terms) < 0.5:
                 continue
             action_overlap = sum(
                 1 for token in ("interpret", "works", "read", "formed", "founded", "purpose")
@@ -413,6 +439,148 @@ def _is_exact_passage_extract(answer_text: str, hits: list[dict]) -> bool:
     return False
 
 
+# Generic words that carry no evidential weight when checking whether a
+# sentence's own cited passage supports it. They are excluded from the content
+# terms used by the deterministic support arbiter and the sentence pruner.
+_SUPPORT_STOP = frozenset({
+    "about", "above", "according", "also", "and", "another", "are", "because",
+    "been", "being", "below", "between", "both", "but", "can", "could", "does",
+    "document", "documents", "each", "either", "evidence", "following", "from",
+    "given", "have", "into", "list", "listed", "lists", "many", "most", "much",
+    "only", "other", "over", "passage", "passages", "same", "such", "text",
+    "than", "that", "their", "these", "this", "those", "through", "under",
+    "using", "what", "when", "where", "which", "while", "with", "within",
+    "without", "word", "words", "would", "your",
+})
+
+
+def _content_terms(text: str) -> set[str]:
+    """Lowercase content words (>= 4 characters) used for support scoring."""
+    terms = set()
+    for token in re.findall(r"[A-Za-z][A-Za-z'-]{3,}", text or ""):
+        token = token.casefold().strip("'-")
+        if token.endswith("s") and len(token) > 4 and not token.endswith("ss"):
+            token = token[:-1]
+        if token not in _SUPPORT_STOP:
+            terms.add(token)
+    return terms
+
+
+def _cited_references(sentence: str) -> list[int]:
+    """Every numeric evidence reference in a sentence, in source order."""
+    return [
+        int(number)
+        for group in re.findall(r"\[\s*(\d{1,3}(?:\s*,\s*\d{1,3})*)\s*\]", sentence)
+        for number in group.split(",")
+    ]
+
+
+def _drop_unsupported_sentences(text: str, hits: list[dict]) -> str:
+    """Drop sentence-level claims whose own cited passage does not support them.
+
+    A small local model often answers correctly and then appends an extra,
+    unsupported sentence. Without pruning, the whole draft fails verification
+    even though the supported sentence is already a complete, cited answer.
+    Only clearly unsupported sentences are dropped (their content words are
+    almost absent from their own cited passages) and the draft is never emptied.
+    """
+    sentences = [part.strip() for part in _SENTENCE_SPLIT.split(text or "") if part.strip()]
+    if len(sentences) < 2:
+        return text or ""
+    kept, dropped = [], 0
+    for sentence in sentences:
+        refs = _cited_references(sentence)
+        if not refs or any(ref < 1 or ref > len(hits) for ref in refs):
+            kept.append(sentence)
+            continue
+        content = _content_terms(sentence)
+        if len(content) < 3:
+            kept.append(sentence)
+            continue
+        cited = set()
+        for ref in refs:
+            cited |= _content_terms(hits[ref - 1].get("text") or "")
+        if not content or len(content & cited) / len(content) < 0.25:
+            dropped += 1
+            continue
+        kept.append(sentence)
+    if not kept or not dropped:
+        return text or ""
+    return " ".join(kept)
+
+
+_VERDICT_LABEL = re.compile(r"^\s*(?:YES|NO)\b", re.I)
+_VERDICT_NEGATIVE = re.compile(
+    r"\b(?:NOT\s+SUPPORTED|UNSUPPORTED|NOT\s+ANSWERED|UNANSWERED|DOES\s+NOT\s+ANSWER|"
+    r"INSUFFICIENT|NOT\s+SUFFICIENT)\b", re.I)
+_VERDICT_POSITIVE = re.compile(r"\b(?:SUPPORTED|ANSWERED)\b", re.I)
+
+
+def _verdict_is_conclusive(verdict_text: str) -> bool:
+    """True when a verifier reply states an explicit support decision.
+
+    A small model sometimes answers the verifier with reasoning prose instead
+    of YES/NO. Such a reply carries no decision, so a deterministic lexical
+    fallback (not a silent rejection) must resolve it.
+    """
+    text = (verdict_text or "").strip()
+    if not text:
+        return False
+    return bool(_VERDICT_LABEL.match(text)
+                or _VERDICT_NEGATIVE.search(text)
+                or _VERDICT_POSITIVE.search(text))
+
+
+def _draft_lexically_supported(text: str, hits: list[dict]) -> bool:
+    """Deterministic support verdict used only when the model verifier gives no
+    parseable decision. Every cited sentence must share most of its content
+    words with its own cited passage(s)."""
+    judged = 0
+    for sentence in _SENTENCE_SPLIT.split(text or ""):
+        sentence = sentence.strip()
+        if not sentence:
+            continue
+        refs = [ref for ref in _cited_references(sentence) if 1 <= ref <= len(hits)]
+        if not refs:
+            continue
+        content = _content_terms(sentence)
+        if len(content) < 3:
+            continue
+        cited = set()
+        for ref in refs:
+            cited |= _content_terms(hits[ref - 1].get("text") or "")
+        judged += 1
+        if len(content & cited) / len(content) < 0.6:
+            return False
+    return judged > 0
+
+
+# A document's own numbering, copied into an answer as if it were an evidence
+# reference (for example "[4.1 Summary of instructions]" or "[7.203]"). It is
+# not a source reference; leaving it in place would be reported as a phantom
+# citation and discard an otherwise correctly cited answer.
+_SECTION_LABEL = re.compile(r"\[\s*\d+\.\d+\s*(?:[A-Z][^\]\n]*)?\]")
+
+
+def _strip_section_labels(text: str) -> str:
+    """Remove copied section numbers so they are not mistaken for citations."""
+    return _SECTION_LABEL.sub(" ", text or "")
+
+
+def _refine_generated_draft(question: str, text: str, hits: list[dict]) -> str:
+    """Normalise a raw draft: strip copied section numbers, attach citations
+    that match the evidence, restore omitted list members, then drop sentences
+    whose own cited passage clearly does not support them.
+
+    Pruning applies only to substantive drafts so that a partial answer keeps
+    its refusal/partial classification."""
+    cleaned = _strip_section_labels(text)
+    cited = _complete_list_from_evidence(question, _cite_generated_answer(cleaned, hits), hits)
+    if _classify_draft(cited) != "substantive":
+        return cited
+    return _drop_unsupported_sentences(cited, hits)
+
+
 # A question that asks for a magnitude must be answered with the figure the
 # evidence carries. The deterministic acceptor below compares only alphabetic
 # words, so it cannot see that a paraphrase dropped the value; this pattern is
@@ -446,6 +614,11 @@ def _complete_requested_quantity(question: str, answer_text: str, hits: list[dic
                    if token.casefold() not in _QUANTITY_STOP}
     if not query_terms:
         return None
+    # "How many X ..." names the counted thing directly; a sentence that carries
+    # "<number> X" is the requested figure even when few other question words
+    # appear in it (for example "the 27 chapters are a collection of ...").
+    counted = re.search(r"how\s+(?:many|much)\s+([A-Za-z][A-Za-z'-]+)", question or "", re.I)
+    counted_stem = counted.group(1).casefold().rstrip("s") if counted else None
     best = None
     for source_number, hit in enumerate(hits, 1):
         text = re.sub(r"\s+", " ", hit.get("text") or "").strip()
@@ -456,9 +629,12 @@ def _complete_requested_quantity(question: str, answer_text: str, hits: list[dic
             terms = {token.casefold().rstrip("s")
                      for token in re.findall(r"[A-Za-z][A-Za-z'-]{3,}", sentence)}
             overlap = query_terms & terms
-            if len(overlap) < 2:
+            counted_hit = bool(
+                counted_stem and counted_stem in terms
+                and re.search(r"\d[\d,.]*\s+" + re.escape(counted_stem), sentence, re.I))
+            if not counted_hit and (len(overlap) < 2 or len(overlap) / len(query_terms) < 0.5):
                 continue
-            score = (len(overlap), -len(sentence))
+            score = (2 if counted_hit else 1, len(overlap), -len(sentence))
             if best is None or score > best[0]:
                 best = (score, source_number, sentence)
     if best is None:
@@ -932,7 +1108,7 @@ def _answer_cache_config():
         "generation_model": settings.generation_model,
         "temperature": settings.temperature,
         "verify_answers": settings.verify_answers,
-        "prompt_version": "grounded-citations-conflicts-v17-complete-evidence-lists",
+        "prompt_version": "grounded-citations-conflicts-v18-binary-claim-verdict",
     })
 
 
@@ -1338,8 +1514,7 @@ def _answer_one(question, indexed, owner_id, doc_types=None):
     # Every generated draft is evaluated independently: abstention detection,
     # citation validation and later verification are separate gates, and a
     # later refusal never overwrites an earlier substantive draft.
-    generation_text = _complete_list_from_evidence(
-        normalized, _cite_generated_answer(result or "", hits), hits)
+    generation_text = _refine_generated_draft(normalized, result or "", hits)
     generation_validation = validate_citation_references(generation_text, len(hits), source_labels)
     generation_abstention = _is_abstention(generation_text)
     candidates = [{
@@ -1379,8 +1554,8 @@ def _answer_one(question, indexed, owner_id, doc_types=None):
         )
         recovery_started = time.perf_counter()
         try:
-            recovery_text = _complete_list_from_evidence(
-                normalized, _cite_generated_answer(generate(recovery_prompt) or "", hits), hits)
+            recovery_text = _refine_generated_draft(
+                normalized, generate(recovery_prompt) or "", hits)
             retrieval["generation_seconds"] = round(
                 float(retrieval.get("generation_seconds") or 0)
                 + time.perf_counter() - recovery_started, 4)
@@ -1438,8 +1613,8 @@ def _answer_one(question, indexed, owner_id, doc_types=None):
         )
         try:
             repair_started = time.perf_counter()
-            repaired_text = _complete_list_from_evidence(
-                normalized, _cite_generated_answer(generate(repair_prompt) or "", hits), hits)
+            repaired_text = _refine_generated_draft(
+                normalized, generate(repair_prompt) or "", hits)
             retrieval["generation_seconds"] = round(
                 float(retrieval.get("generation_seconds") or 0)
                 + time.perf_counter() - repair_started, 4
@@ -1520,6 +1695,35 @@ def _answer_one(question, indexed, owner_id, doc_types=None):
         # A draft with legal but incomplete citations is not safe to return:
         # claim-level verification is scoped to cited passages only.
         original = substantive[0]
+        # A draft that only denies the question's subject, when that subject is
+        # genuinely absent from the evidence, is a missing-information answer
+        # rather than a citation-integrity failure. Reporting a citation error
+        # here would present an absent document fact as a pipeline fault.
+        if (_has_unmatched_question_anchor(normalized, evidence)
+                and any(_denies_question_topic(candidate["text"]) for candidate in substantive)):
+            retrieval["failure_stage"] = "unmatched_question_anchor"
+            return {"question": question, "status": "insufficient_evidence",
+                    "answer": ABSTENTION, "sources": source_records, "abstained": True,
+                    "retrieval": retrieval, "citation_validation": original["validation"],
+                    "question_type": task_type, "potential_conflicts": potential_conflicts}
+        # A quantity question whose draft lost the figure is repaired from the
+        # exact evidence sentence that carries it, before any failure status is
+        # reported. The repair is returned only when it is fully cited.
+        quantity_answer = _complete_requested_quantity(normalized, original["text"], hits)
+        if quantity_answer:
+            quantity_validation = validate_citation_references(
+                quantity_answer, len(hits), source_labels)
+            if quantity_validation.get("valid") and _is_exact_passage_extract(quantity_answer, hits):
+                retrieval["selected_draft"] = "extractive_quantity_recovery"
+                retrieval["quantity_recovery"] = True
+                retrieval["extractive_fallback_attempted"] = True
+                retrieval["answer_recovery_succeeded"] = True
+                return {"question": question, "status": "success", "answer": quantity_answer,
+                        "sources": source_records, "abstained": False, "retrieval": retrieval,
+                        "citation_validation": quantity_validation, "question_type": task_type,
+                        "verification": {"checked": True, "passed": True,
+                                         "verdict": "EXACT_PASSAGE_MATCH"},
+                        "potential_conflicts": potential_conflicts}
         citation_validation = original["validation"]
         logger.warning("Answer drafts failed citation validation after recovery: %s", citation_validation)
         retrieval["failure_stage"] = "citation_validation"
@@ -1576,6 +1780,14 @@ def _answer_one(question, indexed, owner_id, doc_types=None):
                 # verifier must never turn an unchecked draft into a successful answer.
                 logger.exception("Local answer verification failed; withholding unverified draft")
                 verification = {"checked": False, "passed": False, "error": str(exc)}
+            if (verification.get("checked") and not verification.get("passed")
+                    and not _verdict_is_conclusive(verification.get("verdict"))
+                    and _draft_lexically_supported(result, hits)):
+                # The verifier replied with prose instead of a decision. Resolve
+                # it deterministically rather than reporting a pipeline failure
+                # for a correctly cited answer.
+                verification = {"checked": True, "passed": True,
+                                "verdict": "LEXICAL_SUPPORT_FALLBACK"}
             if verification.get("checked") and verification.get("passed"):
                 break
             if verification.get("checked") is False:
@@ -1598,8 +1810,8 @@ def _answer_one(question, indexed, owner_id, doc_types=None):
             )
             try:
                 retry_started = time.perf_counter()
-                retry_text = _complete_list_from_evidence(
-                    normalized, _cite_generated_answer(generate(retry_prompt) or "", hits), hits)
+                retry_text = _refine_generated_draft(
+                    normalized, generate(retry_prompt) or "", hits)
                 retrieval["generation_seconds"] = round(
                     float(retrieval.get("generation_seconds") or 0)
                     + time.perf_counter() - retry_started, 4)

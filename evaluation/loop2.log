@@ -1,0 +1,12 @@
+﻿C8_date_identifier     t1 success                        17.7s conf=0.894 refs=[5]
+C9_long_document       t1 citation_validation_failed    129.7s conf=0.0 refs=[]
+C12_comparison         t1 insufficient_evidence         171.6s conf=0.0 refs=[]
+C14_followup           t1 insufficient_evidence          37.7s conf=0.0 refs=[]
+C14_followup           t2 insufficient_evidence         118.7s conf=0.0 refs=[]
+C17_similar_terminology t1 insufficient_evidence          57.2s conf=0.0 refs=[]
+C20_dracula_chapters   t1 citation_validation_failed      8.8s conf=0.0 refs=[]
+C22_dracula_document_forms t1 insufficient_evidence          22.1s conf=0.0 refs=[]
+saved evaluation\live_results\loop2\rnd_live_eval_20261112_085727.json
+totals: {'success': 1, 'abstain': 0, 'other': 7}
+indexed documents: 5 targeted: 4 uncovered: ['the-enchiridion-epictetus.pdf']
+citation accuracy: {'checked': 1, 'passed': 1, 'pass_rate': 1.0} latency: {'count': 8, 'mean': 70.421, 'p50': 57.167, 'p95': 171.55, 'max': 171.55}

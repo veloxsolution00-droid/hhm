@@ -1,0 +1,60 @@
+﻿C1_factual_direct      t1 success                       115.4s conf=0.956 refs=[4]
+C2_keyword_exact       t1 success                       176.7s conf=1.0 refs=[1]
+C3_semantic_concept    t1 success                       147.6s conf=1.0 refs=[3, 4, 5]
+C4_chapter_specific    t1 success                         0.1s conf=0.868 refs=[1]
+C5_multi_part          t1 success                       256.0s conf=0.949 refs=[1, 2, 3, 4, 5, 6, 7, 8, 11, 12, 14, 16]
+C6_cross_document      t1 success                       192.5s conf=0.833 refs=[4, 6]
+C7_numeric             t1 success                        69.5s conf=0.913 refs=[1]
+C8_date_identifier     t1 success                        58.3s conf=0.894 refs=[5]
+C9_long_document       t1 citation_validation_failed    166.4s conf=0.0 refs=[]
+C10_short_document     t1 success                       113.4s conf=0.918 refs=[1, 2, 3, 4, 5, 6, 7, 8]
+C11_summary            t1 success                       179.3s conf=0.831 refs=[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+python.exe : Traceback (most recent call last):
+At line:15 char:2080
++ ... FFERED="1"; & ".\offline\Scripts\python.exe" -u tests\eval_live_corpu ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Traceback (most recent call last)::String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+  File "C:\Users\Admin\Downloads\RND2_2\RND2_1\RND\tests\eval_live_corpus.py", line 553, in <module>
+    summary = run(selected, api=args.api, output_dir=args.output_dir, timeout=args.timeout)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Admin\Downloads\RND2_2\RND2_1\RND\tests\eval_live_corpus.py", line 452, in run
+    records = run_case(case, types, api=api, timeout=timeout)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Admin\Downloads\RND2_2\RND2_1\RND\tests\eval_live_corpus.py", line 285, in run_case
+    answer = call_chat(question, history=history, timeout=timeout, api=api)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Admin\Downloads\RND2_2\RND2_1\RND\tests\eval_live_corpus.py", line 34, in call_chat
+    with urlopen(Request((api or API).rstrip("/") + "/chat", data=body,
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Admin\AppData\Local\Programs\Python\Python311\Lib\urllib\request.py", line 216, in urlopen
+    return opener.open(url, data, timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Admin\AppData\Local\Programs\Python\Python311\Lib\urllib\request.py", line 519, in open
+    response = self._open(req, data)
+               ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Admin\AppData\Local\Programs\Python\Python311\Lib\urllib\request.py", line 536, in _open
+    result = self._call_chain(self.handle_open, protocol, protocol +
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Admin\AppData\Local\Programs\Python\Python311\Lib\urllib\request.py", line 496, in _call_chain
+    result = func(*args)
+             ^^^^^^^^^^^
+  File "C:\Users\Admin\AppData\Local\Programs\Python\Python311\Lib\urllib\request.py", line 1377, in http_open
+    return self.do_open(http.client.HTTPConnection, req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Admin\AppData\Local\Programs\Python\Python311\Lib\urllib\request.py", line 1352, in do_open
+    r = h.getresponse()
+        ^^^^^^^^^^^^^^^
+  File "C:\Users\Admin\AppData\Local\Programs\Python\Python311\Lib\http\client.py", line 1395, in getresponse
+    response.begin()
+  File "C:\Users\Admin\AppData\Local\Programs\Python\Python311\Lib\http\client.py", line 325, in begin
+    version, status, reason = self._read_status()
+                              ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Admin\AppData\Local\Programs\Python\Python311\Lib\http\client.py", line 286, in _read_status
+    line = str(self.fp.readline(_MAXLINE + 1), "iso-8859-1")
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Admin\AppData\Local\Programs\Python\Python311\Lib\socket.py", line 706, in readinto
+    return self._sock.recv_into(b)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+ConnectionResetError: [WinError 10054] An existing connection was forcibly closed by the remote host
