@@ -210,7 +210,7 @@ def test_verifier_exception_fails_closed(monkeypatch):
     # arbiter cannot decide it and the model verifier is required. An unavailable
     # verifier must then withhold the unchecked draft rather than promote it.
     chat = _verifier_outage_stack(monkeypatch, "The company hired fifty new engineers [1].")
-    result = chat._answer_one("What was revenue?", {"d1"}, "local")
+    result = chat._answer_one("What was headcount?", {"d1"}, "local")
     assert result["status"] == "answer_validation_failed"
     assert result["abstained"] is True
     assert result["verification"]["checked"] is False
