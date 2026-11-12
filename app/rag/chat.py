@@ -401,7 +401,7 @@ def _is_exact_passage_extract(answer_text: str, hits: list[dict]) -> bool:
         return re.findall(r"[a-z0-9]+", text.casefold())
 
     answer_words = words(answer_text)
-    if len(answer_words) < 8:
+    if len(answer_words) < 5:
         return False
     for hit in hits:
         evidence_words = words(hit.get("text") or "")
@@ -1493,6 +1493,22 @@ def _answer_one(question, indexed, owner_id, doc_types=None):
             logger.exception("Citation repair generation failed")
             retrieval["answer_recovery_succeeded"] = False
 
+    # If Ollama produced only refusals or unusable citations, prefer a short
+    # exact sentence from retrieved evidence over a generic pipeline error.
+    # This fallback is accepted only as a contiguous passage extract.
+    if not any(
+            not candidate["abstention"] and candidate["validation"].get("valid")
+            for candidate in candidates):
+        extract = _extractive_answer_for_question(normalized, hits)
+        if extract:
+            candidates.append({
+                "stage": "extractive_evidence_fallback",
+                "text": extract,
+                "validation": validate_citation_references(extract, len(hits), source_labels),
+                "abstention": False,
+            })
+            retrieval["extractive_fallback_attempted"] = True
+
     substantive = [candidate for candidate in candidates if not candidate["abstention"]]
     # Two-tier selection. Prefer the latest draft whose citations are fully
     # valid; earlier fully-valid drafts remain available if a later one fails.
@@ -1579,7 +1595,7 @@ def _answer_one(question, indexed, owner_id, doc_types=None):
         citation_validation = validate_citation_references(result, len(hits), source_labels)
         retrieval["quantity_recovery"] = True
     if (selected is not None
-            and selected.get("stage") in ("extractive_evidence_recovery", "extractive_generation_fallback")
+            and selected.get("stage") in ("extractive_evidence_recovery", "extractive_generation_fallback", "extractive_evidence_fallback")
             and _is_exact_passage_extract(result, hits)):
         # An exact contiguous extract with valid evidence numbering is already
         # directly supported. This avoids rejecting source text because a

@@ -87,7 +87,7 @@ def apply_evidence_calculation_plan(plan_text: str, evidence, question: str, sou
     expression = plan["expression"].strip()
     refs = plan.get("source_refs", [])
     if (not isinstance(refs, list) or not refs
-            or any(type(x) is not int or x < 1 or x > min(source_count, len(evidence)) for x in refs):
+            or any(type(x) is not int or x < 1 or x > min(source_count, len(evidence)) for x in refs)):
         return None
     refs = sorted(set(refs))
     cited_passages = [str(evidence[index - 1].get("text") or "") for index in refs]

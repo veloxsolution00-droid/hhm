@@ -784,7 +784,7 @@ st.divider()
 chat_title, clear_column = st.columns([5, 1], vertical_alignment="center")
 chat_title.markdown("### Ask your documents")
 chat_title.caption("Answers use passages retrieved from your indexed files, with source references.")
-if clear_column.button("Clear chat", icon=":material/delete_sweep:", width="stretch"):
+if clear_column.button("Clear chat", icon=":material/delete_sweep:"):
     st.session_state.messages = []
     st.rerun()
 
@@ -872,6 +872,10 @@ if q:
             if conflicts:
                 st.warning(f"Potential evidence disagreement detected in {len(conflicts)} passage pair(s). Review the cited passages; this is a heuristic warning, not a confirmed contradiction.")
 
+            if retrieval.get("generation_fallback"):
+                st.info("Ollama generation did not complete. The application returned a verbatim sentence from the retrieved PDF instead of inventing an answer.")
+                if retrieval.get("generation_error"):
+                    st.caption("Generation diagnostic: " + str(retrieval["generation_error"]))
             if data.get("error"):
                 st.error(data["error"])
 

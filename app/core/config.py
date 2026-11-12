@@ -79,14 +79,9 @@ class Settings(BaseSettings):
     # SEMANTIC RETRIEVAL
     # --------------------------------------------------
 
-    # Final number of relevant chunks sent to the LLM. A four-chunk window was
-    # too narrow for long documents: the passage answering a factual question
-    # (for example the synopsis line naming a character's profession) often
-    # ranked just outside it. Six slots recovered most near-miss passages, but
-    # a single-fact question can still be answered by a passage ranked seventh
-    # (for example the line naming the ship whose log the novel includes), so
-    # eight slots are used; the context-character budget below still bounds the
-    # prompt size.
+    # Final number of evidence chunks sent to generation. Four keeps prompt
+    # prefill bounded on low-memory local machines; raise only after evaluating
+    # retrieval recall and answer latency on the target corpus.
     top_k: int = 4
 
     # Retrieve additional candidates before ranking.

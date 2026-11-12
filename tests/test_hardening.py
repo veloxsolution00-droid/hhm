@@ -434,4 +434,6 @@ def test_extractive_fallback_returns_only_a_verbatim_relevant_sentence():
     hits = [{"text": "Benjamin Franklin was a printer, writer, and public official."}]
     answer = _extractive_answer_for_question("Who was Benjamin Franklin?", hits)
     assert answer == "“Benjamin Franklin was a printer, writer, and public official.” [1]"
+    life_answer = _extractive_answer_for_question("What does Benjamin do in his life?", hits)
+    assert life_answer == "“Benjamin Franklin was a printer, writer, and public official.” [1]"
     assert _extractive_answer_for_question("What was the weather?", hits) is None
