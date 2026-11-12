@@ -848,8 +848,9 @@ if q:
                 if confidence.get("label"):
                     score = confidence.get("score")
                     label = confidence["label"]
-                    heading = f"Confidence: {label}" + (f" ({score:.0%})" if isinstance(score, (int, float)) else "")
+                    heading = f"Evidence score (heuristic): {label}" + (f" ({score:.0%})" if isinstance(score, (int, float)) else "")
                     (st.success if label == "high" else st.info if label == "medium" else st.warning)(heading)
+                    st.caption("This is a heuristic evidence score, not a calibrated probability that the answer is correct.")
                     signals = confidence.get("signals") or {}
                     if signals:
                         st.caption(f"Retrieval similarity: {signals.get('retrieval_similarity', '—')} | Term coverage: {signals.get('term_coverage', '—')} | Citation coverage: {signals.get('citation_coverage', '—')} | Verifier: {signals.get('verified', '—')}")

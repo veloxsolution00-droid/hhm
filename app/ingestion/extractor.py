@@ -484,14 +484,20 @@ def ingest(path: str, content: bytes | None = None, owner_id: str = "local", pro
     permanent.parent.mkdir(parents=True, exist_ok=True)
     extracted_path.parent.mkdir(parents=True, exist_ok=True)
 
-    if content is not None:
-        atomic_write(permanent, content)
-        digest = hashlib.sha256(content).hexdigest()
-    else:
-        if not staged.is_file():
-            raise FileNotFoundError(f"Staged upload is missing: {staged}")
-        _copy_file_durable(staged, permanent)
-        digest = _sha256_file(permanent)
+    try:
+        if content is not None:
+            atomic_write(permanent, content)
+            digest = hashlib.sha256(content).hexdigest()
+        else:
+            if not staged.is_file():
+                raise FileNotFoundError(f"Staged upload is missing: {staged}")
+            _copy_file_durable(staged, permanent)
+            digest = _sha256_file(permanent)
+    except Exception:
+        # A failed copy/hash must not leave an unregistered partial original.
+        permanent.unlink(missing_ok=True)
+        raise
+
 
     from app.storage.database import get_by_hash
     try:

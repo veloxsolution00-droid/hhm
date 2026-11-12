@@ -845,7 +845,7 @@ def _direct_calculation_result(question, direct_result):
 
 
 def _confidence_score(result):
-    """Blend observable signals into one calibrated number.
+    """Blend observable signals into a heuristic evidence score, not a probability.
 
     The status field only says whether an answer was produced; this says how
     much the evidence and the checks actually support it.
@@ -868,7 +868,8 @@ def _confidence_score(result):
     score += 0.10 * min(citation_coverage, 1.0)
     score = round(min(1.0, max(0.0, score)), 3)
     label = "high" if score >= 0.75 else "medium" if score >= 0.5 else "low"
-    return {"score": score, "label": label,
+    return {"score": score, "label": label, "calibrated": False,
+            "kind": "heuristic_evidence_score",
             "signals": {"retrieval_similarity": round(similarity, 3),
                         "term_coverage": round(coverage, 3),
                         "citation_valid": bool(citation.get("valid")),

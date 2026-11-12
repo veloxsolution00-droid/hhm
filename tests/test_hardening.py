@@ -437,3 +437,21 @@ def test_extractive_fallback_returns_only_a_verbatim_relevant_sentence():
     life_answer = _extractive_answer_for_question("What does Benjamin do in his life?", hits)
     assert life_answer == "“Benjamin Franklin was a printer, writer, and public official.” [1]"
     assert _extractive_answer_for_question("What was the weather?", hits) is None
+
+
+def test_failed_original_copy_does_not_leave_orphan_upload(monkeypatch, tmp_path):
+    from app.core.config import settings
+    import app.ingestion.extractor as extractor
+
+    uploads = tmp_path / "uploads"
+    extracted = tmp_path / "extracted"
+    staged = tmp_path / "staged" / "broken.txt.upload"
+    staged.parent.mkdir(parents=True)
+    staged.write_text("source content", encoding="utf-8")
+    monkeypatch.setattr(settings, "uploads_path", uploads)
+    monkeypatch.setattr(settings, "extracted_path", extracted)
+    monkeypatch.setattr(extractor, "_copy_file_durable",
+                        lambda *args, **kwargs: (_ for _ in ()).throw(OSError("disk full")))
+    with pytest.raises(OSError, match="disk full"):
+        extractor.ingest(str(staged), None, filename="broken.txt")
+    assert not list(uploads.glob("*"))
