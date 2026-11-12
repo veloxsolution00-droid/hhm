@@ -203,7 +203,7 @@ Settings: `CACHE_ENABLED=true`, `CACHE_TTL_SECONDS=604800`, `CACHE_MAX_ENTRIES=2
 
 Copy `.env.example` to `.env` and review the local model, OCR, storage, and inference queue settings before first launch. The Ollama models and Tesseract executable must be installed locally before disconnecting the machine; runtime inference and document processing do not use hosted services. For release requirements, air-gap validation, persistence/recovery checks, security boundaries, and measurable quality/performance gates, see [`PRODUCTION_OFFLINE_READINESS.md`](PRODUCTION_OFFLINE_READINESS.md).
 
-The Ollama inference queue wait is controlled independently by `INFERENCE_QUEUE_TIMEOUT_SECONDS` (default `30`). `TIMEOUT` applies after a request obtains the inference slot. Queue wait and model request durations are logged without logging prompts or document text.
+The Ollama inference queue wait is controlled independently by `INFERENCE_QUEUE_TIMEOUT_SECONDS` (default `30`). `TIMEOUT` applies after a request obtains the inference slot. Queue wait and model request durations are logged without logging prompts or document text. The `/health` endpoint also reports whether the local `pytesseract` package and Tesseract executable are available; the launcher warns when OCR is enabled but unavailable.
 
 ## Retrieval quality evaluation
 
