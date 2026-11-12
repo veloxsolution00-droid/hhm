@@ -98,6 +98,11 @@ def report_health(health):
     if not (health.get("metadata") or {}).get("available"):
         print("\nWARNING: Metadata database is unavailable.")
 
+    ocr = health.get("ocr") or {}
+    if ocr.get("enabled") and not ocr.get("available"):
+        print("\nWARNING: Local OCR is enabled but not ready.")
+        print(ocr.get("reason") or "Check the Tesseract installation and TESSERACT_CMD.")
+
 
 def stop_process(proc, name):
     """Stop a subprocess gracefully, then force-stop if needed."""

@@ -11,6 +11,7 @@ from app.retrieval.store import collection, backfill_owner_metadata, backfill_te
 from app.services.documents import (list_docs, remove, reconcile, remove_document_record, remove_indexed_chunks,
     cancel_job, delete_ingestion_job, recover_deleting_jobs, JobNotFoundError, JobConflictError, JobDeletionError)
 from app.ingestion.extractor import SUPPORTED
+from app.ingestion.ocr_health import local_ocr_status
 from app.services.job_queue import submit, start_queue, shutdown_queue
 from app.rag.chat import answer
 from app.cache.manager import stats as cache_stats
@@ -114,9 +115,12 @@ def health():
         cache = {"enabled": None, "error": str(e)}
     o = status()
     models_ready = bool(o.get("generation_model_available")) and bool(o.get("embedding_model_available"))
-    healthy = bool(o.get("available")) and models_ready and db_health["available"] and metadata_health["available"]
+    ocr = local_ocr_status()
+    ocr_ready = not ocr["enabled"] or ocr["available"]
+    healthy = (bool(o.get("available")) and models_ready and db_health["available"]
+               and metadata_health["available"] and ocr_ready)
     return {"status": "ok" if healthy else "degraded",
-            "ollama": o, "models_ready": models_ready,
+            "ollama": o, "models_ready": models_ready, "ocr": ocr,
             "chromadb": db_health, "metadata": metadata_health,
             "documents": document_count,
             "cache": cache,

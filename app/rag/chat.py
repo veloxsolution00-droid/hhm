@@ -22,6 +22,7 @@ from app.retrieval.reranker import extract_answer_lists
 from app.retrieval.evidence_selector import select_evidence
 from app.reasoning.answer_planner import build_answer_plan, coverage_summary
 from app.rag.prompts import answer_instructions
+from app.rag.verification import verify_claims
 
 logger = logging.getLogger(__name__)
 ABSTENTION = "No relevant information was found in the uploaded documents."
@@ -900,65 +901,13 @@ def _aggregate_confidence(answers):
     return {"score": score, "label": label, "calibrated": False, "kind": "heuristic_evidence_score"}
 
 def _verify_answer(question, evidence, draft, diagnostics=None):
-    """Verify entailment against the exact passages each claim cites."""
-    if not settings.verify_answers:
-        return True
-    blocks = re.split(r"\n\n(?=\[\d+\])", evidence or "")
-    by_number = {}
-    for block in blocks:
-        match = re.match(r"\[(\d+)\]", block)
-        if match:
-            by_number[int(match.group(1))] = block
-    claim_pairs = []
-    for sentence in _SENTENCE_SPLIT.split(draft or ""):
-        sentence = sentence.strip()
-        if not sentence:
-            continue
-        claim_text = re.sub(r"\[[^\]\n]*\]", " ", sentence)
-        if len(re.findall(r"[A-Za-z]{2,}", claim_text)) < 2:
-            continue
-        refs = {
-            int(number)
-            for group in re.findall(r"\[\s*(\d{1,3}(?:\s*,\s*\d{1,3})*)\s*\]", sentence)
-            for number in group.split(",")
-        }
-        if not refs or any(number not in by_number for number in refs):
-            if diagnostics is not None:
-                diagnostics["verdict"] = "MISSING_OR_INVALID_CLAIM_CITATION"
-            return False
-        cited_blocks = [by_number[number] for number in sorted(refs)]
-        claim_pairs.append(
-            "CLAIM: " + sentence + "\nONLY EVIDENCE CITED BY THIS CLAIM:\n"
-            + "\n\n".join(cited_blocks)
-        )
-    if not claim_pairs:
-        if diagnostics is not None:
-            diagnostics["verdict"] = "NO_CITED_FACTUAL_CLAIMS"
-        return False
-    verdict_prompt = (
-        "Evaluate the QUESTION and every CLAIM-EVIDENCE PAIR below.\n"
-        "For EACH claim, use ONLY the passages listed under that claim. Do not borrow "
-        "support from another claim's passages or general knowledge.\n"
-        "A claim is supported only when its cited passage(s) directly state it or clearly entail it. "
-        "Faithful paraphrasing and synthesis across that claim's cited passages are allowed. Shared "
-        "topic words, names, or chapter references alone are NOT support.\n"
-        "Also decide whether the claims answer the QUESTION rather than a related question. "
-        "For questions asking for an explicit list, steps, or set, check that every distinct item in "
-        "the cited passage is included; an incomplete list is not a complete answer. "
-        "If any factual claim is unsupported, any citation points to a passage that does not support "
-        "its claim, the requested list is incomplete, or the answer misses the question, reject it.\n"
-        "Reply with one of: SUPPORTED ANSWERED, SUPPORTED NOT ANSWERED, or UNSUPPORTED ANSWERED.\n"
-        f"QUESTION: {question}\n\n" + "\n\n".join(claim_pairs)
+    """Compatibility adapter; the claim verifier lives outside chat orchestration."""
+    return verify_claims(
+        question, evidence, draft, diagnostics,
+        generate_fn=generate,
+        enabled=settings.verify_answers,
+        max_tokens=settings.verify_max_tokens,
     )
-    verdict = generate(verdict_prompt, num_predict=settings.verify_max_tokens).strip().upper()
-    if diagnostics is not None:
-        diagnostics["verdict"] = verdict[:120]
-        diagnostics["claims_checked"] = len(claim_pairs)
-    if "UNSUPPORTED" in verdict or "NOT SUPPORTED" in verdict or "NOT SUFFICIENT" in verdict:
-        return False
-    if "NOT ANSWERED" in verdict or "UNANSWERED" in verdict or "DOES NOT ANSWER" in verdict:
-        return False
-    return "SUPPORTED" in verdict and "ANSWERED" in verdict
 
 def _retrieval_cache_config():
     return cache_manager.config_fingerprint("retrieval", {
@@ -1462,7 +1411,16 @@ def _answer_one(question, indexed, owner_id, doc_types=None):
     # prompt preserves the draft's supported content, adds citations to claims
     # found in the evidence, and never dictates a refusal string. Acceptance
     # still requires valid citations plus evidence-support verification below.
-    repair_attempted = not generation_abstention and not generation_validation["valid"]
+    # Citation repair is useful only when the reference mapping itself is
+    # unusable (missing, out-of-range, phantom, or unknown references). If the
+    # references are legal but sentence coverage is incomplete, another full
+    # LLM generation usually repeats the same draft and adds latency. Skip it:
+    # the strict selector below will choose a fully cited candidate or a safe
+    # verbatim evidence fallback, otherwise it will abstain.
+    repair_attempted = (
+        not generation_abstention
+        and not generation_validation.get("references_valid")
+    )
     if repair_attempted:
         retrieval["answer_recovery_attempted"] = True
         retrieval["citation_repair_attempted"] = True
@@ -1513,21 +1471,12 @@ def _answer_one(question, indexed, owner_id, doc_types=None):
             retrieval["extractive_fallback_attempted"] = True
 
     substantive = [candidate for candidate in candidates if not candidate["abstention"]]
-    # Two-tier selection. Prefer the latest draft whose citations are fully
-    # valid; earlier fully-valid drafts remain available if a later one fails.
+    # Only fully cited drafts may advance to semantic verification. The
+    # verifier below deliberately requires every factual claim to name its own
+    # supporting passage; accepting a merely reference-valid draft here would
+    # create a contract mismatch and trigger avoidable model retries.
     selected = next((candidate for candidate in reversed(substantive)
-                     if candidate["validation"]["valid"]), None)
-    # Fallback: if no draft is fully cited, accept the latest draft whose
-    # references are all legal (in range, no phantom/unknown labels) and at
-    # least one citation is present, even though some factual sentence is
-    # uncited. Discarding a correct, evidence-grounded answer over a single
-    # missing bracket is exactly the failure this avoids. Such a draft still
-    # has to clear the normal verification guardrail below.
-    partial_citation = False
-    if selected is None:
-        selected = next((candidate for candidate in reversed(substantive)
-                         if candidate["validation"].get("references_valid")), None)
-        partial_citation = selected is not None
+                     if candidate["validation"].get("valid")), None)
 
     # Bounded diagnostics for every draft, regardless of the final status.
     retrieval["candidates"] = [
@@ -1537,12 +1486,6 @@ def _answer_one(question, indexed, owner_id, doc_types=None):
         for candidate in candidates
     ]
     retrieval["selected_draft"] = selected["stage"] if selected else "none"
-    if partial_citation:
-        # The returned answer is grounded but not every factual sentence carried
-        # a citation. Recorded for diagnostics and confidence calibration; the
-        # citation_validation payload still reports citation_coverage < 1.0 and
-        # valid == False.
-        retrieval["partial_citation_selected"] = True
     retrieval["abstention_classification"] = (
         {candidate["stage"]: _classify_draft(candidate["text"]) for candidate in candidates})
     if repair_attempted or refusal_recovery_attempted:
@@ -1574,8 +1517,8 @@ def _answer_one(question, indexed, owner_id, doc_types=None):
         # filenames outside the retrieved evidence. This is a citation-integrity
         # failure rather than missing evidence, so report the validation-failure
         # status while preserving the original draft and sources for diagnostics.
-        # (A draft whose citations are legal but merely incomplete is returned
-        # above instead of being discarded here.)
+        # A draft with legal but incomplete citations is not safe to return:
+        # claim-level verification is scoped to cited passages only.
         original = substantive[0]
         citation_validation = original["validation"]
         logger.warning("Answer drafts failed citation validation after recovery: %s", citation_validation)

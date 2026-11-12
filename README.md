@@ -110,7 +110,7 @@ ollama pull nomic-embed-text
 Copy-Item .env.example .env
 ```
 
-Configure the settings in `.env`. Never commit this file to GitHub. The application is deliberately single-user and loopback-only by default and has no authentication layer. Do not use `--share-network` unless you add appropriate access controls.
+Configure the settings in `.env`. Never commit this file to GitHub. The application is deliberately single-user and loopback-only and has no authentication layer. Do not change service bind addresses to `0.0.0.0` or expose the API/UI to a LAN or public network.
 
 ### 5. Start the Backend
 
@@ -135,7 +135,7 @@ streamlit run app/ui/streamlit_app.py --server.address 127.0.0.1 --server.port 8
 
 - Uploaded documents and indexed data are stored permanently until explicitly deleted.
 - This build is single-user and intended for one local computer.
-- The combined launcher binds the UI to `127.0.0.1` by default. `--share-network` is an explicit unsafe opt-in and should not be used without authentication and authorization.
+- The combined launcher binds the API and UI to `127.0.0.1`. This build has no supported authenticated network-sharing mode; do not expose it to a LAN or public network.
 - Runtime data is stored in the configurable `data/` directory.
 - Back up the complete data directory regularly.
 - Keep services bound to `127.0.0.1` for local-only access.
@@ -198,6 +198,12 @@ The application uses a bounded, process-local in-memory cache for query embeddin
 
 Settings: `CACHE_ENABLED=true`, `CACHE_TTL_SECONDS=604800`, `CACHE_MAX_ENTRIES=2000`, `SEMANTIC_RETRIEVAL_THRESHOLD=0.94`, `SEMANTIC_ANSWER_THRESHOLD=0.975`. Disable caching with `CACHE_ENABLED=false` if debugging retrieval.
 
+
+## Production offline deployment
+
+Copy `.env.example` to `.env` and review the local model, OCR, storage, and inference queue settings before first launch. The Ollama models and Tesseract executable must be installed locally before disconnecting the machine; runtime inference and document processing do not use hosted services. For release requirements, air-gap validation, persistence/recovery checks, security boundaries, and measurable quality/performance gates, see [`PRODUCTION_OFFLINE_READINESS.md`](PRODUCTION_OFFLINE_READINESS.md).
+
+The Ollama inference queue wait is controlled independently by `INFERENCE_QUEUE_TIMEOUT_SECONDS` (default `30`). `TIMEOUT` applies after a request obtains the inference slot. Queue wait and model request durations are logged without logging prompts or document text. The `/health` endpoint also reports whether the local `pytesseract` package and Tesseract executable are available; the launcher warns when OCR is enabled but unavailable.
 
 ## Retrieval quality evaluation
 

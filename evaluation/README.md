@@ -30,3 +30,11 @@ maximum). A passing citation format alone is not counted as accurate if the
 answer verifier or expected cited source/page check fails.
 
 Keep the dataset stable across baseline and upgraded builds so Recall@K, Precision@K and MRR comparisons are meaningful. Keep a separate held-out set for final validation.
+
+The live report also aggregates labelled answer-quality checks under
+`answer_quality`: expected answer-term groups, expected status, expected source
+file/page, and abstention recall for cases explicitly labelled unanswerable.
+`labelled_regression_pass_rate` is a repeatable regression signal, **not**
+semantic answer accuracy: substring expectations can miss a wrong explanation
+or reward a partially correct answer. Use human adjudication on a held-out set
+before claiming answer accuracy or calibrating confidence.

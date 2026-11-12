@@ -5,7 +5,7 @@ import re
 import chromadb
 from app.core.config import settings
 from app.storage import database as db
-from app.retrieval.ollama import embed, embed_query
+from app.retrieval.ollama import embed, embed_query, OllamaUnavailableError
 
 _client = None
 _collection = None
@@ -22,10 +22,10 @@ def _query_terms(question):
             if len(term) > 1 and term not in _LEXICAL_STOP_WORDS}
 
 def _lexical_similarity(question_terms, text):
-    """A small exact-term boost for names, dates, IDs, and table values.
+    """Measure exact query-term coverage for names, dates, IDs, and table values.
 
-    ChromaDB still supplies the candidate set, so this remains bounded even for
-    large local document collections.
+    The score is bounded to [0, 1] and is used consistently for dense and FTS
+    candidates. Candidate generation remains bounded by the Chroma and FTS limits.
     """
     if not question_terms:
         return 0.0
@@ -90,63 +90,94 @@ def add(records, progress_callback=None):
     )
 
 def search(question, owner_id="local"):
+    """Retrieve from dense Chroma and FTS5 routes, degrading safely if Ollama is down.
+
+    FTS5 is an independent local retrieval route. A temporary embedding-model
+    failure must not disable exact lexical retrieval for already indexed chunks.
+    The fallback is still owner-scoped and bounded by LEXICAL_CANDIDATE_LIMIT.
+    """
     c = collection()
-    if not c.count():
+    collection_count = c.count()
+    if not collection_count:
         return []
-    q_vector = embed_query(question)
-    multiplier = max(1, int(settings.retrieval_candidate_multiplier))
-    wanted = max(1, int(settings.top_k))
-    # Do not fetch every owner chunk just to count it.  That made chat latency
-    # grow linearly with a user's corpus. Chroma safely returns fewer filtered
-    # matches when this owner has fewer than the requested candidates.
-    candidate_count = min(max(wanted, wanted * multiplier), c.count())
-    r = c.query(query_embeddings=[q_vector], n_results=candidate_count,
-                where={"owner_id": owner_id}, include=["documents", "metadatas", "distances"])
-    docs = (r.get("documents") or [[]])[0] or []
-    metas = (r.get("metadatas") or [[]])[0] or []
-    distances = (r.get("distances") or [[]])[0] or []
-    ids = (r.get("ids") or [[]])[0] or []
-    lexical_weight = max(0.0, min(1.0, float(settings.hybrid_lexical_weight)))
+
     question_terms = _query_terms(question)
+    lexical_weight = max(0.0, min(1.0, float(settings.hybrid_lexical_weight)))
+    q_vector = None
+    try:
+        q_vector = embed_query(question)
+    except OllamaUnavailableError as exc:
+        logger.warning(
+            "Dense retrieval unavailable; continuing with FTS5: owner=%s reason=%s",
+            owner_id, str(exc)[:240],
+        )
+
     results = []
     seen_chunk_ids = set()
-    for chunk_id, document, metadata, distance in zip(ids, docs, metas, distances):
-        if not document or distance is None:
-            continue
-        semantic_similarity = 1 - float(distance)
-        lexical_similarity = _lexical_similarity(question_terms, document)
-        hybrid_similarity = ((1 - lexical_weight) * semantic_similarity
-                             + lexical_weight * lexical_similarity)
-        results.append({
-            "id": chunk_id, "text": document, "metadata": metadata or {},
-            "similarity": hybrid_similarity,
-            "semantic_similarity": semantic_similarity,
-            "lexical_similarity": lexical_similarity,
-        })
-        seen_chunk_ids.add(chunk_id)
+    candidate_count = 0
+    if q_vector is not None:
+        multiplier = max(1, int(settings.retrieval_candidate_multiplier))
+        wanted = max(1, int(settings.top_k))
+        # Do not fetch every owner chunk just to count it. Chroma safely returns
+        # fewer filtered matches when this owner has fewer than requested.
+        candidate_count = min(max(wanted, wanted * multiplier), collection_count)
+        response = c.query(
+            query_embeddings=[q_vector], n_results=candidate_count,
+            where={"owner_id": owner_id},
+            include=["documents", "metadatas", "distances"],
+        )
+        docs = (response.get("documents") or [[]])[0] or []
+        metas = (response.get("metadatas") or [[]])[0] or []
+        distances = (response.get("distances") or [[]])[0] or []
+        ids = (response.get("ids") or [[]])[0] or []
+        for chunk_id, document, metadata, distance in zip(ids, docs, metas, distances):
+            if not document or distance is None:
+                continue
+            semantic_similarity = 1 - float(distance)
+            lexical_similarity = _lexical_similarity(question_terms, document)
+            hybrid_similarity = (
+                (1 - lexical_weight) * semantic_similarity
+                + lexical_weight * lexical_similarity
+            )
+            results.append({
+                "id": chunk_id, "text": document, "metadata": metadata or {},
+                "similarity": hybrid_similarity,
+                "semantic_similarity": semantic_similarity,
+                "lexical_similarity": lexical_similarity,
+            })
+            seen_chunk_ids.add(chunk_id)
 
     # FTS brings in exact hits that semantic retrieval may not rank highly,
-    # particularly identifiers, dates, codes, and values from tables. The
-    # configured lexical limit is a hard cap: using max(candidate_count, limit)
-    # silently ignored LEXICAL_CANDIDATE_LIMIT whenever it was below the dense
-    # candidate count.
+    # particularly identifiers, dates, codes, and values from tables. Its limit
+    # is independent of the dense candidate count and is always enforced.
     lexical_limit = max(1, int(settings.lexical_candidate_limit))
-    for fts_hit in db.search_indexed_chunks(_fts_query(question_terms), owner_id, lexical_limit):
-        if fts_hit["chunk_id"] in seen_chunk_ids:
-            continue
-        lexical_similarity = _lexical_similarity(question_terms, fts_hit["text"])
-        results.append({
-            "id": fts_hit["chunk_id"], "text": fts_hit["text"],
-            "metadata": {"document_id": fts_hit["document_id"], "owner_id": owner_id,
-                         "filename": fts_hit["filename"], "source_location": fts_hit["source_location"]},
-            # A complete exact-term match is eligible even when its embedding
-            # rank was weak or outside ChromaDB's semantic candidate window.
-            # Scale it by the same lexical weight used for dense hits so an
-            # exact-term match cannot outrank a strong semantic match.
-            "similarity": (1 - lexical_weight) * lexical_similarity,
-            "semantic_similarity": None, "lexical_similarity": lexical_similarity,
-        })
-    logger.info("Retrieval: owner=%s candidates=%d returned=%d", owner_id, candidate_count, len(results))
+    if question_terms and lexical_weight > 0:
+        for fts_hit in db.search_indexed_chunks(
+            _fts_query(question_terms), owner_id, lexical_limit
+        ):
+            if fts_hit["chunk_id"] in seen_chunk_ids:
+                continue
+            lexical_similarity = _lexical_similarity(question_terms, fts_hit["text"])
+            results.append({
+                "id": fts_hit["chunk_id"], "text": fts_hit["text"],
+                "metadata": {
+                    "document_id": fts_hit["document_id"], "owner_id": owner_id,
+                    "filename": fts_hit["filename"],
+                    "source_location": fts_hit["source_location"],
+                },
+                # Match the lexical component of the dense hybrid score. The
+                # previous (1 - weight) multiplier incorrectly gave FTS-only
+                # hits the dense weight and could reorder candidates.
+                "similarity": lexical_weight * lexical_similarity,
+                "semantic_similarity": None,
+                "lexical_similarity": lexical_similarity,
+            })
+
+    logger.info(
+        "Retrieval: owner=%s dense_candidates=%d lexical_limit=%d returned=%d "
+        "dense_available=%s",
+        owner_id, candidate_count, lexical_limit, len(results), q_vector is not None,
+    )
     return sorted(results, key=lambda item: item["similarity"], reverse=True)
 
 def delete(document_id):

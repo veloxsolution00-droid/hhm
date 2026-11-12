@@ -423,6 +423,10 @@ def test_partially_cited_answer_is_replaced_by_exact_supported_evidence(monkeypa
     assert result["citation_validation"]["valid"] is True
     assert result["citation_validation"]["citation_coverage"] == 1.0
     assert result["retrieval"]["selected_draft"] == "extractive_evidence_fallback"
+    # Legal but incomplete citation coverage is resolved by exact evidence
+    # extraction, not another expensive generation call.
+    assert "citation_repair_attempted" not in result["retrieval"]
+    assert len(state["calls"]) == 1
 
 def test_dropped_quantity_value_is_recovered_from_evidence(monkeypatch):
     chunks = [

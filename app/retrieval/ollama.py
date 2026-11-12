@@ -1,7 +1,13 @@
 """Ollama client with actionable diagnostics for local model failures."""
+import logging
+import math
+import time
 import requests
 from threading import BoundedSemaphore
+from contextlib import contextmanager
 from app.core.config import settings
+
+logger = logging.getLogger(__name__)
 
 # Keep local inference bounded on low-memory machines. Ollama remains responsible
 # for model lifetime; this semaphore prevents this API from flooding it with work.
@@ -11,6 +17,68 @@ _MODEL_SLOT = BoundedSemaphore(value=max(1, int(settings.inference_concurrency))
 
 class OllamaUnavailableError(RuntimeError):
     """Raised when Ollama or a configured local model cannot be used."""
+
+def _validate_embedding_vectors(vectors, expected_count):
+    """Reject malformed vectors before they reach the persistent vector store."""
+    if not isinstance(vectors, list) or len(vectors) != expected_count:
+        raise OllamaUnavailableError(
+            "Ollama returned an unexpected number of embeddings."
+        )
+    dimension = None
+    for index, vector in enumerate(vectors):
+        if not isinstance(vector, list) or not vector:
+            raise OllamaUnavailableError(
+                f"Ollama returned an empty or malformed embedding at batch item {index}."
+            )
+        if dimension is None:
+            dimension = len(vector)
+        elif len(vector) != dimension:
+            raise OllamaUnavailableError(
+                "Ollama returned embeddings with inconsistent dimensions."
+            )
+        if any(
+            isinstance(value, bool)
+            or not isinstance(value, (int, float))
+            or not math.isfinite(float(value))
+            for value in vector
+        ):
+            raise OllamaUnavailableError(
+                f"Ollama returned a non-numeric or non-finite embedding at batch item {index}."
+            )
+    return vectors
+
+
+
+@contextmanager
+def _model_slot(operation):
+    """Acquire the shared local-inference slot with a bounded queue wait.
+
+    The HTTP timeout does not cover time spent waiting for this semaphore. A
+    separate deadline prevents chat requests from appearing hung behind long
+    embedding or generation work.
+    """
+    timeout = max(0.0, float(getattr(settings, "inference_queue_timeout_seconds", 30.0)))
+    wait_started = time.perf_counter()
+    acquired = _MODEL_SLOT.acquire(timeout=timeout)
+    wait_seconds = time.perf_counter() - wait_started
+    if not acquired:
+        logger.warning(
+            "Ollama inference queue timeout: operation=%s wait_seconds=%.3f limit_seconds=%.3f",
+            operation, wait_seconds, timeout,
+        )
+        raise OllamaUnavailableError(
+            f"Timed out waiting for the local inference queue ({operation}) after "
+            f"{timeout:g} seconds. Another Ollama request is still running. "
+            "Wait for the current ingestion or generation task to finish, then retry."
+        )
+    logger.info(
+        "Ollama inference slot acquired: operation=%s queue_wait_seconds=%.3f",
+        operation, wait_seconds,
+    )
+    try:
+        yield wait_seconds
+    finally:
+        _MODEL_SLOT.release()
 
 
 def _model_names():
@@ -60,6 +128,7 @@ def status():
 
 
 def _request_model(model, endpoint, payload, timeout):
+    request_started = time.perf_counter()
     try:
         response = requests.post(
             f"{settings.ollama_base_url.rstrip('/')}{endpoint}",
@@ -96,6 +165,11 @@ def _request_model(model, endpoint, payload, timeout):
         raise OllamaUnavailableError(
             f"Ollama returned an invalid response for model '{model}': {exc}"
         ) from exc
+    finally:
+        logger.info(
+            "Ollama HTTP request finished: model=%s endpoint=%s elapsed_seconds=%.3f",
+            model, endpoint, time.perf_counter() - request_started,
+        )
 
 
 def embed(texts):
@@ -106,8 +180,9 @@ def embed(texts):
     """
     if not texts:
         return []
-    with _MODEL_SLOT:
+    with _model_slot("embedding"):
         url = f"{settings.ollama_base_url.rstrip('/')}/api/embed"
+        request_started = time.perf_counter()
         try:
             response = requests.post(
                 url,
@@ -118,11 +193,7 @@ def embed(texts):
                 response.raise_for_status()
                 payload = response.json()
                 vectors = payload.get("embeddings")
-                if not isinstance(vectors, list) or len(vectors) != len(texts):
-                    raise OllamaUnavailableError(
-                        "Ollama /api/embed returned an unexpected number of embeddings."
-                    )
-                return vectors
+                return _validate_embedding_vectors(vectors, len(texts))
         except requests.ConnectionError as exc:
             raise OllamaUnavailableError(
                 f"Cannot connect to Ollama at {settings.ollama_base_url}: {exc}"
@@ -134,6 +205,16 @@ def embed(texts):
         except requests.HTTPError as exc:
             detail = exc.response.text[:500] if exc.response is not None else str(exc)
             raise OllamaUnavailableError(f"Ollama embedding failed: {detail}") from exc
+        except (ValueError, AttributeError, TypeError) as exc:
+            raise OllamaUnavailableError(
+                f"Ollama /api/embed returned an invalid JSON or embedding payload: {exc}"
+            ) from exc
+        finally:
+            logger.info(
+                "Ollama embedding request finished: model=%s endpoint=/api/embed "
+                "batch_size=%d elapsed_seconds=%.3f",
+                settings.embedding_model, len(texts), time.perf_counter() - request_started,
+            )
 
         # Compatibility path for Ollama versions without /api/embed.
         out = []
@@ -149,7 +230,7 @@ def embed(texts):
                     f"Ollama returned no embedding for '{settings.embedding_model}'."
                 )
             out.append(result["embedding"])
-        return out
+        return _validate_embedding_vectors(out, len(texts))
 
 
 
@@ -186,7 +267,7 @@ def generate(prompt, num_predict=None):
     options = {"temperature": settings.temperature, "num_ctx": max(1024, int(settings.model_context_tokens))}
     if cap:
         options["num_predict"] = max(1, int(cap))
-    with _MODEL_SLOT:
+    with _model_slot("generation"):
         result = _request_model(
             settings.generation_model,
             "/api/generate",
