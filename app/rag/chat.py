@@ -851,7 +851,7 @@ def _confidence_score(result):
     much the evidence and the checks actually support it.
     """
     if result.get("abstained"):
-        return {"score": 0.0, "label": "none"}
+        return {"score": 0.0, "label": "none", "calibrated": False, "kind": "heuristic_evidence_score"}
     retrieval = result.get("retrieval") or {}
     citation = result.get("citation_validation") or {}
     verification = result.get("verification") or {}
@@ -897,7 +897,7 @@ def _aggregate_confidence(answers):
     scores = [_confidence_score(item)["score"] for item in answers]
     score = round(sum(scores) / len(scores), 3) if scores else 0.0
     label = "high" if score >= 0.75 else "medium" if score >= 0.5 else "low" if score > 0 else "none"
-    return {"score": score, "label": label}
+    return {"score": score, "label": label, "calibrated": False, "kind": "heuristic_evidence_score"}
 
 def _verify_answer(question, evidence, draft, diagnostics=None):
     """Verify entailment against the exact passages each claim cites."""
@@ -945,7 +945,11 @@ def _verify_answer(question, evidence, draft, diagnostics=None):
         "Also decide whether the claims answer the QUESTION rather than a related question. "
         "If any factual claim is unsupported, any citation points to a passage that does not support "
         "its claim, or the answer misses the question, reject it.\n"
-        "Reply with exactly two words: SUPPORTED ANSWERED, SUPPORTED NOT ANSWERED, or UNSUPPORTED ANSWERED.\n"
+        "For questions asking for an explicit list, steps, or set, check that every distinct item in "
+        "the cited passage is included; an incomplete list is not a complete answer. "
+        "If any factual claim is unsupported, any citation points to a passage that does not support "
+        "its claim, the requested list is incomplete, or the answer misses the question, reject it.\n"
+        "Reply with one of: SUPPORTED ANSWERED, SUPPORTED NOT ANSWERED, or UNSUPPORTED ANSWERED.\n"
         f"QUESTION: {question}\n\n" + "\n\n".join(claim_pairs)
     )
     verdict = generate(verdict_prompt, num_predict=settings.verify_max_tokens).strip().upper()
