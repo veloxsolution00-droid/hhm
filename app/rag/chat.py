@@ -1513,21 +1513,12 @@ def _answer_one(question, indexed, owner_id, doc_types=None):
             retrieval["extractive_fallback_attempted"] = True
 
     substantive = [candidate for candidate in candidates if not candidate["abstention"]]
-    # Two-tier selection. Prefer the latest draft whose citations are fully
-    # valid; earlier fully-valid drafts remain available if a later one fails.
+    # Only fully cited drafts may advance to semantic verification. The
+    # verifier below deliberately requires every factual claim to name its own
+    # supporting passage; accepting a merely reference-valid draft here would
+    # create a contract mismatch and trigger avoidable model retries.
     selected = next((candidate for candidate in reversed(substantive)
-                     if candidate["validation"]["valid"]), None)
-    # Fallback: if no draft is fully cited, accept the latest draft whose
-    # references are all legal (in range, no phantom/unknown labels) and at
-    # least one citation is present, even though some factual sentence is
-    # uncited. Discarding a correct, evidence-grounded answer over a single
-    # missing bracket is exactly the failure this avoids. Such a draft still
-    # has to clear the normal verification guardrail below.
-    partial_citation = False
-    if selected is None:
-        selected = next((candidate for candidate in reversed(substantive)
-                         if candidate["validation"].get("references_valid")), None)
-        partial_citation = selected is not None
+                     if candidate["validation"].get("valid")), None)
 
     # Bounded diagnostics for every draft, regardless of the final status.
     retrieval["candidates"] = [
@@ -1537,12 +1528,6 @@ def _answer_one(question, indexed, owner_id, doc_types=None):
         for candidate in candidates
     ]
     retrieval["selected_draft"] = selected["stage"] if selected else "none"
-    if partial_citation:
-        # The returned answer is grounded but not every factual sentence carried
-        # a citation. Recorded for diagnostics and confidence calibration; the
-        # citation_validation payload still reports citation_coverage < 1.0 and
-        # valid == False.
-        retrieval["partial_citation_selected"] = True
     retrieval["abstention_classification"] = (
         {candidate["stage"]: _classify_draft(candidate["text"]) for candidate in candidates})
     if repair_attempted or refusal_recovery_attempted:
@@ -1574,8 +1559,8 @@ def _answer_one(question, indexed, owner_id, doc_types=None):
         # filenames outside the retrieved evidence. This is a citation-integrity
         # failure rather than missing evidence, so report the validation-failure
         # status while preserving the original draft and sources for diagnostics.
-        # (A draft whose citations are legal but merely incomplete is returned
-        # above instead of being discarded here.)
+        # A draft with legal but incomplete citations is not safe to return:
+        # claim-level verification is scoped to cited passages only.
         original = substantive[0]
         citation_validation = original["validation"]
         logger.warning("Answer drafts failed citation validation after recovery: %s", citation_validation)
