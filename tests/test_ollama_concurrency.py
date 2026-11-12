@@ -59,3 +59,41 @@ def test_generation_releases_inference_slot_after_request_error(monkeypatch):
 
     assert slot.acquire_timeout == ollama.settings.inference_queue_timeout_seconds
     assert slot.release_count == 1
+
+
+def test_embedding_rejects_non_finite_vector_values(monkeypatch):
+    import types
+    import app.retrieval.ollama as ollama
+
+    slot = _StubSemaphore(acquired=True)
+    monkeypatch.setattr(ollama, "_MODEL_SLOT", slot)
+    response = types.SimpleNamespace(
+        status_code=200,
+        raise_for_status=lambda: None,
+        json=lambda: {"embeddings": [[1.0, float("nan")]]},
+    )
+    monkeypatch.setattr(ollama.requests, "post", lambda *args, **kwargs: response)
+
+    with pytest.raises(ollama.OllamaUnavailableError, match="non-numeric or non-finite"):
+        ollama.embed(["test text"])
+
+    assert slot.release_count == 1
+
+
+def test_embedding_rejects_inconsistent_vector_dimensions(monkeypatch):
+    import types
+    import app.retrieval.ollama as ollama
+
+    slot = _StubSemaphore(acquired=True)
+    monkeypatch.setattr(ollama, "_MODEL_SLOT", slot)
+    response = types.SimpleNamespace(
+        status_code=200,
+        raise_for_status=lambda: None,
+        json=lambda: {"embeddings": [[0.1, 0.2], [0.3]]},
+    )
+    monkeypatch.setattr(ollama.requests, "post", lambda *args, **kwargs: response)
+
+    with pytest.raises(ollama.OllamaUnavailableError, match="inconsistent dimensions"):
+        ollama.embed(["first text", "second text"])
+
+    assert slot.release_count == 1
