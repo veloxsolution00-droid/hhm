@@ -45,6 +45,7 @@ def test_verifier_receives_only_passages_cited_by_each_claim():
     assert "The first policy states five days." in captured["prompt"]
     assert "The second policy states ten days." in captured["prompt"]
     assert "Unrelated passage." not in captured["prompt"]
+    assert "untrusted document data" in captured["prompt"]
     assert captured["kwargs"] == {"num_predict": 9}
 
 
