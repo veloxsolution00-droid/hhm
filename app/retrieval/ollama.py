@@ -1,6 +1,7 @@
 """Ollama client with actionable diagnostics for local model failures."""
 import requests
 from threading import BoundedSemaphore
+from contextlib import contextmanager
 from app.core.config import settings
 
 # Keep local inference bounded on low-memory machines. Ollama remains responsible
@@ -11,6 +12,28 @@ _MODEL_SLOT = BoundedSemaphore(value=max(1, int(settings.inference_concurrency))
 
 class OllamaUnavailableError(RuntimeError):
     """Raised when Ollama or a configured local model cannot be used."""
+
+
+@contextmanager
+def _model_slot(operation):
+    """Acquire the shared local-inference slot with a bounded queue wait.
+
+    The HTTP timeout does not cover time spent waiting for this semaphore. A
+    separate deadline prevents chat requests from appearing hung behind long
+    embedding or generation work.
+    """
+    timeout = max(0.0, float(getattr(settings, "inference_queue_timeout_seconds", 30.0)))
+    acquired = _MODEL_SLOT.acquire(timeout=timeout)
+    if not acquired:
+        raise OllamaUnavailableError(
+            f"Timed out waiting for the local inference queue ({operation}) after "
+            f"{timeout:g} seconds. Another Ollama request is still running. "
+            "Wait for the current ingestion or generation task to finish, then retry."
+        )
+    try:
+        yield
+    finally:
+        _MODEL_SLOT.release()
 
 
 def _model_names():
@@ -106,7 +129,7 @@ def embed(texts):
     """
     if not texts:
         return []
-    with _MODEL_SLOT:
+    with _model_slot("embedding"):
         url = f"{settings.ollama_base_url.rstrip('/')}/api/embed"
         try:
             response = requests.post(
@@ -186,7 +209,7 @@ def generate(prompt, num_predict=None):
     options = {"temperature": settings.temperature, "num_ctx": max(1024, int(settings.model_context_tokens))}
     if cap:
         options["num_predict"] = max(1, int(cap))
-    with _MODEL_SLOT:
+    with _model_slot("generation"):
         result = _request_model(
             settings.generation_model,
             "/api/generate",
