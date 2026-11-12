@@ -122,6 +122,11 @@ class Settings(BaseSettings):
     # memory pressure on limited hardware.
     inference_concurrency: int = 1
 
+    # Maximum time an interactive or ingestion request may wait for a local
+    # inference slot before failing with an actionable queue-timeout error.
+    # This is separate from TIMEOUT, which only bounds the HTTP request itself.
+    inference_queue_timeout_seconds: float = 30.0
+
     tesseract_cmd: str = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
     # Matches OCR_ENABLED in .env. Image-only pages are common in the supported
     # corpus, so OCR is on by default; set tesseract_cmd (or put Tesseract on
