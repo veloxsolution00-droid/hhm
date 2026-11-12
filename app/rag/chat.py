@@ -943,8 +943,6 @@ def _verify_answer(question, evidence, draft, diagnostics=None):
         "Faithful paraphrasing and synthesis across that claim's cited passages are allowed. Shared "
         "topic words, names, or chapter references alone are NOT support.\n"
         "Also decide whether the claims answer the QUESTION rather than a related question. "
-        "If any factual claim is unsupported, any citation points to a passage that does not support "
-        "its claim, or the answer misses the question, reject it.\n"
         "For questions asking for an explicit list, steps, or set, check that every distinct item in "
         "the cited passage is included; an incomplete list is not a complete answer. "
         "If any factual claim is unsupported, any citation points to a passage that does not support "

@@ -873,10 +873,13 @@ if q:
             if conflicts:
                 st.warning(f"Potential evidence disagreement detected in {len(conflicts)} passage pair(s). Review the cited passages; this is a heuristic warning, not a confirmed contradiction.")
 
-            if retrieval.get("generation_fallback"):
-                st.info("Ollama generation did not complete. The application returned a verbatim sentence from the retrieved PDF instead of inventing an answer.")
-                if retrieval.get("generation_error"):
-                    st.caption("Generation diagnostic: " + str(retrieval["generation_error"]))
+            if retrieval.get("generation_fallback") or retrieval.get("extractive_fallback_attempted"):
+                if retrieval.get("generation_fallback"):
+                    st.info("Ollama generation did not complete. The application returned a verbatim sentence from the retrieved PDF instead of inventing an answer.")
+                    if retrieval.get("generation_error"):
+                        st.caption("Generation diagnostic: " + str(retrieval["generation_error"]))
+                else:
+                    st.info("The generated answer did not pass citation checks. A verbatim sentence from the retrieved evidence was used as a conservative fallback.")
             if data.get("error"):
                 st.error(data["error"])
 
