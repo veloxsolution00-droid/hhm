@@ -217,14 +217,14 @@ def test_verifier_exception_fails_closed(monkeypatch):
     assert "verifier offline" in result["verification"]["error"]
 
 
-def test_verifier_outage_keeps_deterministically_grounded_draft(monkeypatch):
-    # The deterministic lexical check is the primary arbiter: a fully cited draft
-    # whose words come from the passage it cites is accepted without consulting
-    # the model verifier, so a verifier outage cannot discard a grounded answer.
+def test_verifier_outage_withholds_even_lexically_overlapping_draft(monkeypatch):
+    # Word overlap is not entailment. If the configured verifier is unavailable,
+    # even a plausible-looking draft must not be promoted to a successful answer.
     chat = _verifier_outage_stack(monkeypatch, "Revenue was 10 crore [1].")
     result = chat._answer_one("What was revenue?", {"d1"}, "local")
-    assert result["status"] == "success"
-    assert result["verification"]["verdict"] == "LEXICAL_CORROBORATION"
+    assert result["status"] == "answer_validation_failed"
+    assert result["abstained"] is True
+    assert result["verification"]["checked"] is False
 
 
 def test_reconcile_resets_partial_vectors_instead_of_promoting(monkeypatch, tmp_path):
@@ -407,3 +407,31 @@ def test_pdf_image_page_requires_ocr_when_disabled(monkeypatch, tmp_path):
     monkeypatch.setattr(settings, "ocr_enabled", False)
     with pytest.raises(NoReadableTextError, match="Enable local OCR"):
         list(iter_extract(pdf_path))
+
+
+def test_verifier_receives_only_the_passages_cited_by_each_claim(monkeypatch):
+    import sys
+    monkeypatch.setitem(sys.modules, "chromadb", types.ModuleType("chromadb"))
+    import app.rag.chat as chat
+    from app.core.config import settings
+
+    prompts = []
+    monkeypatch.setattr(settings, "verify_answers", True)
+    monkeypatch.setattr(chat, "generate",
+                        lambda prompt, num_predict=None: prompts.append(prompt) or "SUPPORTED ANSWERED")
+    evidence = "[1] report.pdf (page 1): Revenue was 10 crore.\n\n[2] report.pdf (page 2): The company had 25 employees."
+    result = chat._verify_answer(
+        "What was revenue?", evidence, "Revenue was 10 crore [2].", {})
+    assert result is True
+    assert len(prompts) == 1
+    assert "The company had 25 employees" in prompts[0]
+    assert "Revenue was 10 crore." not in prompts[0]
+
+
+def test_extractive_fallback_returns_only_a_verbatim_relevant_sentence():
+    from app.rag.chat import _extractive_answer_for_question
+
+    hits = [{"text": "Benjamin Franklin was a printer, writer, and public official."}]
+    answer = _extractive_answer_for_question("Who was Benjamin Franklin?", hits)
+    assert answer == "“Benjamin Franklin was a printer, writer, and public official.” [1]"
+    assert _extractive_answer_for_question("What was the weather?", hits) is None

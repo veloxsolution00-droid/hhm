@@ -20,3 +20,9 @@ data/logs/*
 data/jobs/*
 !data/jobs/.gitkeep
 offline/*
+# Local backups and machine-specific evaluation output must never be committed.
+backup_*/
+evaluation/live_results/
+evaluation/local_corpus_audit.json
+evaluation/baseline_test_results.json
+evaluation/implementation_test_results.json

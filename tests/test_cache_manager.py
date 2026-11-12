@@ -55,7 +55,10 @@ def test_answer_cache_only_stores_successful_cited_results(tmp_path, monkeypatch
     manager.put_result("answer", "question", *scope, bad, query_vector=[1.0], question_type="general")
     assert manager.lookup_result("answer", "question", *scope, question_type="general") is None
 
-    good = {"status": "success", "abstained": False, "sources": [{"filename": "policy.pdf"}], "answer": "Approval is required [1]."}
+    good = {"status": "success", "abstained": False, "sources": [{"filename": "policy.pdf"}],
+            "answer": "Approval is required [1].",
+            "citation_validation": {"valid": True},
+            "verification": {"checked": True, "passed": True}}
     manager.put_result("answer", "question", *scope, good, query_vector=[1.0], question_type="general")
     hit = manager.lookup_result("answer", "question", *scope, question_type="general")
     assert hit is not None
@@ -69,7 +72,7 @@ def test_chat_exact_answer_cache_skips_search_and_generation(tmp_path, monkeypat
 
     monkeypatch.setattr(settings, "metadata_path", tmp_path)
     monkeypatch.setattr(settings, "cache_enabled", True)
-    monkeypatch.setattr(settings, "verify_answers", False)
+    monkeypatch.setattr(settings, "verify_answers", True)
     monkeypatch.setattr(settings, "min_similarity", 0.25)
     monkeypatch.setattr(settings, "top_k", 5)
     monkeypatch.setattr(chat, "list_docs", lambda owner_id: [{
@@ -82,8 +85,10 @@ def test_chat_exact_answer_cache_skips_search_and_generation(tmp_path, monkeypat
         return [{"id": "c1", "text": "The policy requires manager approval.",
                  "metadata": {"document_id": "d1", "owner_id": owner_id, "filename": "policy.pdf", "source_location": "page 1"},
                  "similarity": 0.9}]
-    def fake_generate(prompt):
+    def fake_generate(prompt, num_predict=None):
         calls["generate"] += 1
+        if "CLAIM-EVIDENCE PAIR" in prompt:
+            return "SUPPORTED ANSWERED"
         return "The policy requires manager approval [1]."
     monkeypatch.setattr(chat, "search", fake_search)
     monkeypatch.setattr(chat, "embed_query", lambda question: [1.0, 0.0])
@@ -96,7 +101,7 @@ def test_chat_exact_answer_cache_skips_search_and_generation(tmp_path, monkeypat
     assert second["status"] == "success"
     assert second["answer_cache"]["hit"] is True
     assert calls["search"] > 0
-    assert calls["generate"] == 1
+    assert calls["generate"] == 2
 
 
 def test_cache_is_scoped_to_owner_and_document_fingerprint(tmp_path, monkeypatch):
@@ -149,3 +154,21 @@ def test_semantic_answer_cache_is_disabled_by_default(tmp_path, monkeypatch):
     assert second.get("answer_cache", {}).get("match") != "semantic"
     # Semantic retrieval may be reused, but a fresh answer is generated for the new wording.
     assert calls["generate"] == 2
+
+
+def test_document_invalidation_removes_only_entries_that_reference_document(tmp_path, monkeypatch):
+    monkeypatch.setitem(sys.modules, "chromadb", types.ModuleType("chromadb"))
+    from app.core.config import settings
+    from app.cache import manager
+
+    monkeypatch.setattr(settings, "metadata_path", tmp_path)
+    monkeypatch.setattr(settings, "cache_enabled", True)
+    manager.clear()
+    manager.put_result("retrieval", "query one", "owner", "corpus", "cfg",
+                       {"hits": [{"metadata": {"document_id": "doc-a"}}]})
+    manager.put_result("retrieval", "query two", "owner", "corpus", "cfg",
+                       {"hits": [{"metadata": {"document_id": "doc-b"}}]})
+    removed = manager.invalidate_document("doc-a")
+    assert removed == 1
+    assert manager.lookup_result("retrieval", "query one", "owner", "corpus", "cfg") is None
+    assert manager.lookup_result("retrieval", "query two", "owner", "corpus", "cfg") is not None

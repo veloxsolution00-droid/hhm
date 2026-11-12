@@ -55,7 +55,12 @@ def put_result(kind, query, owner_id, corpus_version, config_version, payload, q
     # Never cache an ungrounded/failed answer. Retrieval payloads are cacheable only when they contain evidence.
     if kind=="answer":
         answer=str(payload.get("answer", "")); refs=re.findall(r"\[(\d+)\]",answer)
-        if payload.get("status")!="success" or payload.get("abstained") or not refs or not payload.get("sources"): return
+        citation = payload.get("citation_validation") or {}
+        verification = payload.get("verification") or {}
+        if (payload.get("status") != "success" or payload.get("abstained") or not refs
+                or not payload.get("sources") or not citation.get("valid")
+                or not (verification.get("passed") or verification.get("verdict") == "EXACT_PASSAGE_MATCH")):
+            return
     if kind=="retrieval" and not (payload.get("hits") or payload.get("sources")): return
     normalized=normalize_query(query); key=_key(kind,owner_id,corpus_version,config_version,normalized,question_type)
     with _lock:
@@ -83,6 +88,28 @@ def stats():
     with _lock:
         _prune(_results); _prune(_embeddings)
         return {"enabled":bool(settings.cache_enabled),"entries":len(_results)+len(_embeddings),"result_entries":len(_results),"embedding_entries":len(_embeddings),"max_entries":settings.cache_max_entries}
+
+
+def invalidate_document(document_id):
+    """Remove cached retrievals/answers that contain evidence from a document."""
+    target = str(document_id)
+    removed = 0
+    with _lock:
+        for key, item in list(_results.items()):
+            payload = item.get("payload") or {}
+            evidence_ids = set()
+            for hit in payload.get("hits") or []:
+                doc_id = (hit.get("metadata") or {}).get("document_id")
+                if doc_id:
+                    evidence_ids.add(str(doc_id))
+            for source in payload.get("sources") or []:
+                doc_id = source.get("document_id")
+                if doc_id:
+                    evidence_ids.add(str(doc_id))
+            if target in evidence_ids:
+                _results.pop(key, None)
+                removed += 1
+    return removed
 
 
 def clear():
