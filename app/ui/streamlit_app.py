@@ -27,270 +27,516 @@ st.set_page_config(
 
 # ---------------------------------------------------------------------------
 # Visual layer only — no backend, database, retrieval, or model logic here.
+#
+# Design notes
+#   * One accent colour (cornflower) is used only for actions and focus.
+#     Green / amber / red are reserved for status so they always mean something.
+#   * Three surface levels: page < panel < raised. Borders do the separating,
+#     not shadows or glows.
+#   * System fonts only, so nothing is fetched from the internet (offline-safe).
+#   * Two corner radii: 12px for panels, 8px for controls.
 # ---------------------------------------------------------------------------
 st.markdown(
     """
     <style>
     :root {
-        --page: #0b1020;
-        --surface: #111a2d;
-        --surface-2: #151f35;
-        --border: rgba(148, 163, 184, .16);
-        --text: #edf2ff;
-        --muted: #93a2bd;
-        --accent: #8798ff;
-        --accent-2: #6379ef;
-        --green: #37c99a;
-        --amber: #f1b85b;
-        --red: #ef7f89;
+        --page: #0f141c;
+        --panel: #151b25;
+        --raised: #1c2431;
+        --line: #263040;
+        --line-strong: #364357;
+        --text: #e8edf5;
+        --text-2: #b6c1d1;
+        --muted: #8795a9;
+        --accent: #7f9cff;
+        --accent-hover: #9db3ff;
+        --accent-ink: #0b1220;
+        --accent-soft: rgba(127, 156, 255, .12);
+        --accent-line: rgba(127, 156, 255, .32);
+        --ok: #4cc9a0;
+        --warn: #e8b04f;
+        --bad: #ef7b86;
+        --radius-panel: 12px;
+        --radius-control: 8px;
     }
 
-    html, body, [class*="css"] {
-        font-family: 'DM Sans', 'Segoe UI', sans-serif;
+    /* ---------- Base ---------- */
+    .stApp,
+    .stApp button,
+    .stApp input,
+    .stApp textarea {
+        font-family: "Inter", "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
     }
 
     .stApp {
-        background:
-            radial-gradient(ellipse at 8% 0%, rgba(99, 121, 239, .13), transparent 34%),
-            radial-gradient(ellipse at 95% 8%, rgba(55, 201, 154, .07), transparent 28%),
-            var(--page);
+        background: var(--page);
         color: var(--text);
     }
 
+    * {
+        scrollbar-width: thin;
+        scrollbar-color: var(--line-strong) transparent;
+    }
+
+    /* Hide Streamlit chrome that is not useful in a local tool */
+    #MainMenu,
+    footer,
+    [data-testid="stDeployButton"],
+    [data-testid="stHeaderActionElements"] {
+        display: none !important;
+    }
+
     [data-testid="stHeader"] {
-        background: rgba(11, 16, 32, .88);
-        border-bottom: 1px solid rgba(148, 163, 184, .08);
-    }
-
-    [data-testid="stSidebar"] {
-        background: linear-gradient(180deg, #10192c 0%, #0d1424 100%);
-        border-right: 1px solid var(--border);
-    }
-
-    [data-testid="stSidebar"] > div:first-child {
-        padding-top: 1.1rem;
+        background: rgba(15, 20, 28, .85);
+        backdrop-filter: blur(8px);
+        border-bottom: 1px solid var(--line);
     }
 
     .block-container {
-        max-width: 1500px;
-        padding-top: 1.7rem;
-        padding-bottom: 4rem;
+        max-width: 1320px;
+        padding-top: 2rem;
+        padding-bottom: 5rem;
     }
 
+    /* ---------- Typography ---------- */
     h1, h2, h3, h4 {
-        font-family: 'Manrope', 'DM Sans', sans-serif !important;
         color: var(--text) !important;
-        letter-spacing: -.035em;
+        font-weight: 650 !important;
+        letter-spacing: -.02em;
     }
 
-    h1 { font-weight: 800 !important; }
-    h2, h3 { font-weight: 750 !important; }
-    p, li, label, [data-testid="stMarkdownContainer"] {
-        color: #d8e1f2;
+    .stApp h3 {
+        font-size: 1.1rem !important;
+        line-height: 1.3 !important;
+        padding: .25rem 0 .1rem !important;
     }
 
-    [data-testid="stCaptionContainer"] {
+    [data-testid="stMarkdownContainer"] p,
+    [data-testid="stMarkdownContainer"] li {
+        color: var(--text-2);
+        line-height: 1.6;
+    }
+
+    [data-testid="stCaptionContainer"],
+    [data-testid="stCaptionContainer"] p {
         color: var(--muted) !important;
+        font-size: .82rem;
+        line-height: 1.45;
     }
 
+    a { color: var(--accent); }
+    a:hover { color: var(--accent-hover); }
+
+    code {
+        padding: .1em .35em;
+        border-radius: 5px;
+        background: var(--raised);
+        color: #c9d6ff;
+        font-size: .88em;
+    }
+
+    hr {
+        margin: 2rem 0 !important;
+        border-color: var(--line) !important;
+    }
+
+    /* ---------- Page header ---------- */
     .app-hero {
-        position: relative;
-        overflow: hidden;
-        padding: 27px 30px;
-        margin: 0 0 22px 0;
-        border: 1px solid rgba(135, 152, 255, .24);
-        border-radius: 22px;
-        background:
-            radial-gradient(circle at 88% 12%, rgba(135, 152, 255, .22), transparent 29%),
-            linear-gradient(115deg, rgba(27, 41, 72, .98), rgba(17, 26, 45, .98));
-        box-shadow: 0 18px 48px rgba(0, 0, 0, .17);
-    }
-
-    .hero-kicker {
-        color: #aab7ff;
-        font-size: .72rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: .15em;
-        margin-bottom: 9px;
+        padding: 24px 28px 22px;
+        margin: 0 0 8px 0;
+        border: 1px solid var(--line);
+        border-radius: var(--radius-panel);
+        background: var(--panel);
     }
 
     .hero-title {
-        color: #f5f7ff;
-        font-family: 'Manrope', sans-serif;
-        font-size: clamp(1.65rem, 3vw, 2.35rem);
-        line-height: 1.18;
-        font-weight: 800;
-        letter-spacing: -.045em;
-        margin: 0 0 9px 0;
+        margin: 0 0 6px 0;
+        color: var(--text);
+        font-size: clamp(1.5rem, 2.6vw, 1.95rem);
+        line-height: 1.2;
+        font-weight: 700;
+        letter-spacing: -.03em;
     }
 
     .hero-description {
-        color: #b5c2dc;
-        max-width: 760px;
-        font-size: .94rem;
-        line-height: 1.65;
+        max-width: 64ch;
         margin: 0;
+        color: var(--text-2);
+        font-size: .95rem;
+        line-height: 1.6;
     }
 
     .hero-tag {
         display: inline-flex;
         align-items: center;
-        gap: 7px;
-        padding: 6px 11px;
-        margin-top: 15px;
-        border: 1px solid rgba(55, 201, 154, .25);
-        border-radius: 999px;
-        color: #a6ead4;
-        background: rgba(55, 201, 154, .08);
-        font-size: .74rem;
+        gap: 8px;
+        margin-top: 14px;
+        color: var(--text-2);
+        font-size: .8rem;
+        font-weight: 500;
+    }
+
+    .hero-tag::before {
+        content: "";
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--ok);
+    }
+
+    .hero-steps {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+        margin-top: 20px;
+        padding-top: 18px;
+        border-top: 1px solid var(--line);
+    }
+
+    .hero-step {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .step-num {
+        flex: none;
+        display: grid;
+        place-items: center;
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        background: var(--accent-soft);
+        border: 1px solid var(--accent-line);
+        color: var(--accent);
+        font-size: .78rem;
         font-weight: 700;
     }
 
-    .section-heading {
-        font-family: 'Manrope', sans-serif;
-        color: #eef3ff;
-        font-size: 1.22rem;
-        font-weight: 800;
-        letter-spacing: -.025em;
-        margin: 2px 0 4px 0;
+    .step-title {
+        color: var(--text);
+        font-size: .9rem;
+        font-weight: 650;
+        line-height: 1.35;
     }
 
-    .section-subtitle {
+    .step-text {
+        margin-top: 2px;
         color: var(--muted);
-        font-size: .84rem;
-        margin: 0 0 14px 0;
+        font-size: .82rem;
+        line-height: 1.45;
+    }
+
+    /* ---------- Sidebar ---------- */
+    [data-testid="stSidebar"] {
+        background: var(--panel);
+        border-right: 1px solid var(--line);
+    }
+
+    [data-testid="stSidebar"] > div:first-child {
+        padding-top: 1rem;
+    }
+
+    [data-testid="stSidebar"] h3 {
+        font-size: .98rem !important;
+        padding-bottom: 0 !important;
     }
 
     .sidebar-brand {
         display: flex;
         align-items: center;
-        gap: 11px;
-        padding: 4px 3px 17px 3px;
-        margin-bottom: 16px;
-        border-bottom: 1px solid var(--border);
+        gap: 12px;
+        padding: 2px 2px 18px 2px;
+        margin-bottom: 14px;
+        border-bottom: 1px solid var(--line);
     }
 
     .brand-mark {
         display: grid;
         place-items: center;
-        width: 42px;
-        height: 42px;
-        border-radius: 13px;
-        color: #fff;
-        font-size: 1.25rem;
-        background: linear-gradient(145deg, #91a0ff, #5d73e8);
-        box-shadow: 0 8px 22px rgba(99, 121, 239, .27);
+        width: 38px;
+        height: 38px;
+        border-radius: 10px;
+        background: var(--accent);
+        color: var(--accent-ink);
+        font-size: 1.1rem;
+        font-weight: 700;
     }
 
     .brand-title {
-        color: #f2f5ff;
-        font-family: 'Manrope', sans-serif;
-        font-size: .96rem;
-        font-weight: 800;
-        line-height: 1.15;
+        color: var(--text);
+        font-size: .98rem;
+        font-weight: 700;
+        line-height: 1.2;
     }
 
     .brand-caption {
-        color: #8292ae;
-        font-size: .69rem;
-        margin-top: 4px;
+        margin-top: 3px;
+        color: var(--muted);
+        font-size: .74rem;
     }
 
+    [data-testid="stSidebar"] [data-testid="stAlertContainer"] {
+        padding: .5rem .75rem;
+    }
+
+    [data-testid="stSidebar"] [data-testid="stCaptionContainer"] p {
+        font-size: .78rem;
+    }
+
+    /* ---------- Status messages ---------- */
+    [data-testid="stAlert"] {
+        border-radius: var(--radius-control);
+        font-size: .88rem;
+    }
+
+    [data-testid="stAlertContainer"] p {
+        color: var(--text) !important;
+        line-height: 1.5;
+    }
+
+    /* ---------- Metrics ---------- */
     [data-testid="stMetric"] {
-        background: linear-gradient(145deg, rgba(23, 34, 57, .96), rgba(17, 26, 45, .96));
-        border: 1px solid var(--border);
-        border-radius: 15px;
-        padding: 13px 16px;
-        box-shadow: 0 10px 26px rgba(0, 0, 0, .11);
+        padding: 14px 18px;
+        border: 1px solid var(--line);
+        border-radius: var(--radius-panel);
+        background: var(--panel);
     }
 
     [data-testid="stMetricLabel"] p {
-        color: #9eacc5 !important;
-        font-size: .78rem !important;
-        font-weight: 600 !important;
+        color: var(--muted) !important;
+        font-size: .8rem !important;
+        font-weight: 500 !important;
     }
 
     [data-testid="stMetricValue"] {
-        color: #f4f7ff !important;
-        font-family: 'Manrope', sans-serif;
-        font-weight: 800;
+        color: var(--text) !important;
+        font-size: 1.7rem !important;
+        font-weight: 700 !important;
+        font-variant-numeric: tabular-nums;
     }
 
+    /* ---------- Bordered containers (library rows) ---------- */
     [data-testid="stVerticalBlockBorderWrapper"] {
-        border-color: var(--border) !important;
-        border-radius: 16px !important;
-        background: rgba(17, 26, 45, .55);
+        border-color: var(--line) !important;
+        border-radius: 10px !important;
+        background: var(--panel);
     }
 
-    .stButton > button {
+    [data-testid="stVerticalBlockBorderWrapper"] p {
+        margin: 0;
+        font-size: .9rem;
+        overflow-wrap: anywhere;
+    }
+
+    /* ---------- Buttons ---------- */
+    [data-testid^="stBaseButton"] {
         min-height: 2.5rem;
+        border-radius: var(--radius-control);
+        font-weight: 600;
+        white-space: nowrap;
+        transition: background-color .12s ease, border-color .12s ease, color .12s ease;
+    }
+
+    [data-testid="stBaseButton-primary"] {
+        border: 1px solid transparent;
+        background: var(--accent);
+        color: var(--accent-ink);
+    }
+
+    [data-testid="stBaseButton-primary"]:hover:not(:disabled) {
+        background: var(--accent-hover);
+        color: var(--accent-ink);
+    }
+
+    [data-testid="stBaseButton-primary"]:disabled {
+        background: var(--raised);
+        border-color: var(--line);
+        color: var(--muted);
+        cursor: not-allowed;
+    }
+
+    [data-testid="stBaseButton-secondary"] {
+        border: 1px solid var(--line-strong);
+        background: transparent;
+        color: var(--text-2);
+    }
+
+    [data-testid="stBaseButton-secondary"]:hover {
+        border-color: var(--accent);
+        background: var(--accent-soft);
+        color: var(--text);
+    }
+
+    /* Compact buttons inside library rows and job panels */
+    [data-testid="stVerticalBlockBorderWrapper"] [data-testid="stBaseButton-secondary"],
+    [data-testid="stExpander"] [data-testid="stBaseButton-secondary"] {
+        min-height: 2rem;
+        padding: .15rem .75rem;
+        font-size: .82rem;
+    }
+
+    /* Destructive actions look neutral until hovered */
+    [class*="st-key-delete_"] button:hover,
+    [class*="st-key-stop_"] button:hover {
+        border-color: var(--bad);
+        background: rgba(239, 123, 134, .1);
+        color: var(--bad);
+    }
+
+    /* ---------- File uploader ---------- */
+    [data-testid="stFileUploaderDropzone"] {
+        padding: 14px;
+        border: 1.5px dashed var(--line-strong);
         border-radius: 10px;
-        border: 1px solid rgba(135, 152, 255, .28);
-        font-weight: 700;
-        transition: all .15s ease;
+        background: var(--page);
     }
 
-    .stButton > button[kind="primary"] {
-        color: #fff;
-        border: 0;
-        background: linear-gradient(135deg, #8798ff, #6379ef);
-        box-shadow: 0 7px 18px rgba(99, 121, 239, .2);
+    [data-testid="stFileUploaderDropzone"]:hover {
+        border-color: var(--accent);
     }
 
-    .stButton > button:hover {
-        border-color: rgba(170, 183, 255, .75);
-        transform: translateY(-1px);
-    }
-
-    [data-testid="stFileUploader"] {
-        padding: 8px;
-        border: 1px dashed rgba(135, 152, 255, .38);
-        border-radius: 13px;
-        background: rgba(20, 31, 53, .5);
-    }
-
+    /* ---------- Expanders (jobs, sources, answer details) ---------- */
     [data-testid="stExpander"] {
-        border: 1px solid rgba(148, 163, 184, .15) !important;
-        border-radius: 12px !important;
-        background: rgba(17, 26, 45, .5) !important;
+        border: 1px solid var(--line) !important;
+        border-radius: 10px !important;
+        background: var(--panel) !important;
     }
 
+    [data-testid="stExpander"] summary {
+        padding: .6rem .85rem;
+        font-size: .88rem;
+        color: var(--text-2);
+    }
+
+    [data-testid="stExpander"] summary:hover {
+        background: var(--raised);
+        color: var(--text);
+    }
+
+    [data-testid="stExpander"] [data-testid="stExpanderDetails"] {
+        padding: .25rem .9rem .9rem;
+    }
+
+    [data-testid="stChatMessage"] [data-testid="stExpander"] {
+        background: var(--page) !important;
+    }
+
+    /* ---------- Chat ---------- */
     [data-testid="stChatMessage"] {
-        padding: 13px 16px;
-        margin-bottom: 12px;
-        border: 1px solid rgba(148, 163, 184, .12);
-        border-radius: 16px;
-        background: rgba(17, 26, 45, .66);
+        gap: .9rem;
+        padding: 14px 18px;
+        margin-bottom: 10px;
+        border: 1px solid var(--line);
+        border-radius: var(--radius-panel);
+        background: var(--panel);
+    }
+
+    /* Your questions are tinted so the conversation is easy to scan */
+    [data-testid="stChatMessage"]:has([data-testid="stChatMessageAvatarUser"]) {
+        border-color: var(--accent-line);
+        background: var(--accent-soft);
+    }
+
+    [data-testid="stChatMessageAvatarUser"] {
+        background: var(--accent);
+        color: var(--accent-ink);
+    }
+
+    [data-testid="stChatMessageAvatarAssistant"] {
+        background: var(--raised);
+        color: var(--text);
+    }
+
+    [data-testid="stChatMessage"] [data-testid="stMarkdownContainer"] p {
+        max-width: 78ch;
+        color: var(--text);
+        line-height: 1.7;
+    }
+
+    [data-testid="stBottom"] > div {
+        background: var(--page);
     }
 
     [data-testid="stChatInput"] {
-        border-color: rgba(135, 152, 255, .3) !important;
-        border-radius: 14px !important;
-        background: rgba(17, 26, 45, .92) !important;
+        border: 1px solid var(--line-strong) !important;
+        border-radius: var(--radius-panel) !important;
+        background: var(--panel) !important;
     }
 
-    [data-testid="stProgress"] > div > div {
-        background: linear-gradient(90deg, #8798ff, #37c99a);
+    [data-testid="stChatInput"]:focus-within {
+        border-color: var(--accent) !important;
+        box-shadow: 0 0 0 3px var(--accent-soft);
     }
 
     .chat-hint {
-        margin: 10px 0 20px;
-        padding: 18px 20px;
-        border: 1px solid var(--border);
-        border-radius: 14px;
+        margin: 6px 0 18px;
+        padding: 20px 22px;
+        border: 1px dashed var(--line-strong);
+        border-radius: var(--radius-panel);
+        background: var(--panel);
+    }
+
+    .chat-hint-title {
+        color: var(--text);
+        font-size: .98rem;
+        font-weight: 650;
+    }
+
+    .chat-hint-text {
+        margin-top: 4px;
         color: var(--muted);
-        background: rgba(17, 26, 45, .58);
-        line-height: 1.6;
+        font-size: .88rem;
+        line-height: 1.55;
     }
 
-    hr {
-        border-color: rgba(148, 163, 184, .13);
+    .chat-examples {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 14px;
     }
 
+    .chat-examples span {
+        padding: 6px 12px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: var(--raised);
+        color: var(--text-2);
+        font-size: .82rem;
+    }
+
+    /* ---------- Progress ---------- */
+    [data-testid="stProgress"] div[role="progressbar"] {
+        height: 6px;
+        border-radius: 999px;
+        background: var(--raised);
+    }
+
+    [data-testid="stProgress"] div[role="progressbar"] > div,
+    [data-testid="stProgress"] > div > div > div {
+        border-radius: 999px;
+        background: var(--accent);
+    }
+
+    /* ---------- Accessibility ---------- */
+    .stApp :focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        * {
+            transition: none !important;
+            animation: none !important;
+        }
+    }
+
+    /* ---------- Small screens ---------- */
     @media (max-width: 800px) {
         .block-container { padding-top: 1rem; }
-        .app-hero { padding: 21px 20px; border-radius: 17px; }
+        .app-hero { padding: 20px; }
+        .hero-steps { grid-template-columns: 1fr; }
     }
     </style>
     """,
@@ -326,13 +572,35 @@ def citation_line(sources):
 st.markdown(
     """
     <div class="app-hero">
-        <div class="hero-kicker">PRIVATE · LOCAL · AI-POWERED</div>
         <div class="hero-title">Offline Document Intelligence</div>
         <p class="hero-description">
             Upload your documents, follow the processing pipeline, and ask
             evidence-grounded questions using your local AI models.
         </p>
-        <div class="hero-tag">● Local processing workspace</div>
+        <div class="hero-tag">Everything runs on this computer</div>
+        <div class="hero-steps">
+            <div class="hero-step">
+                <div class="step-num">1</div>
+                <div>
+                    <div class="step-title">Upload</div>
+                    <div class="step-text">Add files from the sidebar.</div>
+                </div>
+            </div>
+            <div class="hero-step">
+                <div class="step-num">2</div>
+                <div>
+                    <div class="step-title">Wait for indexing</div>
+                    <div class="step-text">Track progress in the processing queue.</div>
+                </div>
+            </div>
+            <div class="hero-step">
+                <div class="step-num">3</div>
+                <div>
+                    <div class="step-title">Ask</div>
+                    <div class="step-text">Get answers with source passages.</div>
+                </div>
+            </div>
+        </div>
     </div>
     """,
     unsafe_allow_html=True,
@@ -348,7 +616,7 @@ with st.sidebar:
             <div class="brand-mark">✦</div>
             <div>
                 <div class="brand-title">Doc Intelligence</div>
-                <div class="brand-caption">OFFLINE KNOWLEDGE WORKSPACE</div>
+                <div class="brand-caption">Offline knowledge workspace</div>
             </div>
         </div>
         """,
@@ -512,8 +780,13 @@ if not st.session_state.messages:
     st.markdown(
         """
         <div class="chat-hint">
-            Your conversation will appear here. Start with a question about a
-            document, a key fact, a comparison, or a specific passage.
+            <div class="chat-hint-title">No questions yet</div>
+            <div class="chat-hint-text">Once a document is indexed, ask about it in the box at the bottom of the page. For example:</div>
+            <div class="chat-examples">
+                <span>What are the key points in this report?</span>
+                <span>What does the contract say about termination?</span>
+                <span>Compare the two proposals on cost.</span>
+            </div>
         </div>
         """,
         unsafe_allow_html=True,
