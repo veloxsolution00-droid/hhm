@@ -217,14 +217,19 @@ def test_verifier_exception_fails_closed(monkeypatch):
     assert "verifier offline" in result["verification"]["error"]
 
 
-def test_verifier_outage_withholds_even_lexically_overlapping_draft(monkeypatch):
-    # Word overlap is not entailment. If the configured verifier is unavailable,
-    # even a plausible-looking draft must not be promoted to a successful answer.
+def test_verifier_outage_uses_only_a_verbatim_question_relevant_fallback(monkeypatch):
+    # The generated draft is withheld. A contiguous source sentence can still
+    # be returned verbatim when it matches the question.
     chat = _verifier_outage_stack(monkeypatch, "Revenue was 10 crore [1].")
     result = chat._answer_one("What was revenue?", {"d1"}, "local")
-    assert result["status"] == "answer_validation_failed"
-    assert result["abstained"] is True
-    assert result["verification"]["checked"] is False
+    assert result["status"] == "success"
+    assert result["answer"] == "“Revenue was 10 crore.” [1]"
+    assert result["verification"]["verdict"] == "EXACT_PASSAGE_MATCH"
+
+    # A different subject must not receive that same passage as an answer.
+    missing = chat._answer_one("What was headcount?", {"d1"}, "local")
+    assert missing["status"] == "answer_validation_failed"
+    assert missing["abstained"] is True
 
 
 def test_reconcile_resets_partial_vectors_instead_of_promoting(monkeypatch, tmp_path):
