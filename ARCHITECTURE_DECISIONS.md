@@ -87,6 +87,7 @@ The following work is intentionally incremental so persistent user data and exis
 - FTS-only scores now use the configured lexical weight rather than the dense weight.
 - Citation validation now requires numeric evidence references compatible with the claim verifier; filename labels alone cannot satisfy citation presence or coverage.
 - Incomplete citation coverage no longer advances to semantic verification as if it were a valid answer.
+- Legal-but-incomplete citations skip a redundant LLM citation-rewrite call; the pipeline selects a fully cited draft or a verbatim evidence fallback, otherwise abstaining.
 - Claim verification was extracted from the chat orchestrator into an injectable, independently testable module.
 - Regression tests cover lexical fallback, hybrid score weighting, filename-only citations, per-sentence numeric citation coverage, and verifier isolation.
 
