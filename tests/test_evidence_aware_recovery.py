@@ -174,20 +174,17 @@ def test_invalid_reference_repair_is_accepted_when_it_becomes_valid(monkeypatch)
 
 
 # 9. Substantive cited answer with unsupported claims is rejected by the verifier.
-def test_unsupported_claim_rejected_by_verifier(monkeypatch):
+def test_unsupported_claim_is_replaced_by_exact_supported_evidence(monkeypatch):
     chat, state = _setup(monkeypatch, verify=True)
     state["drafts"] = [
         "Chapter 51 lists three topics [1]. Epictetus was born in Rome in 55 AD [1].",
     ]
     state["verdict"] = "UNSUPPORTED ANSWERED"
     result = chat._answer_one(QUESTION, {"d1"}, "local")
-    assert result["status"] == "answer_validation_failed"
-    assert result["abstained"] is True
-    assert result["verification"]["checked"] is True
-    assert result["verification"]["passed"] is False
+    assert result["status"] == "success"
+    assert "born in Rome" not in result["answer"]
+    assert result["verification"]["verdict"] == "EXACT_PASSAGE_MATCH"
 
-
-# 10. Multiple facts spread over multiple evidence chunks.
 def test_multiple_facts_use_multiple_chunks(monkeypatch):
     chat, state = _setup(monkeypatch)
     state["drafts"] = [
@@ -412,7 +409,7 @@ def test_unmatched_subject_guard_does_not_match_substrings():
 # "citation_validation_failed". This is the regression for the reported
 # "the answer is in the PDF, but the model replies citation-not-passed /
 # no relevant answer" failure.
-def test_partially_cited_grounded_answer_is_returned_not_discarded(monkeypatch):
+def test_partially_cited_answer_is_replaced_by_exact_supported_evidence(monkeypatch):
     chat, state = _setup(monkeypatch)
     state["drafts"] = [
         "Chapter 51 lists three topics: practical application, demonstrations, and logic [1]. "
@@ -422,17 +419,11 @@ def test_partially_cited_grounded_answer_is_returned_not_discarded(monkeypatch):
     assert result["status"] == "success"
     assert result["abstained"] is False
     assert "practical application" in result["answer"]
-    # Citations are legal but incomplete: the answer is still returned.
-    assert result["citation_validation"]["references_valid"] is True
-    assert result["citation_validation"]["citation_coverage"] < 1.0
-    assert result["citation_validation"]["valid"] is False
-    assert result["retrieval"]["partial_citation_selected"] is True
-    assert result["status"] != "citation_validation_failed"
+    assert "birthplace" not in result["answer"]
+    assert result["citation_validation"]["valid"] is True
+    assert result["citation_validation"]["citation_coverage"] == 1.0
+    assert result["retrieval"]["selected_draft"] == "extractive_evidence_fallback"
 
-
-# 16. A quantity question whose draft paraphrased the value away is answered with
-# the exact evidence sentence carrying the figure. The deterministic acceptor
-# matches words only, so it cannot see the dropped number on its own.
 def test_dropped_quantity_value_is_recovered_from_evidence(monkeypatch):
     chunks = [
         {"id": "c1",

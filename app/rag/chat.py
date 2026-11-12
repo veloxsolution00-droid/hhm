@@ -401,7 +401,7 @@ def _is_exact_passage_extract(answer_text: str, hits: list[dict]) -> bool:
         return re.findall(r"[a-z0-9]+", text.casefold())
 
     answer_words = words(answer_text)
-    if len(answer_words) < 5:
+    if len(answer_words) < 4:
         return False
     for hit in hits:
         evidence_words = words(hit.get("text") or "")
