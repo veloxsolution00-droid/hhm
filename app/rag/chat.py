@@ -1681,25 +1681,38 @@ def _answer_one(question, indexed, owner_id, doc_types=None):
             result = retry_text
             retrieval["verification_retry_attempted"] = True
         if not verification.get("checked") or not verification.get("passed"):
-            # A verifier rejection or outage is a hard stop. Similar words in
-            # a passage cannot substitute for claim-level entailment.
-            retrieval["selected_draft"] = "none"
-            retrieval["answer_recovery_succeeded"] = False
-            if verification.get("checked") and _has_unmatched_question_anchor(normalized, evidence):
-                retrieval["failure_stage"] = "unmatched_question_anchor"
-                return {"question": question, "status": "insufficient_evidence",
-                        "answer": ABSTENTION, "sources": source_records,
-                        "abstained": True, "retrieval": retrieval,
-                        "citation_validation": citation_validation,
-                        "verification": verification, "question_type": task_type,
-                        "potential_conflicts": potential_conflicts}
-            logger.warning("Answer verification unavailable or failed; withholding draft")
-            retrieval["failure_stage"] = "answer_verification"
-            return {"question": question, "status": "answer_validation_failed",
-                    "answer": "The answer could not be verified against the retrieved passages. Please retry when the local verifier is available or inspect the source passages.",
-                    "sources": source_records, "abstained": True, "retrieval": retrieval,
-                    "citation_validation": citation_validation, "verification": verification,
-                    "question_type": task_type, "potential_conflicts": potential_conflicts}
+            # Do not promote the rejected model draft. A strictly verbatim
+            # sentence may still be returned when it matches the question and
+            # can be proven contiguous in one retrieved passage.
+            extract = _extractive_answer_for_question(normalized, hits)
+            extract_validation = validate_citation_references(extract or "", len(hits), source_labels)
+            if (extract and extract_validation.get("valid")
+                    and _is_exact_passage_extract(extract, hits)):
+                result = extract
+                citation_validation = extract_validation
+                verification = {"checked": True, "passed": True,
+                                "verdict": "EXACT_PASSAGE_MATCH"}
+                retrieval["selected_draft"] = "extractive_verification_fallback"
+                retrieval["extractive_fallback_attempted"] = True
+                retrieval["answer_recovery_succeeded"] = True
+            else:
+                retrieval["selected_draft"] = "none"
+                retrieval["answer_recovery_succeeded"] = False
+                if verification.get("checked") and _has_unmatched_question_anchor(normalized, evidence):
+                    retrieval["failure_stage"] = "unmatched_question_anchor"
+                    return {"question": question, "status": "insufficient_evidence",
+                            "answer": ABSTENTION, "sources": source_records,
+                            "abstained": True, "retrieval": retrieval,
+                            "citation_validation": citation_validation,
+                            "verification": verification, "question_type": task_type,
+                            "potential_conflicts": potential_conflicts}
+                logger.warning("Answer verification unavailable or failed; withholding draft")
+                retrieval["failure_stage"] = "answer_verification"
+                return {"question": question, "status": "answer_validation_failed",
+                        "answer": "The generated answer failed verification, and no sufficiently relevant verbatim passage could be safely returned. Inspect the retrieved sources or retry when Ollama is available.",
+                        "sources": source_records, "abstained": True, "retrieval": retrieval,
+                        "citation_validation": citation_validation, "verification": verification,
+                        "question_type": task_type, "potential_conflicts": potential_conflicts}
         if (retrieval.get("verification_retry_attempted")
                 and not str(retrieval.get("selected_draft") or "").startswith("extractive_")):
             retrieval["selected_draft"] = "verification_retry"
