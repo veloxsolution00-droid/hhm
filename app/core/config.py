@@ -79,15 +79,10 @@ class Settings(BaseSettings):
     # SEMANTIC RETRIEVAL
     # --------------------------------------------------
 
-    # Final number of relevant chunks sent to the LLM. A four-chunk window was
-    # too narrow for long documents: the passage answering a factual question
-    # (for example the synopsis line naming a character's profession) often
-    # ranked just outside it. Six slots recovered most near-miss passages, but
-    # a single-fact question can still be answered by a passage ranked seventh
-    # (for example the line naming the ship whose log the novel includes), so
-    # eight slots are used; the context-character budget below still bounds the
-    # prompt size.
-    top_k: int = 8
+    # Final number of evidence chunks sent to generation. Four keeps prompt
+    # prefill bounded on low-memory local machines; raise only after evaluating
+    # retrieval recall and answer latency on the target corpus.
+    top_k: int = 4
 
     # Retrieve additional candidates before ranking.
     retrieval_candidate_multiplier: int = 5
@@ -111,7 +106,7 @@ class Settings(BaseSettings):
     # EMBEDDING CONFIGURATION
     # --------------------------------------------------
 
-    embedding_batch_size: int = 32
+    embedding_batch_size: int = 16
 
     # --------------------------------------------------
     # DOCUMENT PROCESSING
@@ -127,7 +122,7 @@ class Settings(BaseSettings):
     # memory pressure on limited hardware.
     inference_concurrency: int = 1
 
-    tesseract_cmd: str = "C:\Program Files\Tesseract-OCR\tesseract.exe"
+    tesseract_cmd: str = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
     # Matches OCR_ENABLED in .env. Image-only pages are common in the supported
     # corpus, so OCR is on by default; set tesseract_cmd (or put Tesseract on
     # PATH) in environments where the binary is not installed at the .env path.
@@ -138,9 +133,9 @@ class Settings(BaseSettings):
     ocr_timeout_seconds: int = 45
 
     # Archive and queue resource guardrails for local document processing.
-    max_archive_uncompressed_mb: int = 1024
+    max_archive_uncompressed_mb: int = 256
     max_archive_compression_ratio: float = 200.0
-    max_archive_entries: int = 20000
+    max_archive_entries: int = 10000
     max_pending_jobs: int = 50
     max_pending_upload_mb: int = 1000
     max_data_storage_mb: int = 20480

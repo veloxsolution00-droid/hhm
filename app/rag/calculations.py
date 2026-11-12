@@ -67,36 +67,43 @@ def direct_calculation(question: str) -> dict | None:
     return {"expression": expr, "result": result, "kind": "arithmetic"}
 
 
-def apply_evidence_calculation_plan(plan_text: str, evidence: str, question: str, source_count: int) -> dict | None:
-    """Validate and evaluate a model-proposed numeric formula against supplied evidence.
+def apply_evidence_calculation_plan(plan_text: str, evidence, question: str, source_count: int) -> dict | None:
+    """Evaluate a formula only when every operand occurs in its cited passages.
 
-    The model may select a formula, but it cannot introduce numeric operands that
-    do not appear in the question/evidence (except the conventional 100 in a
-    percentage expression). Formula selection remains a semantic risk.
+    ``evidence`` must be the ordered hit list used to render [1], [2], ... .
+    A flattened evidence string is rejected because it cannot prove which
+    cited passage contains each operand.
     """
-    if not isinstance(plan_text, str): return None
+    if not isinstance(plan_text, str) or not isinstance(evidence, list):
+        return None
     raw = plan_text.strip()
     raw = re.sub(r"^```(?:json)?\s*|\s*```$", "", raw, flags=re.I)
     try:
         plan = json.loads(raw)
     except (ValueError, TypeError):
         return None
-    if not isinstance(plan, dict) or not isinstance(plan.get("expression"), str): return None
+    if not isinstance(plan, dict) or not isinstance(plan.get("expression"), str):
+        return None
     expression = plan["expression"].strip()
     refs = plan.get("source_refs", [])
-    if not isinstance(refs, list) or any(not isinstance(x, int) or x < 1 or x > source_count for x in refs):
+    if (not isinstance(refs, list) or not refs
+            or any(type(x) is not int or x < 1 or x > min(source_count, len(evidence)) for x in refs)):
         return None
-    if not refs:
+    refs = sorted(set(refs))
+    cited_passages = [str(evidence[index - 1].get("text") or "") for index in refs]
+    number_pattern = r"(?<![\w.])-?\d+(?:\.\d+)?"
+    expression_numbers = [float(x) for x in re.findall(number_pattern, expression)]
+    allow_100 = bool(re.search(r"%|\bpercent(?:age)?\b", question or "", re.I))
+    if not expression_numbers:
         return None
-    context = f"{question}\n{evidence}"
-    context_numbers = {float(x) for x in re.findall(r"(?<![\w.])-?\d+(?:\.\d+)?", context)}
-    expression_numbers = [float(x) for x in re.findall(r"(?<![\w.])-?\d+(?:\.\d+)?", expression)]
-    allow_100 = "%" in question or "percent" in question.lower() or "percentage" in question.lower()
-    if any(number not in context_numbers and not (allow_100 and number == 100.0) for number in expression_numbers):
-        return None
+    for number in set(expression_numbers):
+        if not any(number in {float(value) for value in re.findall(number_pattern, passage)}
+                   for passage in cited_passages):
+            if not (allow_100 and number == 100.0):
+                return None
     try:
         value = evaluate_expression(expression)
-    except (ValueError, SyntaxError):
+    except (ValueError, SyntaxError, OverflowError):
         return None
-    return {"expression": expression, "result": value, "source_refs": sorted(set(refs)),
+    return {"expression": expression, "result": value, "source_refs": refs,
             "kind": "document_evidence", "unit": str(plan.get("unit", "")).strip()[:40]}

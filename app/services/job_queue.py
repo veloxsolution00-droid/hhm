@@ -55,6 +55,12 @@ def _run(job_id):
                 db.update_job(job_id, status="failed", stage="Retry cleanup failed", updated_at=now(), error="Could not clean previous failed attempt")
                 return
     if not db.update_job_if_status(job_id, "processing", stage="Starting", progress=1, updated_at=now(), error=None):
+        current = db.get_job(job_id)
+        if current and current.get("status") == "cancel_requested":
+            db.update_job_if_status(job_id, "cancel_requested", status="cancelled",
+                                    stage="Cancelled before extraction", progress=100,
+                                    updated_at=now(), error=None)
+            path.unlink(missing_ok=True)
         return
     try:
         # The ingestion pipeline reads from disk incrementally; do not load a

@@ -6,23 +6,16 @@ Run from the project root (the folder containing app/):
 
     python run.py
 
-You will be asked to choose:
-    1. Local access only
-    2. Share with devices on the same Wi-Fi / LAN
+The backend and UI bind only to loopback addresses.
 
 Optional:
-    python run.py --local-only
-    python run.py --share-network
     python run.py --reload
 
 Press Ctrl+C once to stop both services.
 
 IMPORTANT:
-- LAN sharing works only while this PC is running the application.
-- Other devices must be able to reach this PC over the same network.
-- Sharing a LAN URL does not install or execute the application
-  on another person's computer.
-- Internet-wide sharing requires a secure public deployment or tunnel.
+- No LAN or internet-facing listener is started.
+- All documents and sessions remain on this computer.
 """
 
 import argparse
@@ -50,52 +43,6 @@ def port_in_use(port, host="127.0.0.1"):
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
         sock.settimeout(0.5)
         return sock.connect_ex((host, port)) == 0
-
-
-def get_lan_ip():
-    """Find this computer's LAN IPv4 address without internet access."""
-    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-
-    try:
-        sock.connect(("10.255.255.255", 1))
-        return sock.getsockname()[0]
-
-    except OSError:
-        try:
-            return socket.gethostbyname(socket.gethostname())
-        except OSError:
-            return "YOUR-PC-IP"
-
-    finally:
-        sock.close()
-
-
-def choose_access_mode(args):
-    """Choose whether Streamlit should be accessible over the LAN."""
-
-    if args.local_only:
-        return False
-
-    if args.share_network:
-        return True
-
-    print("\n==========================================")
-    print("  OFFLINE DOCUMENT INTELLIGENCE CHATBOT")
-    print("==========================================")
-    print("\nChoose application access mode:")
-    print("1. Local access only (this PC)")
-    print("2. Share with devices on the same Wi-Fi / LAN")
-
-    while True:
-        choice = input("\nEnter your choice (1 or 2): ").strip()
-
-        if choice == "1":
-            return False
-
-        if choice == "2":
-            return True
-
-        print("Invalid choice. Please enter 1 or 2.")
 
 
 def wait_for_backend(proc, timeout=STARTUP_TIMEOUT):
@@ -176,20 +123,6 @@ def main():
         description="Start FastAPI and Streamlit together."
     )
 
-    access_group = parser.add_mutually_exclusive_group()
-
-    access_group.add_argument(
-        "--share-network",
-        action="store_true",
-        help="Allow devices on the same LAN to access Streamlit."
-    )
-
-    access_group.add_argument(
-        "--local-only",
-        action="store_true",
-        help="Allow access only from this PC."
-    )
-
     parser.add_argument(
         "--reload",
         action="store_true",
@@ -198,11 +131,8 @@ def main():
 
     args = parser.parse_args()
 
-    # Select access mode.
-    share_network = choose_access_mode(args)
-
-    # Streamlit is exposed only when LAN sharing is enabled.
-    ui_host = "0.0.0.0" if share_network else "127.0.0.1"
+    # This application is local-only. Never bind Streamlit to a LAN interface.
+    ui_host = "127.0.0.1"
 
     # Verify required project files.
     required_files = [
@@ -229,12 +159,7 @@ def main():
             )
             return 1
 
-    if share_network:
-        print("\nLAN sharing is ENABLED.")
-        print("Only trusted devices should be allowed to connect.")
-        print("There is no application-level authentication configured.")
-    else:
-        print("\nLocal-only access is ENABLED.")
+    print("\nLocal-only access is ENABLED.")
 
     # FastAPI command.
     backend_cmd = [
@@ -337,28 +262,7 @@ def main():
             f"http://localhost:{UI_PORT}"
         )
 
-        if share_network:
-
-            lan_ip = get_lan_ip()
-
-            print(
-                f"\nStreamlit (LAN): "
-                f"http://{lan_ip}:{UI_PORT}"
-            )
-
-            print("\nShare the LAN URL with devices connected")
-            print("to the same Wi-Fi / local network.")
-
-            print("\nIMPORTANT:")
-            print("- Keep this computer switched on.")
-            print("- Keep this launcher running.")
-            print("- Allow Streamlit through the Windows Firewall")
-            print("  on private networks if Windows asks.")
-            print("- All connected users access the same host data.")
-            print("- No login or user isolation is configured.")
-
-        else:
-            print("\nNetwork sharing is disabled.")
+        print("\nNetwork sharing is disabled; the UI listens only on loopback.")
 
         print("\nPress Ctrl+C to stop both services.")
         print("==========================================\n")

@@ -55,15 +55,33 @@ def test_vocabulary_spelling_correction_preserves_original_query_route():
     assert correct_query_from_vocabulary("contractor authoriztion", ["contractor", "authorization"]) == "contractor authorization"
     assert correct_query_from_vocabulary("invoice INV-2026-0042", ["invoice", "approval"]) == "invoice INV-2026-0042"
 
-def test_evidence_calculation_plan_only_uses_numbers_present_in_question_or_evidence():
+def test_evidence_calculation_plan_binds_operands_to_cited_passages():
     import json
     from app.rag.calculations import apply_evidence_calculation_plan
-    valid = apply_evidence_calculation_plan(json.dumps({"expression": "50 * 3", "source_refs": [1], "unit": "dollars"}),
-                                            "Unit cost is 50 dollars. Quantity is 3.", "Calculate total cost", 1)
-    assert valid and valid["result"] == 150
-    invalid = apply_evidence_calculation_plan(json.dumps({"expression": "50 * 300", "source_refs": [1]}),
-                                              "Unit cost is 50 dollars. Quantity is 3.", "Calculate total cost", 1)
-    assert invalid is None
+
+    hits = [
+        {"text": "Unit cost is 50 dollars. Quantity is 3."},
+        {"text": "Unrelated reference number 300."},
+    ]
+    valid = apply_evidence_calculation_plan(
+        json.dumps({"expression": "50 * 3", "source_refs": [1], "unit": "dollars"}),
+        hits, "Calculate total cost", 2)
+    assert valid is not None
+    assert valid["result"] == 150
+
+    # The second operand exists in the corpus, but not in the cited passage.
+    wrong_source = apply_evidence_calculation_plan(
+        json.dumps({"expression": "50 * 300", "source_refs": [1], "unit": "dollars"}),
+        hits, "Calculate total cost", 2)
+    assert wrong_source is None
+
+    # Referencing the unrelated passage makes the number technically cited but
+    # does not make the expression safe unless both operands are in the cited set.
+    incomplete = apply_evidence_calculation_plan(
+        json.dumps({"expression": "50 * 300", "source_refs": [2], "unit": "dollars"}),
+        hits, "Calculate total cost", 2)
+    assert incomplete is None
+
 
 def test_offline_configuration_rejects_non_loopback_ollama_endpoints():
     from app.core.config import validate_loopback_url

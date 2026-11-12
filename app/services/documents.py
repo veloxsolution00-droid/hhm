@@ -146,6 +146,8 @@ def remove_document_record(document_id, allow_active_job_id=None, resume=False):
             "Document is being ingested, retried, or deleted. Wait for that operation to finish first."
         )
     try:
+        from app.cache.manager import invalidate_document
+        invalidate_document(document_id)
         store.delete(document_id)
         for key in ("original_path", "extracted_path"):
             value = doc.get(key)
@@ -162,6 +164,8 @@ def remove_document_record(document_id, allow_active_job_id=None, resume=False):
         raise
 
 def remove_indexed_chunks(document_id):
+    from app.cache.manager import invalidate_document
+    invalidate_document(document_id)
     store.collection().delete(where={"document_id":document_id})
     db.remove_indexed_chunks(document_id)
 
@@ -177,8 +181,17 @@ def submit_ingestion_job(job_id, filename, document_id, staged_path, size_bytes)
                    "size_bytes":size_bytes,"status":"queued","created_at":now(),"updated_at":now(),"document_id":document_id})
 
 def cancel_job(job_id):
-    """Request cooperative cancellation; processing jobs are not instantly stopped."""
-    return db.request_job_cancellation(job_id)
+    """Cancel queued work or request a cooperative stop from an active worker."""
+    job = db.get_job(job_id)
+    result = db.request_job_cancellation(job_id)
+    if result == "cancelled" and job and job.get("status") == "queued":
+        staged = job.get("staged_path")
+        if staged:
+            try:
+                Path(staged).unlink(missing_ok=True)
+            except OSError:
+                logger.exception("Could not remove staged upload for cancelled job %s", job_id)
+    return result
 
 
 def delete_ingestion_job(job_id, resume=False):

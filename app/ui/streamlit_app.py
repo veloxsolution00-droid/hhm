@@ -9,6 +9,7 @@ verification, and error handling are retained.
 
 import os
 import requests
+import httpx
 import streamlit as st
 
 from app.core.config import validate_loopback_url
@@ -558,6 +559,14 @@ def api_post(path, **kwargs):
     r.raise_for_status()
     return r.json()
 
+def api_post_stream(path, **kwargs):
+    """Send multipart uploads with httpx's chunked file streaming."""
+    timeout = kwargs.pop("timeout", 30)
+    with httpx.Client(timeout=timeout) as client:
+        response = client.post(API + path, **kwargs)
+        response.raise_for_status()
+        return response.json()
+
 
 def citation_line(sources):
     return " · ".join(
@@ -659,16 +668,19 @@ with st.sidebar:
         key=f"uploader_{st.session_state.uploader_id}",
     )
 
-    if st.button("Upload and process", disabled=not up, width="stretch", type="primary"):
+    if st.button("Upload and process", disabled=not up, type="primary"):
         try:
             total = sum(f.size for f in up)
             max_batch_mb = int(health_limits.get("max_batch_mb", 500) or 500)
             if total > max_batch_mb * 1024 * 1024:
                 st.error(f"Batch exceeds {max_batch_mb} MB.")
             else:
-                files = [("files", (f.name, f.getvalue(), f.type or "application/octet-stream")) for f in up]
+                files = []
+                for uploaded in up:
+                    uploaded.seek(0)
+                    files.append(("files", (uploaded.name, uploaded, uploaded.type or "application/octet-stream")))
                 with st.spinner("Saving files and adding ingestion jobs to the local queue..."):
-                    data = api_post("/documents/upload", files=files, timeout=600)
+                    data = api_post_stream("/documents/upload", files=files, timeout=600)
                 st.success(f"Accepted {data['files']} file(s), {data['total_bytes'] / (1024*1024):.1f} MB. Staging: {data['staging_seconds']} sec.")
                 st.info("The job list updates automatically with the current extraction, chunking, embedding, and indexing stage.")
                 st.session_state.uploader_id += 1
@@ -772,7 +784,7 @@ st.divider()
 chat_title, clear_column = st.columns([5, 1], vertical_alignment="center")
 chat_title.markdown("### Ask your documents")
 chat_title.caption("Answers use passages retrieved from your indexed files, with source references.")
-if clear_column.button("Clear chat", icon=":material/delete_sweep:", width="stretch"):
+if clear_column.button("Clear chat", icon=":material/delete_sweep:"):
     st.session_state.messages = []
     st.rerun()
 
@@ -836,8 +848,9 @@ if q:
                 if confidence.get("label"):
                     score = confidence.get("score")
                     label = confidence["label"]
-                    heading = f"Confidence: {label}" + (f" ({score:.0%})" if isinstance(score, (int, float)) else "")
+                    heading = f"Evidence score (heuristic): {label}" + (f" ({score:.0%})" if isinstance(score, (int, float)) else "")
                     (st.success if label == "high" else st.info if label == "medium" else st.warning)(heading)
+                    st.caption("This is a heuristic evidence score, not a calibrated probability that the answer is correct.")
                     signals = confidence.get("signals") or {}
                     if signals:
                         st.caption(f"Retrieval similarity: {signals.get('retrieval_similarity', '—')} | Term coverage: {signals.get('term_coverage', '—')} | Citation coverage: {signals.get('citation_coverage', '—')} | Verifier: {signals.get('verified', '—')}")
@@ -860,6 +873,13 @@ if q:
             if conflicts:
                 st.warning(f"Potential evidence disagreement detected in {len(conflicts)} passage pair(s). Review the cited passages; this is a heuristic warning, not a confirmed contradiction.")
 
+            if retrieval.get("generation_fallback") or retrieval.get("extractive_fallback_attempted"):
+                if retrieval.get("generation_fallback"):
+                    st.info("Ollama generation did not complete. The application returned a verbatim sentence from the retrieved PDF instead of inventing an answer.")
+                    if retrieval.get("generation_error"):
+                        st.caption("Generation diagnostic: " + str(retrieval["generation_error"]))
+                else:
+                    st.info("The generated answer did not pass citation checks. A verbatim sentence from the retrieved evidence was used as a conservative fallback.")
             if data.get("error"):
                 st.error(data["error"])
 

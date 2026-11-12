@@ -210,21 +210,26 @@ def test_verifier_exception_fails_closed(monkeypatch):
     # arbiter cannot decide it and the model verifier is required. An unavailable
     # verifier must then withhold the unchecked draft rather than promote it.
     chat = _verifier_outage_stack(monkeypatch, "The company hired fifty new engineers [1].")
-    result = chat._answer_one("What was revenue?", {"d1"}, "local")
+    result = chat._answer_one("What was headcount?", {"d1"}, "local")
     assert result["status"] == "answer_validation_failed"
     assert result["abstained"] is True
     assert result["verification"]["checked"] is False
     assert "verifier offline" in result["verification"]["error"]
 
 
-def test_verifier_outage_keeps_deterministically_grounded_draft(monkeypatch):
-    # The deterministic lexical check is the primary arbiter: a fully cited draft
-    # whose words come from the passage it cites is accepted without consulting
-    # the model verifier, so a verifier outage cannot discard a grounded answer.
+def test_verifier_outage_uses_only_a_verbatim_question_relevant_fallback(monkeypatch):
+    # The generated draft is withheld. A contiguous source sentence can still
+    # be returned verbatim when it matches the question.
     chat = _verifier_outage_stack(monkeypatch, "Revenue was 10 crore [1].")
     result = chat._answer_one("What was revenue?", {"d1"}, "local")
     assert result["status"] == "success"
-    assert result["verification"]["verdict"] == "LEXICAL_CORROBORATION"
+    assert result["answer"] == "“Revenue was 10 crore [1].”"
+    assert result["verification"]["verdict"] == "EXACT_PASSAGE_MATCH"
+
+    # A different subject must not receive that same passage as an answer.
+    missing = chat._answer_one("What was headcount?", {"d1"}, "local")
+    assert missing["status"] == "answer_validation_failed"
+    assert missing["abstained"] is True
 
 
 def test_reconcile_resets_partial_vectors_instead_of_promoting(monkeypatch, tmp_path):
@@ -407,3 +412,51 @@ def test_pdf_image_page_requires_ocr_when_disabled(monkeypatch, tmp_path):
     monkeypatch.setattr(settings, "ocr_enabled", False)
     with pytest.raises(NoReadableTextError, match="Enable local OCR"):
         list(iter_extract(pdf_path))
+
+
+def test_verifier_receives_only_the_passages_cited_by_each_claim(monkeypatch):
+    import sys
+    monkeypatch.setitem(sys.modules, "chromadb", types.ModuleType("chromadb"))
+    import app.rag.chat as chat
+    from app.core.config import settings
+
+    prompts = []
+    monkeypatch.setattr(settings, "verify_answers", True)
+    monkeypatch.setattr(chat, "generate",
+                        lambda prompt, num_predict=None: prompts.append(prompt) or "SUPPORTED ANSWERED")
+    evidence = "[1] report.pdf (page 1): Revenue was 10 crore.\n\n[2] report.pdf (page 2): The company had 25 employees."
+    result = chat._verify_answer(
+        "What was revenue?", evidence, "Revenue was 10 crore [2].", {})
+    assert result is True
+    assert len(prompts) == 1
+    assert "The company had 25 employees" in prompts[0]
+    assert "Revenue was 10 crore." not in prompts[0]
+
+
+def test_extractive_fallback_returns_only_a_verbatim_relevant_sentence():
+    from app.rag.chat import _extractive_answer_for_question
+
+    hits = [{"text": "Benjamin Franklin was a printer, writer, and public official."}]
+    answer = _extractive_answer_for_question("Who was Benjamin Franklin?", hits)
+    assert answer == "“Benjamin Franklin was a printer, writer, and public official [1].”"
+    life_answer = _extractive_answer_for_question("What does Benjamin do in his life?", hits)
+    assert life_answer == "“Benjamin Franklin was a printer, writer, and public official [1].”"
+    assert _extractive_answer_for_question("What was the weather?", hits) is None
+
+
+def test_failed_original_copy_does_not_leave_orphan_upload(monkeypatch, tmp_path):
+    from app.core.config import settings
+    import app.ingestion.extractor as extractor
+
+    uploads = tmp_path / "uploads"
+    extracted = tmp_path / "extracted"
+    staged = tmp_path / "staged" / "broken.txt.upload"
+    staged.parent.mkdir(parents=True)
+    staged.write_text("source content", encoding="utf-8")
+    monkeypatch.setattr(settings, "uploads_path", uploads)
+    monkeypatch.setattr(settings, "extracted_path", extracted)
+    monkeypatch.setattr(extractor, "_copy_file_durable",
+                        lambda *args, **kwargs: (_ for _ in ()).throw(OSError("disk full")))
+    with pytest.raises(OSError, match="disk full"):
+        extractor.ingest(str(staged), None, filename="broken.txt")
+    assert not list(uploads.glob("*"))

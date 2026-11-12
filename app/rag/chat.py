@@ -356,6 +356,44 @@ def _extractive_recovery_from_evidence(question: str, draft: str, hits: list[dic
     return f"{excerpt.rstrip('.!?')} [{source_number}]."
 
 
+def _extractive_answer_for_question(question: str, hits: list[dict]) -> str | None:
+    """Return one exact evidence sentence only when it strongly matches the query."""
+    stop = _ANCHOR_STOP | {
+        "about", "does", "doing", "did", "have", "has", "had", "the", "and",
+        "for", "from", "with", "what", "when", "where", "which", "who", "how",
+        "why", "tell", "explain", "describe", "give", "show", "find", "life",
+        "thing", "things", "person", "people", "document", "documents",
+    }
+    query_terms = {
+        token.casefold().rstrip("s")
+        for token in re.findall(r"[A-Za-z][A-Za-z'-]{3,}", question or "")
+        if token.casefold() not in stop
+    }
+    if not query_terms:
+        return None
+    best = None
+    for index, hit in enumerate(hits, 1):
+        text = re.sub(r"\s+", " ", str(hit.get("text") or "")).strip()
+        for sentence in _SENTENCE_SPLIT.split(text):
+            sentence = sentence.strip()
+            terms = {
+                token.casefold().rstrip("s")
+                for token in re.findall(r"[A-Za-z][A-Za-z'-]{3,}", sentence)
+            }
+            overlap = query_terms & terms
+            coverage = len(overlap) / len(query_terms)
+            if len(overlap) < min(2, len(query_terms)) or coverage < 0.5:
+                continue
+            score = (coverage, len(overlap), -len(sentence))
+            if best is None or score > best[0]:
+                best = (score, index, sentence)
+    if best is None:
+        return None
+    _, source_number, sentence = best
+    sentence = re.sub(r"\[(?:\d+|[A-Za-z][A-Za-z0-9_-]*)\]", "", sentence).strip()
+    sentence = sentence.strip('"“” ')
+    return f'“{sentence.rstrip(".!?")} [{source_number}].”' if sentence else None
+
 def _is_exact_passage_extract(answer_text: str, hits: list[dict]) -> bool:
     """Return true only when the uncited answer words occur contiguously in a hit."""
     def words(text):
@@ -363,7 +401,7 @@ def _is_exact_passage_extract(answer_text: str, hits: list[dict]) -> bool:
         return re.findall(r"[a-z0-9]+", text.casefold())
 
     answer_words = words(answer_text)
-    if len(answer_words) < 8:
+    if len(answer_words) < 4:
         return False
     for hit in hits:
         evidence_words = words(hit.get("text") or "")
@@ -442,54 +480,6 @@ _CLAIM_STOP = frozenset({
 _SENTENCE_SPLIT = re.compile(r"(?<=[.!?])\s+")
 _CLAIM_REF = re.compile(r"\[\s*(\d{1,3}(?:\s*,\s*\d{1,3})*)\s*\]")
 _CLAIM_BRACKET = re.compile(r"\[[^\]\n]*\]")
-
-
-def _lexically_corroborated(draft: str, hits: list[dict], threshold: float = 0.5) -> bool:
-    """Check deterministically that the draft's cited sentences are backed by their passages.
-
-    The answer verifier is a second call to the same small local model and
-    sometimes labels a correct, properly cited sentence "UNSUPPORTED ANSWERED",
-    which discarded answers whose evidence was demonstrably present. This check
-    cannot introduce a new fact: it compares only the words already in the draft
-    with the words of the evidence window, so it can rescue such a draft without
-    licensing a claim the evidence does not contain.
-    """
-    if not draft or not hits:
-        return False
-    passage_terms = [
-        {term.casefold() for term in re.findall(
-            r"[A-Za-z]{3,}", str(hit.get("text") or ""))}
-        for hit in hits
-    ]
-    checked = 0
-    supported = 0
-    for sentence in _SENTENCE_SPLIT.split(draft):
-        refs = [int(number)
-                for group in _CLAIM_REF.findall(sentence)
-                for number in group.split(",")]
-        refs = [number for number in refs if 1 <= number <= len(hits)]
-        claim = {term.casefold() for term in re.findall(
-            r"[A-Za-z]{3,}", _CLAIM_BRACKET.sub(" ", sentence))}
-        claim -= _CLAIM_STOP
-        if not refs or len(claim) < 2:
-            continue
-        checked += 1
-        cited_terms = set()
-        for number in refs:
-            cited_terms |= passage_terms[number - 1]
-        support = len(claim & cited_terms) / len(claim)
-        if support < threshold:
-            # Small local models frequently number the citation slightly wrong
-            # (the claim is present, but on a neighbouring passage). Accept the
-            # sentence only when one single passage still carries the claim's
-            # own words, so the check can never admit a fact the evidence lacks.
-            support = max(
-                (len(claim & terms) / len(claim) for terms in passage_terms),
-                default=0.0,
-            )
-        if support >= threshold:
-            supported += 1
-    return checked > 0 and supported / checked >= 0.6
 
 
 _COMMON_TYPOS = {
@@ -816,6 +806,7 @@ def _source_records(hits):
         records.append({
             "rank": i,
             "filename": metadata.get("filename"),
+            "document_id": metadata.get("document_id"),
             "source_location": metadata.get("source_location"),
             "relevance_score": round(float(hit.get("similarity") or 0), 4),
             "supporting_text": hit.get("text", ""),
@@ -854,13 +845,13 @@ def _direct_calculation_result(question, direct_result):
 
 
 def _confidence_score(result):
-    """Blend observable signals into one calibrated number.
+    """Blend observable signals into a heuristic evidence score, not a probability.
 
     The status field only says whether an answer was produced; this says how
     much the evidence and the checks actually support it.
     """
     if result.get("abstained"):
-        return {"score": 0.0, "label": "none"}
+        return {"score": 0.0, "label": "none", "calibrated": False, "kind": "heuristic_evidence_score"}
     retrieval = result.get("retrieval") or {}
     citation = result.get("citation_validation") or {}
     verification = result.get("verification") or {}
@@ -877,7 +868,8 @@ def _confidence_score(result):
     score += 0.10 * min(citation_coverage, 1.0)
     score = round(min(1.0, max(0.0, score)), 3)
     label = "high" if score >= 0.75 else "medium" if score >= 0.5 else "low"
-    return {"score": score, "label": label,
+    return {"score": score, "label": label, "calibrated": False,
+            "kind": "heuristic_evidence_score",
             "signals": {"retrieval_similarity": round(similarity, 3),
                         "term_coverage": round(coverage, 3),
                         "citation_valid": bool(citation.get("valid")),
@@ -905,61 +897,63 @@ def _aggregate_confidence(answers):
     scores = [_confidence_score(item)["score"] for item in answers]
     score = round(sum(scores) / len(scores), 3) if scores else 0.0
     label = "high" if score >= 0.75 else "medium" if score >= 0.5 else "low" if score > 0 else "none"
-    return {"score": score, "label": label}
+    return {"score": score, "label": label, "calibrated": False, "kind": "heuristic_evidence_score"}
 
 def _verify_answer(question, evidence, draft, diagnostics=None):
-    """Return whether the draft is wholly supported by the retrieved evidence.
-
-    This intentionally uses the local model a second time and treats an
-    ambiguous response as unsupported. It is a guardrail, not a source of new
-    information.
-    """
+    """Verify entailment against the exact passages each claim cites."""
     if not settings.verify_answers:
         return True
-    # The local model ignores abstract definitions of "supported" but follows
-    # concrete examples reliably, so the verdict is anchored by one positive and
-    # one negative example instead of a stricter natural-language rule. That
-    # strict wording made the model reject grounded, correctly cited drafts.
-    # Only the chunks the draft cites can decide support; sending all of them
-    # adds prefill time without changing the verdict.
-    cited = {
-        int(number)
-        for group in re.findall(r"\[\s*(\d{1,3}(?:\s*,\s*\d{1,3})*)\s*\]", draft or "")
-        for number in group.split(",")
-    }
-    if cited:
-        blocks = re.split(r"\n\n(?=\[\d+\])", evidence)
-        focused = [
-            block for block in blocks
-            if (match := re.match(r"\[(\d+)\]", block)) and int(match.group(1)) in cited
-        ]
-        if focused:
-            evidence = "\n\n".join(focused)
+    blocks = re.split(r"\n\n(?=\[\d+\])", evidence or "")
+    by_number = {}
+    for block in blocks:
+        match = re.match(r"\[(\d+)\]", block)
+        if match:
+            by_number[int(match.group(1))] = block
+    claim_pairs = []
+    for sentence in _SENTENCE_SPLIT.split(draft or ""):
+        sentence = sentence.strip()
+        if not sentence:
+            continue
+        claim_text = re.sub(r"\[[^\]\n]*\]", " ", sentence)
+        if len(re.findall(r"[A-Za-z]{2,}", claim_text)) < 2:
+            continue
+        refs = {
+            int(number)
+            for group in re.findall(r"\[\s*(\d{1,3}(?:\s*,\s*\d{1,3})*)\s*\]", sentence)
+            for number in group.split(",")
+        }
+        if not refs or any(number not in by_number for number in refs):
+            if diagnostics is not None:
+                diagnostics["verdict"] = "MISSING_OR_INVALID_CLAIM_CITATION"
+            return False
+        cited_blocks = [by_number[number] for number in sorted(refs)]
+        claim_pairs.append(
+            "CLAIM: " + sentence + "\nONLY EVIDENCE CITED BY THIS CLAIM:\n"
+            + "\n\n".join(cited_blocks)
+        )
+    if not claim_pairs:
+        if diagnostics is not None:
+            diagnostics["verdict"] = "NO_CITED_FACTUAL_CLAIMS"
+        return False
     verdict_prompt = (
-        "Decide two things about the DRAFT ANSWER.\n"
-        "1. Support: is each sentence supported by the EVIDENCE? Rephrasing and combining evidence "
-        "sentences is allowed.\n"
-        "2. Relevance: does the draft answer the QUESTION that was asked, rather than a related topic?\n"
-        "For a question asking for a set, steps, topics, requirements, or items, completeness is part of "
-        "answering: include every distinct item the cited evidence lists. A partial list is not a complete answer.\n"
-        "A citation must point to evidence that supports the specific sentence carrying it. A passage about "
-        "the same document or chapter is not enough if it does not support that claim. "
-        "Example: EVIDENCE 'The notice period is 30 days.' DRAFT 'The required notice period is 30 days.' "
-        "-> SUPPORTED ANSWERED\n"
-        "Example: EVIDENCE 'Required items are the signed form, proof of address, and current statement.' "
-        "DRAFT 'The items are the signed form and current statement.' -> SUPPORTED NOT ANSWERED\n"
-        "Example: EVIDENCE never mentions Rome. DRAFT 'He wrote this in Rome.' -> UNSUPPORTED ANSWERED\n"
-        "Example: EVIDENCE 'He worked as an apprentice in his brother's print shop.' DRAFT 'He did not do "
-        "any job for his brother.' -> UNSUPPORTED ANSWERED\n"
-        "Example: QUESTION 'Who is Dracula?' DRAFT 'Dracula is a novel by Bram Stoker.' -> SUPPORTED NOT ANSWERED\n"
-        "Reply with exactly two words, for example: SUPPORTED ANSWERED\n"
-        f"QUESTION: {question}\nEVIDENCE:\n{evidence}\nDRAFT ANSWER:\n{draft}"
+        "Evaluate the QUESTION and every CLAIM-EVIDENCE PAIR below.\n"
+        "For EACH claim, use ONLY the passages listed under that claim. Do not borrow "
+        "support from another claim's passages or general knowledge.\n"
+        "A claim is supported only when its cited passage(s) directly state it or clearly entail it. "
+        "Faithful paraphrasing and synthesis across that claim's cited passages are allowed. Shared "
+        "topic words, names, or chapter references alone are NOT support.\n"
+        "Also decide whether the claims answer the QUESTION rather than a related question. "
+        "For questions asking for an explicit list, steps, or set, check that every distinct item in "
+        "the cited passage is included; an incomplete list is not a complete answer. "
+        "If any factual claim is unsupported, any citation points to a passage that does not support "
+        "its claim, the requested list is incomplete, or the answer misses the question, reject it.\n"
+        "Reply with one of: SUPPORTED ANSWERED, SUPPORTED NOT ANSWERED, or UNSUPPORTED ANSWERED.\n"
+        f"QUESTION: {question}\n\n" + "\n\n".join(claim_pairs)
     )
     verdict = generate(verdict_prompt, num_predict=settings.verify_max_tokens).strip().upper()
     if diagnostics is not None:
         diagnostics["verdict"] = verdict[:120]
-    # Small local models rarely reply with the exact label set; parse the labels
-    # instead of demanding an exact match, and treat an ambiguous reply as a fail.
+        diagnostics["claims_checked"] = len(claim_pairs)
     if "UNSUPPORTED" in verdict or "NOT SUPPORTED" in verdict or "NOT SUFFICIENT" in verdict:
         return False
     if "NOT ANSWERED" in verdict or "UNANSWERED" in verdict or "DOES NOT ANSWER" in verdict:
@@ -1315,8 +1309,7 @@ def _answer_one(question, indexed, owner_id, doc_types=None):
         )
         try:
             plan_text = generate(plan_prompt)
-            numeric_evidence = "\n".join(hit.get("text", "") for hit in hits)
-            calculation = apply_evidence_calculation_plan(plan_text, numeric_evidence, normalized, len(hits))
+            calculation = apply_evidence_calculation_plan(plan_text, hits, normalized, len(hits))
             if calculation is not None:
                 display = f"{calculation['result']:.10g}"
                 refs = " ".join(f"[{ref}]" for ref in calculation["source_refs"])
@@ -1367,15 +1360,30 @@ def _answer_one(question, indexed, owner_id, doc_types=None):
         "Now write the answer; every sentence must end with its supporting [n].\nANSWER:"
     )
     generation_started = time.perf_counter()
+    generation_error = None
     try:
         result = generate(prompt)
         retrieval["generation_seconds"] = round(time.perf_counter() - generation_started, 4)
+        if not str(result or "").strip():
+            generation_error = "Ollama returned an empty generation."
     except Exception as exc:
         retrieval["generation_seconds"] = round(time.perf_counter() - generation_started, 4)
+        generation_error = str(exc)
         logger.exception("Local generation failed")
-        return {"question": question, "status": "processing_error", "answer": f"Local generation failed: {exc}", "sources": _source_records(hits), "abstained": True, "error": str(exc), "retrieval": retrieval}
-
+        result = ""
     source_records = _source_records(hits)
+    if generation_error:
+        fallback = _extractive_answer_for_question(normalized, hits)
+        if fallback:
+            result = fallback
+            retrieval["generation_fallback"] = "verbatim_evidence"
+            retrieval["generation_error"] = generation_error[:500]
+        else:
+            retrieval["failure_stage"] = "generation"
+            return {"question": question, "status": "processing_error",
+                    "answer": "Ollama could not generate an answer. Relevant passages were retrieved; inspect the source passages or retry after checking the local model.",
+                    "sources": source_records, "abstained": True, "error": generation_error,
+                    "retrieval": retrieval}
     source_labels = [str((h.get("metadata") or {}).get("filename") or "") for h in hits]
 
     # Every generated draft is evaluated independently: abstention detection,
@@ -1386,7 +1394,7 @@ def _answer_one(question, indexed, owner_id, doc_types=None):
     generation_validation = validate_citation_references(generation_text, len(hits), source_labels)
     generation_abstention = _is_abstention(generation_text)
     candidates = [{
-        "stage": "generation",
+        "stage": "extractive_generation_fallback" if retrieval.get("generation_fallback") else "generation",
         "text": generation_text,
         "validation": generation_validation,
         "abstention": generation_abstention,
@@ -1488,6 +1496,22 @@ def _answer_one(question, indexed, owner_id, doc_types=None):
             logger.exception("Citation repair generation failed")
             retrieval["answer_recovery_succeeded"] = False
 
+    # If Ollama produced only refusals or unusable citations, prefer a short
+    # exact sentence from retrieved evidence over a generic pipeline error.
+    # This fallback is accepted only as a contiguous passage extract.
+    if not any(
+            not candidate["abstention"] and candidate["validation"].get("valid")
+            for candidate in candidates):
+        extract = _extractive_answer_for_question(normalized, hits)
+        if extract:
+            candidates.append({
+                "stage": "extractive_evidence_fallback",
+                "text": extract,
+                "validation": validate_citation_references(extract, len(hits), source_labels),
+                "abstention": False,
+            })
+            retrieval["extractive_fallback_attempted"] = True
+
     substantive = [candidate for candidate in candidates if not candidate["abstention"]]
     # Two-tier selection. Prefer the latest draft whose citations are fully
     # valid; earlier fully-valid drafts remain available if a later one fails.
@@ -1573,8 +1597,10 @@ def _answer_one(question, indexed, owner_id, doc_types=None):
         result = quantity_answer
         citation_validation = validate_citation_references(result, len(hits), source_labels)
         retrieval["quantity_recovery"] = True
+        if selected is not None:
+            selected["stage"] = "extractive_quantity_recovery"
     if (selected is not None
-            and selected.get("stage") == "extractive_evidence_recovery"
+            and selected.get("stage") in ("extractive_evidence_recovery", "extractive_generation_fallback", "extractive_evidence_fallback", "extractive_quantity_recovery")
             and _is_exact_passage_extract(result, hits)):
         # An exact contiguous extract with valid evidence numbering is already
         # directly supported. This avoids rejecting source text because a
@@ -1582,20 +1608,7 @@ def _answer_one(question, indexed, owner_id, doc_types=None):
         # normal semantic-verifier path.
         verification = {"checked": True, "passed": True,
                         "verdict": "EXACT_PASSAGE_MATCH"}
-    # Deterministic arbiter first. A fully cited draft whose every cited
-    # sentence draws its content words from the passage it cites is grounded in
-    # the evidence, and the small local verifier frequently mislabels exactly
-    # those drafts as unsupported. Deciding them here removes the second
-    # (verification) model call, which is the dominant cost after the answer
-    # itself. The model verifier is consulted only when this check cannot
-    # corroborate the draft, i.e. when the two would disagree.
-    if (settings.verify_answers and not verification.get("passed")
-            and citation_validation.get("valid")
-            and _lexically_corroborated(result, hits)):
-        verification = {"checked": True, "passed": True,
-                        "verdict": "LEXICAL_CORROBORATION"}
-        retrieval["verification_overridden"] = True
-        retrieval["selected_draft"] = "verification_override"
+    # Lexical overlap and citation syntax are not proof of entailment.
     if settings.verify_answers and not verification.get("passed"):
         # Controlled recovery for a verification-rejected first answer: the
         # draft may deny a topic that the evidence actually discusses, or over
@@ -1628,25 +1641,7 @@ def _answer_one(question, indexed, owner_id, doc_types=None):
                 break
             if attempt == 2:
                 break
-            # A rejection that is only about support ("UNSUPPORTED"), rather than
-            # about relevance ("NOT ANSWERED"), is exactly the case the
-            # deterministic lexical check exists to arbitrate: this small local
-            # verifier frequently labels a correct, properly cited sentence
-            # unsupported. When the draft is also fully cited, accept it now
-            # instead of spending a second full generation on a retry plus a
-            # second verification call that would reach the same outcome. A
-            # relevance failure is left to the retry, which is the mechanism
-            # that fixes a draft answering a related but different question.
-            verdict = str(verification.get("verdict") or "").upper()
-            relevance_failure = ("NOT ANSWERED" in verdict or "UNANSWERED" in verdict
-                                 or "DOES NOT ANSWER" in verdict)
-            if (not relevance_failure and citation_validation.get("valid")
-                    and _lexically_corroborated(result, hits)):
-                verification = {"checked": True, "passed": True,
-                                "verdict": "LEXICAL_CORROBORATION"}
-                retrieval["verification_overridden"] = True
-                retrieval["selected_draft"] = "verification_override"
-                break
+            # A verifier rejection must not be overridden by word overlap.
             retrieval["answer_recovery_attempted"] = True
             retry_prompt = (
                 "RETRY: Re-read the EVIDENCE below and answer the QUESTION directly, using only the "
@@ -1688,22 +1683,21 @@ def _answer_one(question, indexed, owner_id, doc_types=None):
             result = retry_text
             retrieval["verification_retry_attempted"] = True
         if not verification.get("checked") or not verification.get("passed"):
-            # The verifier is a second call to the same small local model and
-            # sometimes labels a correct, properly cited sentence "UNSUPPORTED
-            # ANSWERED". Before withholding the draft, fall back to a
-            # deterministic check of the draft's own citations: each cited
-            # sentence must draw its content words from the passage it cites.
-            # That cannot admit a fact the evidence does not contain, so a
-            # grounded answer is returned instead of being discarded.
-            if verification.get("checked") and _lexically_corroborated(result, hits):
-                verification["override"] = "lexical_corroboration"
-                retrieval["verification_overridden"] = True
-                retrieval["selected_draft"] = "verification_override"
+            # Do not promote the rejected model draft. A strictly verbatim
+            # sentence may still be returned when it matches the question and
+            # can be proven contiguous in one retrieved passage.
+            extract = _extractive_answer_for_question(normalized, hits)
+            extract_validation = validate_citation_references(extract or "", len(hits), source_labels)
+            if (extract and extract_validation.get("valid")
+                    and _is_exact_passage_extract(extract, hits)):
+                result = extract
+                citation_validation = extract_validation
+                verification = {"checked": True, "passed": True,
+                                "verdict": "EXACT_PASSAGE_MATCH"}
+                retrieval["selected_draft"] = "extractive_verification_fallback"
+                retrieval["extractive_fallback_attempted"] = True
+                retrieval["answer_recovery_succeeded"] = True
             else:
-                # A citation-valid retry is still only a candidate until
-                # semantic verification passes. Never report it as the selected
-                # answer when the verifier rejects it and the draft's own
-                # citations do not corroborate it.
                 retrieval["selected_draft"] = "none"
                 retrieval["answer_recovery_succeeded"] = False
                 if verification.get("checked") and _has_unmatched_question_anchor(normalized, evidence):
@@ -1717,11 +1711,12 @@ def _answer_one(question, indexed, owner_id, doc_types=None):
                 logger.warning("Answer verification unavailable or failed; withholding draft")
                 retrieval["failure_stage"] = "answer_verification"
                 return {"question": question, "status": "answer_validation_failed",
-                        "answer": "The answer could not be verified against the retrieved passages. Please retry when the local verifier is available or inspect the source passages.",
+                        "answer": "The generated answer failed verification, and no sufficiently relevant verbatim passage could be safely returned. Inspect the retrieved sources or retry when Ollama is available.",
                         "sources": source_records, "abstained": True, "retrieval": retrieval,
                         "citation_validation": citation_validation, "verification": verification,
                         "question_type": task_type, "potential_conflicts": potential_conflicts}
-        if retrieval.get("verification_retry_attempted"):
+        if (retrieval.get("verification_retry_attempted")
+                and not str(retrieval.get("selected_draft") or "").startswith("extractive_")):
             retrieval["selected_draft"] = "verification_retry"
             retrieval["answer_recovery_succeeded"] = True
 
