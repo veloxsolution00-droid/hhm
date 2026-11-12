@@ -380,6 +380,70 @@ def run_case(case, types, api=None, timeout=1200):
     return records
 
 
+def summarize_answer_quality(records):
+    """Aggregate labelled regression checks without calling them semantic accuracy."""
+    checked = [
+        record for record in records
+        if (record.get("answer_quality") or {}).get("quality_checkable")
+        and (record.get("answer_quality") or {}).get("quality_pass") is not None
+    ]
+    passed = [
+        record for record in checked
+        if (record.get("answer_quality") or {}).get("quality_pass")
+    ]
+    term_checks = [
+        value
+        for record in records
+        for value in ((record.get("answer_quality") or {}).get("answer_term_groups") or [])
+    ]
+    status_checks = [
+        value for record in records
+        for value in [((record.get("answer_quality") or {}).get("status_match"))]
+        if value is not None
+    ]
+    expected_abstentions = [
+        record for record in records
+        if record.get("expected_status") == "abstain"
+    ]
+    correct_abstentions = [
+        record for record in expected_abstentions
+        if record.get("status") == "insufficient_evidence" and record.get("abstained")
+    ]
+    return {
+        "labelled_cases_checked": len(checked),
+        "labelled_cases_passed": len(passed),
+        "labelled_regression_pass_rate": (
+            round(len(passed) / len(checked), 3) if checked else None
+        ),
+        "failed_case_ids": [
+            record.get("case_id") for record in checked
+            if not (record.get("answer_quality") or {}).get("quality_pass")
+        ],
+        "answer_term_groups_checked": len(term_checks),
+        "answer_term_groups_passed": sum(bool(value) for value in term_checks),
+        "answer_term_group_pass_rate": (
+            round(sum(bool(value) for value in term_checks) / len(term_checks), 3)
+            if term_checks else None
+        ),
+        "expected_status_checks": len(status_checks),
+        "expected_status_passed": sum(bool(value) for value in status_checks),
+        "expected_status_pass_rate": (
+            round(sum(bool(value) for value in status_checks) / len(status_checks), 3)
+            if status_checks else None
+        ),
+        "expected_abstentions": len(expected_abstentions),
+        "correct_abstentions": len(correct_abstentions),
+        "abstention_recall_on_labelled_unanswerable_cases": (
+            round(len(correct_abstentions) / len(expected_abstentions), 3)
+            if expected_abstentions else None
+        ),
+        "interpretation": (
+            "Labelled regression checks for expected status, answer terms, and source/page "
+            "expectations; this is not a calibrated semantic answer-accuracy score."
+        ),
+    }
+
+
 def run(selected, api=None, output_dir=None, timeout=1200):
     types = doc_types()
     inventory = document_inventory()
@@ -446,6 +510,7 @@ def run(selected, api=None, output_dir=None, timeout=1200):
                             "mean": round(sum(response_times) / len(response_times), 3) if response_times else None,
                             "p50": percentile(0.50), "p95": percentile(0.95),
                             "max": max(response_times) if response_times else None},
+        "answer_quality": summarize_answer_quality(results),
         "citation_accuracy": {"checked": len(evaluated_citations),
                               "passed": sum(bool(item.get("accuracy_pass")) for item in evaluated_citations),
                               "pass_rate": (round(sum(bool(item.get("accuracy_pass")) for item in evaluated_citations)
