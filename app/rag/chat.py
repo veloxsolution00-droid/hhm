@@ -392,7 +392,7 @@ def _extractive_answer_for_question(question: str, hits: list[dict]) -> str | No
     _, source_number, sentence = best
     sentence = re.sub(r"\[(?:\d+|[A-Za-z][A-Za-z0-9_-]*)\]", "", sentence).strip()
     sentence = sentence.strip('"“” ')
-    return f'“{sentence}” [{source_number}]' if sentence else None
+    return f'“{sentence.rstrip(".!?")} [{source_number}].”' if sentence else None
 
 def _is_exact_passage_extract(answer_text: str, hits: list[dict]) -> bool:
     """Return true only when the uncited answer words occur contiguously in a hit."""

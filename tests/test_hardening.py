@@ -223,7 +223,7 @@ def test_verifier_outage_uses_only_a_verbatim_question_relevant_fallback(monkeyp
     chat = _verifier_outage_stack(monkeypatch, "Revenue was 10 crore [1].")
     result = chat._answer_one("What was revenue?", {"d1"}, "local")
     assert result["status"] == "success"
-    assert result["answer"] == "“Revenue was 10 crore.” [1]"
+    assert result["answer"] == "“Revenue was 10 crore [1].”"
     assert result["verification"]["verdict"] == "EXACT_PASSAGE_MATCH"
 
     # A different subject must not receive that same passage as an answer.
@@ -438,9 +438,9 @@ def test_extractive_fallback_returns_only_a_verbatim_relevant_sentence():
 
     hits = [{"text": "Benjamin Franklin was a printer, writer, and public official."}]
     answer = _extractive_answer_for_question("Who was Benjamin Franklin?", hits)
-    assert answer == "“Benjamin Franklin was a printer, writer, and public official.” [1]"
+    assert answer == "“Benjamin Franklin was a printer, writer, and public official [1].”"
     life_answer = _extractive_answer_for_question("What does Benjamin do in his life?", hits)
-    assert life_answer == "“Benjamin Franklin was a printer, writer, and public official.” [1]"
+    assert life_answer == "“Benjamin Franklin was a printer, writer, and public official [1].”"
     assert _extractive_answer_for_question("What was the weather?", hits) is None
 
 
