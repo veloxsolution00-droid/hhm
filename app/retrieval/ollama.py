@@ -1,5 +1,6 @@
 """Ollama client with actionable diagnostics for local model failures."""
 import logging
+import math
 import time
 import requests
 from threading import BoundedSemaphore
@@ -16,6 +17,36 @@ _MODEL_SLOT = BoundedSemaphore(value=max(1, int(settings.inference_concurrency))
 
 class OllamaUnavailableError(RuntimeError):
     """Raised when Ollama or a configured local model cannot be used."""
+
+def _validate_embedding_vectors(vectors, expected_count):
+    """Reject malformed vectors before they reach the persistent vector store."""
+    if not isinstance(vectors, list) or len(vectors) != expected_count:
+        raise OllamaUnavailableError(
+            "Ollama returned an unexpected number of embeddings."
+        )
+    dimension = None
+    for index, vector in enumerate(vectors):
+        if not isinstance(vector, list) or not vector:
+            raise OllamaUnavailableError(
+                f"Ollama returned an empty or malformed embedding at batch item {index}."
+            )
+        if dimension is None:
+            dimension = len(vector)
+        elif len(vector) != dimension:
+            raise OllamaUnavailableError(
+                "Ollama returned embeddings with inconsistent dimensions."
+            )
+        if any(
+            isinstance(value, bool)
+            or not isinstance(value, (int, float))
+            or not math.isfinite(float(value))
+            for value in vector
+        ):
+            raise OllamaUnavailableError(
+                f"Ollama returned a non-numeric or non-finite embedding at batch item {index}."
+            )
+    return vectors
+
 
 
 @contextmanager
@@ -162,11 +193,7 @@ def embed(texts):
                 response.raise_for_status()
                 payload = response.json()
                 vectors = payload.get("embeddings")
-                if not isinstance(vectors, list) or len(vectors) != len(texts):
-                    raise OllamaUnavailableError(
-                        "Ollama /api/embed returned an unexpected number of embeddings."
-                    )
-                return vectors
+                return _validate_embedding_vectors(vectors, len(texts))
         except requests.ConnectionError as exc:
             raise OllamaUnavailableError(
                 f"Cannot connect to Ollama at {settings.ollama_base_url}: {exc}"
@@ -178,6 +205,10 @@ def embed(texts):
         except requests.HTTPError as exc:
             detail = exc.response.text[:500] if exc.response is not None else str(exc)
             raise OllamaUnavailableError(f"Ollama embedding failed: {detail}") from exc
+        except (ValueError, AttributeError, TypeError) as exc:
+            raise OllamaUnavailableError(
+                f"Ollama /api/embed returned an invalid JSON or embedding payload: {exc}"
+            ) from exc
         finally:
             logger.info(
                 "Ollama embedding request finished: model=%s endpoint=/api/embed "
@@ -199,7 +230,7 @@ def embed(texts):
                     f"Ollama returned no embedding for '{settings.embedding_model}'."
                 )
             out.append(result["embedding"])
-        return out
+        return _validate_embedding_vectors(out, len(texts))
 
 
 
