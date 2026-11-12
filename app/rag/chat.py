@@ -205,8 +205,12 @@ _ANCHOR_STOP = {
 # missing-information answer, not a factual claim about the documents.
 _DENIAL_CUE = re.compile(
     r"\b(?:does not|doesn't|do not|don't|did not|didn't)\s+"
-    r"(?:say|mention|discuss|contain|include|address)\b|"
-    r"\bno relevant information (?:was|is) found\b|\bnot (?:discussed|mentioned|addressed)\b",
+    r"(?:say|mention|discuss|contain|include|address|cover)\b|"
+    r"\bno relevant information (?:was|is) found\b|\bnot (?:discussed|mentioned|addressed|covered)\b|"
+    r"\bnone\s+(?:of\s+(?:them|these|those|the\s+\w+|which)\s+)?"
+    r"(?:discuss|mention|contain|include|address|cover|say|state|refer|deal)\w*\b|"
+    r"\bno\s+(?:chapter|section|page|part|passage|information|mention|reference|record|discussion)\b"
+    r"[^.\n]{0,60}?\b(?:discuss|mention|contain|include|address|cover|say|state|refer|deal)\w*\b",
     re.I,
 )
 
@@ -357,21 +361,26 @@ def _extractive_recovery_from_evidence(question: str, draft: str, hits: list[dic
             # answer citation references. Strip them from the quoted extract;
             # our own [n] is appended below.
             window = re.sub(r"\[(?:\d+|[A-Za-z][A-Za-z0-9_-]*)\]", "", window).strip()
-            terms = {token.casefold().rstrip("s")
-                     for token in re.findall(r"[A-Za-z][A-Za-z'-]{3,}", window)}
+            sentence_terms = {token.casefold().rstrip("s")
+                              for token in re.findall(r"[A-Za-z][A-Za-z'-]{3,}", window)}
             filename = str((hit.get("metadata") or {}).get("filename") or "")
-            terms.update(token.casefold().rstrip("s")
-                         for token in re.findall(r"[A-Za-z][A-Za-z']{3,}", filename.replace("-", " ")))
-            overlap = query_terms & terms
+            filename_terms = {token.casefold().rstrip("s")
+                              for token in re.findall(r"[A-Za-z][A-Za-z']{3,}", filename.replace("-", " "))}
             # A single matching common word ("Philadelphia", "year") is not
-            # enough: the recovered sentence must cover a real share of the
-            # question's terms, otherwise a false denial is replaced by an
-            # unrelated sentence and reported as a success.
-            if len(overlap) < 2 or len(overlap) / len(query_terms) < 0.5:
+            # enough: the recovered sentence itself must cover a real share of
+            # the question's terms, otherwise a false denial is replaced by an
+            # unrelated sentence and reported as a success. The document
+            # filename must not satisfy that test: it repeats the author's name
+            # ("the-autobiography-of-benjamin-franklin.pdf"), which would let an
+            # unrelated sentence of that document look like an answer.
+            sentence_overlap = query_terms & sentence_terms
+            if len(sentence_overlap) < 2 or len(sentence_overlap) / len(query_terms) < 0.5:
                 continue
+            overlap = sentence_overlap | (query_terms & filename_terms)
+            action_terms = sentence_terms | filename_terms
             action_overlap = sum(
                 1 for token in ("interpret", "works", "read", "formed", "founded", "purpose")
-                if token in terms and token in query_terms
+                if token in action_terms and token in query_terms
             )
             score = (len(overlap), action_overlap, -len(sentence))
             if best is None or score > best[0]:
@@ -1080,7 +1089,8 @@ def _verify_answer(question, evidence, draft, diagnostics=None):
     """Compatibility adapter; the claim verifier lives outside chat orchestration."""
     return verify_claims(
         question, evidence, draft, diagnostics,
-        generate_fn=generate,
+        generate_fn=lambda prompt, num_predict=None: generate(
+            prompt, num_predict=num_predict, model=settings.verification_model),
         enabled=settings.verify_answers,
         max_tokens=settings.verify_max_tokens,
     )
@@ -1106,6 +1116,7 @@ def _answer_cache_config():
     return cache_manager.config_fingerprint("answer", {
         "retrieval_config": _retrieval_cache_config(),
         "generation_model": settings.generation_model,
+        "verification_model": settings.verification_model,
         "temperature": settings.temperature,
         "verify_answers": settings.verify_answers,
         "prompt_version": "grounded-citations-conflicts-v18-binary-claim-verdict",
@@ -1855,7 +1866,17 @@ def _answer_one(question, indexed, owner_id, doc_types=None):
             else:
                 retrieval["selected_draft"] = "none"
                 retrieval["answer_recovery_succeeded"] = False
-                if verification.get("checked") and _has_unmatched_question_anchor(normalized, evidence):
+                # Only a draft that itself asserts the documents do not cover
+                # the asked subject may be reported as missing information, and
+                # only when that subject really is absent from the evidence. A
+                # substantive, non-denying draft that the verifier rejected is a
+                # verification/pipeline failure: reporting it as
+                # "insufficient_evidence" would present an internal failure as a
+                # missing document fact.
+                if (verification.get("checked")
+                        and _has_unmatched_question_anchor(normalized, evidence)
+                        and any(_denies_question_topic(candidate["text"])
+                                for candidate in substantive)):
                     retrieval["failure_stage"] = "unmatched_question_anchor"
                     return {"question": question, "status": "insufficient_evidence",
                             "answer": ABSTENTION, "sources": source_records,

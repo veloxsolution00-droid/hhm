@@ -85,7 +85,7 @@ def test_chat_exact_answer_cache_skips_search_and_generation(tmp_path, monkeypat
         return [{"id": "c1", "text": "The policy requires manager approval.",
                  "metadata": {"document_id": "d1", "owner_id": owner_id, "filename": "policy.pdf", "source_location": "page 1"},
                  "similarity": 0.9}]
-    def fake_generate(prompt, num_predict=None):
+    def fake_generate(prompt, num_predict=None, **kwargs):
         calls["generate"] += 1
         if "CLAIM-EVIDENCE PAIR" in prompt:
             return "SUPPORTED ANSWERED"

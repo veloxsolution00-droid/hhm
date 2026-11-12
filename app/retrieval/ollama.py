@@ -112,6 +112,8 @@ def status():
             "installed_models": names,
             "generation_model": settings.generation_model,
             "generation_model_available": _has_model(names, settings.generation_model),
+            "verification_model": settings.verification_model,
+            "verification_model_available": _has_model(names, settings.verification_model),
             "embedding_model": settings.embedding_model,
             "embedding_model_available": _has_model(names, settings.embedding_model),
         }
@@ -121,6 +123,8 @@ def status():
             "base_url": settings.ollama_base_url,
             "generation_model": settings.generation_model,
             "generation_model_available": False,
+            "verification_model": settings.verification_model,
+            "verification_model_available": False,
             "embedding_model": settings.embedding_model,
             "embedding_model_available": False,
             "error": str(exc),
@@ -257,22 +261,25 @@ def embed_query(text):
 _MODEL_KEEP_ALIVE = "30m"
 
 
-def generate(prompt, num_predict=None):
+def generate(prompt, num_predict=None, model=None):
     """Run one completion, capped so a small model cannot ramble on CPU.
 
     ``num_predict`` overrides the configured answer cap for callers that need a
-    much shorter reply, such as the one-word verifier verdict.
+    much shorter reply, such as the one-word verifier verdict. ``model`` selects
+    a specific local model so the accuracy-critical verification call can use a
+    stronger model than the one that drafted the answer.
     """
+    target_model = model or settings.generation_model
     cap = settings.answer_max_tokens if num_predict is None else num_predict
     options = {"temperature": settings.temperature, "num_ctx": max(1024, int(settings.model_context_tokens))}
     if cap:
         options["num_predict"] = max(1, int(cap))
     with _model_slot("generation"):
         result = _request_model(
-            settings.generation_model,
+            target_model,
             "/api/generate",
             {
-                "model": settings.generation_model,
+                "model": target_model,
                 "prompt": prompt,
                 "stream": False,
                 "keep_alive": _MODEL_KEEP_ALIVE,
@@ -282,6 +289,6 @@ def generate(prompt, num_predict=None):
         )
     if "response" not in result:
         raise OllamaUnavailableError(
-            f"Ollama returned no generated response for '{settings.generation_model}'."
+            f"Ollama returned no generated response for '{target_model}'."
         )
     return result["response"].strip()

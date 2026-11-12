@@ -644,11 +644,13 @@ with st.sidebar:
         else:
             st.warning(f"API status: {h.get('status', 'unknown')}")
         ollama = h.get("ollama", {})
-        if ollama.get("available") and ollama.get("generation_model_available") and ollama.get("embedding_model_available"):
+        if (ollama.get("available") and ollama.get("generation_model_available")
+                and ollama.get("verification_model_available") and ollama.get("embedding_model_available")):
             st.success("Local models ready", icon=":material/memory:")
         else:
             st.warning("One or more local models are unavailable.")
         st.caption(f"Answer model: {ollama.get('generation_model', 'unknown')}")
+        st.caption(f"Verification model: {ollama.get('verification_model', 'unknown')}")
         st.caption(f"Embedding model: {ollama.get('embedding_model', 'unknown')}")
         st.caption(f"Indexed chunks: {h.get('chromadb', {}).get('count', 0)}")
         st.caption(f"File limit: {health_limits.get('max_file_mb',100)} MB | Batch limit: {health_limits.get('max_batch_mb',500)} MB")

@@ -66,6 +66,13 @@ def select_evidence(requirement: str, hits: list[dict], max_chunks: int = 5,
         chars += len(best.get("text", ""))
         pool.remove(best)
 
+    # The selection decides *which* passages are supplied; their presentation
+    # order must stay the relevance order the reranker produced. The model cites
+    # the small numbers in the order it reads the passages, so returning the
+    # greedy coverage order here renumbered the evidence per question and made
+    # the same draft's references point at different passages.
+    selected.sort(key=lambda item: item["_base"], reverse=True)
+
     for item in selected:
         item.pop("_terms", None)
         item.pop("_base", None)

@@ -114,7 +114,9 @@ def health():
     except Exception as e:
         cache = {"enabled": None, "error": str(e)}
     o = status()
-    models_ready = bool(o.get("generation_model_available")) and bool(o.get("embedding_model_available"))
+    models_ready = (bool(o.get("generation_model_available"))
+                    and bool(o.get("verification_model_available"))
+                    and bool(o.get("embedding_model_available")))
     ocr = local_ocr_status()
     ocr_ready = not ocr["enabled"] or ocr["available"]
     healthy = (bool(o.get("available")) and models_ready and db_health["available"]

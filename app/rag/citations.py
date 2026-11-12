@@ -21,6 +21,26 @@ _CITATION = re.compile(
 # Bracketed text that is formatting rather than a source claim.
 _BRACKET_ALLOW = {"sic", "note", "table", "page", "figure", "excerpt", "emphasis added"}
 
+# A bare list marker ("1.", "2)", "(3)", "-", "•") carries no claim.
+_ENUMERATOR_ONLY = re.compile(r"^\s*(?:[-•*]|\(\d{1,2}\)|\d{1,2}\s*[.)])\s*$")
+# A list introduction ends with a colon or dash optionally followed by the first
+# enumerator ("These steps are: 1."). The enumerated items that follow are the
+# claims that need citations; the lead-in itself asserts nothing.
+_LEAD_IN_TAIL = re.compile(
+    r"[:\-\u2013\u2014]\s*(?:\(\d{1,2}\)|\d{1,2}\s*[.)]|[a-z]\s*[.)])?\s*$")
+
+
+def _is_structural_fragment(sentence: str) -> bool:
+    """True when a sentence is a list lead-in or marker, not a factual claim.
+
+    Requiring its own citation discarded otherwise fully sourced answers whose
+    only uncited "sentence" was a lead-in such as "These steps are: 1.".
+    """
+    stripped = _BRACKET_SEGMENT.sub(" ", sentence or "").strip()
+    if not stripped or _ENUMERATOR_ONLY.match(stripped):
+        return True
+    return bool(_LEAD_IN_TAIL.search(stripped))
+
 
 def _sentences(text: str) -> list[str]:
     """Split into sentences without breaking citations or URLs.
@@ -200,8 +220,11 @@ def validate_citation_references(answer: str, source_count: int, source_labels: 
         phantom.append(content)
     phantom = sorted(set(phantom))
     # Report citation density: a long factual sentence with no reference at all
-    # is a coverage gap even when the answer contains one valid citation.
-    factual = [s for s in _sentences(answer) if _content_words(s) >= 3]
+    # is a coverage gap even when the answer contains one valid citation. List
+    # lead-ins and bare enumerators are structural, not factual, so they do not
+    # need a citation of their own.
+    factual = [s for s in _sentences(answer)
+               if _content_words(s) >= 3 and not _is_structural_fragment(s)]
     uncited = [s[:120] for s in factual if not _NUMERIC_REF.search(s)]
     coverage = round(1 - (len(uncited) / len(factual)), 3) if factual else 0.0
     # The answer/verifier contract uses passage numbers, not display filenames.

@@ -423,7 +423,7 @@ def test_verifier_receives_only_the_passages_cited_by_each_claim(monkeypatch):
     prompts = []
     monkeypatch.setattr(settings, "verify_answers", True)
     monkeypatch.setattr(chat, "generate",
-                        lambda prompt, num_predict=None: prompts.append(prompt) or "SUPPORTED ANSWERED")
+                        lambda prompt, num_predict=None, **_kwargs: prompts.append(prompt) or "SUPPORTED ANSWERED")
     evidence = "[1] report.pdf (page 1): Revenue was 10 crore.\n\n[2] report.pdf (page 2): The company had 25 employees."
     result = chat._verify_answer(
         "What was revenue?", evidence, "Revenue was 10 crore [2].", {})

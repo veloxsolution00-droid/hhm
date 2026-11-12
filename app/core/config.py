@@ -39,6 +39,13 @@ class Settings(BaseSettings):
     # pointed at a missing model. It now matches GENERATION_MODEL in .env.
     generation_model: str = "qwen2.5:3b"
 
+    # The claim verifier answers a single YES/NO question about whether each
+    # draft sentence is entailed by its own cited passages. A wrong NO withholds
+    # a correct answer, so verification is the accuracy-critical call and runs on
+    # the stronger local model. It stays separate from generation_model so a
+    # faster model can still draft the answer under tight latency.
+    verification_model: str = "qwen2.5:7b"
+
     # Keep the existing embedding model to maintain
     # compatibility with the existing ChromaDB vectors.
     embedding_model: str = "nomic-embed-text"
