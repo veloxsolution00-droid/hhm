@@ -382,7 +382,7 @@ def _extractive_answer_for_question(question: str, hits: list[dict]) -> str | No
             }
             overlap = query_terms & terms
             coverage = len(overlap) / len(query_terms)
-            if len(overlap) < 2 or coverage < 0.5:
+            if len(overlap) < min(2, len(query_terms)) or coverage < 0.5:
                 continue
             score = (coverage, len(overlap), -len(sentence))
             if best is None or score > best[0]:
