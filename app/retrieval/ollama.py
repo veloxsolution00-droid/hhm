@@ -1,8 +1,12 @@
 """Ollama client with actionable diagnostics for local model failures."""
+import logging
+import time
 import requests
 from threading import BoundedSemaphore
 from contextlib import contextmanager
 from app.core.config import settings
+
+logger = logging.getLogger(__name__)
 
 # Keep local inference bounded on low-memory machines. Ollama remains responsible
 # for model lifetime; this semaphore prevents this API from flooding it with work.
@@ -23,15 +27,25 @@ def _model_slot(operation):
     embedding or generation work.
     """
     timeout = max(0.0, float(getattr(settings, "inference_queue_timeout_seconds", 30.0)))
+    wait_started = time.perf_counter()
     acquired = _MODEL_SLOT.acquire(timeout=timeout)
+    wait_seconds = time.perf_counter() - wait_started
     if not acquired:
+        logger.warning(
+            "Ollama inference queue timeout: operation=%s wait_seconds=%.3f limit_seconds=%.3f",
+            operation, wait_seconds, timeout,
+        )
         raise OllamaUnavailableError(
             f"Timed out waiting for the local inference queue ({operation}) after "
             f"{timeout:g} seconds. Another Ollama request is still running. "
             "Wait for the current ingestion or generation task to finish, then retry."
         )
+    logger.info(
+        "Ollama inference slot acquired: operation=%s queue_wait_seconds=%.3f",
+        operation, wait_seconds,
+    )
     try:
-        yield
+        yield wait_seconds
     finally:
         _MODEL_SLOT.release()
 
@@ -83,6 +97,7 @@ def status():
 
 
 def _request_model(model, endpoint, payload, timeout):
+    request_started = time.perf_counter()
     try:
         response = requests.post(
             f"{settings.ollama_base_url.rstrip('/')}{endpoint}",
@@ -119,6 +134,11 @@ def _request_model(model, endpoint, payload, timeout):
         raise OllamaUnavailableError(
             f"Ollama returned an invalid response for model '{model}': {exc}"
         ) from exc
+    finally:
+        logger.info(
+            "Ollama HTTP request finished: model=%s endpoint=%s elapsed_seconds=%.3f",
+            model, endpoint, time.perf_counter() - request_started,
+        )
 
 
 def embed(texts):
@@ -131,6 +151,7 @@ def embed(texts):
         return []
     with _model_slot("embedding"):
         url = f"{settings.ollama_base_url.rstrip('/')}/api/embed"
+        request_started = time.perf_counter()
         try:
             response = requests.post(
                 url,
@@ -157,6 +178,12 @@ def embed(texts):
         except requests.HTTPError as exc:
             detail = exc.response.text[:500] if exc.response is not None else str(exc)
             raise OllamaUnavailableError(f"Ollama embedding failed: {detail}") from exc
+        finally:
+            logger.info(
+                "Ollama embedding request finished: model=%s endpoint=/api/embed "
+                "batch_size=%d elapsed_seconds=%.3f",
+                settings.embedding_model, len(texts), time.perf_counter() - request_started,
+            )
 
         # Compatibility path for Ollama versions without /api/embed.
         out = []
