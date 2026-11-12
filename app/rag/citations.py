@@ -119,7 +119,7 @@ def cite_supported_uncited_sentences(answer: str, sources: list[dict]) -> str:
             # out-of-range numeric refs; the source is reselected below from
             # sentence-to-passage lexical support.
             sentence = re.sub(r"\[\s*\d{1,3}(?:\s*,\s*\d{1,3})*\s*\]", "", sentence)
-        elif _CITATION.search(sentence) or _content_words(sentence) < 3:
+        elif _NUMERIC_REF.search(sentence) or _content_words(sentence) < 3:
             repaired.append(sentence)
             continue
         claim_terms = {
@@ -202,9 +202,13 @@ def validate_citation_references(answer: str, source_count: int, source_labels: 
     # Report citation density: a long factual sentence with no reference at all
     # is a coverage gap even when the answer contains one valid citation.
     factual = [s for s in _sentences(answer) if _content_words(s) >= 3]
-    uncited = [s[:120] for s in factual if not _CITATION.search(s)]
+    uncited = [s[:120] for s in factual if not _NUMERIC_REF.search(s)]
     coverage = round(1 - (len(uncited) / len(factual)), 3) if factual else 0.0
-    present = bool(refs or filename_cites)
+    # The answer/verifier contract uses passage numbers, not display filenames.
+    # A filename label may be recognized for diagnostics, but it cannot map a
+    # claim to an exact evidence block and therefore cannot satisfy citation
+    # coverage or the presence requirement on its own.
+    present = bool(refs)
     # Separate two independent questions:
     #  * references_valid: every citation the answer does carry is legal (in
     #    range, not a phantom label, not an unknown filename) and at least one
