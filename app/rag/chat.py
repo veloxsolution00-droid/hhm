@@ -1411,7 +1411,16 @@ def _answer_one(question, indexed, owner_id, doc_types=None):
     # prompt preserves the draft's supported content, adds citations to claims
     # found in the evidence, and never dictates a refusal string. Acceptance
     # still requires valid citations plus evidence-support verification below.
-    repair_attempted = not generation_abstention and not generation_validation["valid"]
+    # Citation repair is useful only when the reference mapping itself is
+    # unusable (missing, out-of-range, phantom, or unknown references). If the
+    # references are legal but sentence coverage is incomplete, another full
+    # LLM generation usually repeats the same draft and adds latency. Skip it:
+    # the strict selector below will choose a fully cited candidate or a safe
+    # verbatim evidence fallback, otherwise it will abstain.
+    repair_attempted = (
+        not generation_abstention
+        and not generation_validation.get("references_valid")
+    )
     if repair_attempted:
         retrieval["answer_recovery_attempted"] = True
         retrieval["citation_repair_attempted"] = True
