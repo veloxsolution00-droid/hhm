@@ -9,7 +9,7 @@ import re
 
 from app.core.config import settings
 
-_SENTENCE_SPLIT = re.compile(r"(?<=[.!?])\\s+")
+_SENTENCE_SPLIT = re.compile(r"(?<=[.!?])\s+")
 
 
 def verify_claims(
@@ -28,10 +28,10 @@ def verify_claims(
     if not enabled:
         return True
 
-    blocks = re.split(r"\\n\\n(?=\\[\\d+\\])", evidence or "")
+    blocks = re.split(r"\n\n(?=\[\d+\])", evidence or "")
     by_number = {}
     for block in blocks:
-        match = re.match(r"\\[(\\d+)\\]", block)
+        match = re.match(r"\[(\d+)\]", block)
         if match:
             by_number[int(match.group(1))] = block
 
@@ -40,13 +40,13 @@ def verify_claims(
         sentence = sentence.strip()
         if not sentence:
             continue
-        claim_text = re.sub(r"\\[[^\\]\\n]*\\]", " ", sentence)
+        claim_text = re.sub(r"\[[^\]\n]*\]", " ", sentence)
         if len(re.findall(r"[A-Za-z]{2,}", claim_text)) < 2:
             continue
         refs = {
             int(number)
             for group in re.findall(
-                r"\\[\\s*(\\d{1,3}(?:\\s*,\\s*\\d{1,3})*)\\s*\\]", sentence
+                r"\[\s*(\d{1,3}(?:\s*,\s*\d{1,3})*)\s*\]", sentence
             )
             for number in group.split(",")
         }
@@ -56,8 +56,8 @@ def verify_claims(
             return False
         cited_blocks = [by_number[number] for number in sorted(refs)]
         claim_pairs.append(
-            "CLAIM: " + sentence + "\\nONLY EVIDENCE CITED BY THIS CLAIM:\\n"
-            + "\\n\\n".join(cited_blocks)
+            "CLAIM: " + sentence + "\nONLY EVIDENCE CITED BY THIS CLAIM:\n"
+            + "\n\n".join(cited_blocks)
         )
 
     if not claim_pairs:
@@ -66,19 +66,19 @@ def verify_claims(
         return False
 
     verdict_prompt = (
-        "Evaluate the QUESTION and every CLAIM-EVIDENCE PAIR below.\\n"
+        "Evaluate the QUESTION and every CLAIM-EVIDENCE PAIR below.\n"
         "For EACH claim, use ONLY the passages listed under that claim. Do not borrow "
-        "support from another claim's passages or general knowledge.\\n"
+        "support from another claim's passages or general knowledge.\n"
         "A claim is supported only when its cited passage(s) directly state it or clearly entail it. "
         "Faithful paraphrasing and synthesis across that claim's cited passages are allowed. Shared "
-        "topic words, names, or chapter references alone are NOT support.\\n"
+        "topic words, names, or chapter references alone are NOT support.\n"
         "Also decide whether the claims answer the QUESTION rather than a related question. "
         "For questions asking for an explicit list, steps, or set, check that every distinct item in "
         "the cited passage is included; an incomplete list is not a complete answer. "
         "If any factual claim is unsupported, any citation points to a passage that does not support "
-        "its claim, the requested list is incomplete, or the answer misses the question, reject it.\\n"
-        "Reply with one of: SUPPORTED ANSWERED, SUPPORTED NOT ANSWERED, or UNSUPPORTED ANSWERED.\\n"
-        f"QUESTION: {question}\\n\\n" + "\\n\\n".join(claim_pairs)
+        "its claim, the requested list is incomplete, or the answer misses the question, reject it.\n"
+        "Reply with one of: SUPPORTED ANSWERED, SUPPORTED NOT ANSWERED, or UNSUPPORTED ANSWERED.\n"
+        f"QUESTION: {question}\n\n" + "\n\n".join(claim_pairs)
     )
     token_limit = settings.verify_max_tokens if max_tokens is None else max_tokens
     verdict = generate_fn(verdict_prompt, num_predict=token_limit).strip().upper()
