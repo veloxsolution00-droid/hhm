@@ -1700,7 +1700,8 @@ def _answer_one(question, indexed, owner_id, doc_types=None):
                     "sources": source_records, "abstained": True, "retrieval": retrieval,
                     "citation_validation": citation_validation, "verification": verification,
                     "question_type": task_type, "potential_conflicts": potential_conflicts}
-        if retrieval.get("verification_retry_attempted"):
+        if (retrieval.get("verification_retry_attempted")
+                and not str(retrieval.get("selected_draft") or "").startswith("extractive_")):
             retrieval["selected_draft"] = "verification_retry"
             retrieval["answer_recovery_succeeded"] = True
 
