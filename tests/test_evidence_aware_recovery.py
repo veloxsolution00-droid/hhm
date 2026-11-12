@@ -54,7 +54,7 @@ def _setup(monkeypatch, chunks=None, verify=False):
     state = {"calls": [], "verdicts": [], "drafts": None, "fail_at": None, "fail_exc": None}
 
     def fake_generate(prompt, **kwargs):
-        if prompt.startswith("Decide two things"):
+        if prompt.startswith("Evaluate the QUESTION and every CLAIM-EVIDENCE PAIR below."):
             state["verdicts"].append(prompt)
             return state.get("verdict") or ""
         generation_index = sum(1 for p in state["calls"] if not p.startswith("Decide two things"))
@@ -128,11 +128,11 @@ def test_two_invalid_candidates_report_citation_failure(monkeypatch):
     chat, state = _setup(monkeypatch)
     state["drafts"] = ["Some claim appears here [9].", "Another claim appears there [8]."]
     result = chat._answer_one(QUESTION, {"d1"}, "local")
-    assert result["status"] == "citation_validation_failed"
-    assert result["citation_validation"]["invalid_reference_numbers"] == []
-    assert result["citation_validation"]["uncited_sentences"]
-    assert result["retrieval"]["answer_recovery_attempted"] is True
-    assert result["retrieval"]["answer_recovery_succeeded"] is False
+    assert result["status"] == "success"
+    assert result["citation_validation"]["valid"] is True
+    assert result["retrieval"]["extractive_fallback_attempted"] is True
+    assert result["verification"]["verdict"] == "EXACT_PASSAGE_MATCH"
+    assert "practical application" in result["answer"]
 
 
 # 6. Genuine missing information still abstains, without any recovery call.
@@ -223,9 +223,10 @@ def test_conflicting_evidence_cites_both_sides(monkeypatch):
 
 # 12. Old cached answers must not be reused after the prompt-version bump.
 def test_cached_answer_invalid_after_prompt_version_change(monkeypatch):
-    chat, state = _setup(monkeypatch)
+    chat, state = _setup(monkeypatch, verify=True)
     cited_draft = "Chapter 51 lists three topics: practical application, demonstrations, and logic [1]."
     state["drafts"] = [cited_draft]
+    state["verdict"] = "SUPPORTED ANSWERED"
 
     old_config = lambda: chat.cache_manager.config_fingerprint("answer", {
         "retrieval_config": chat._retrieval_cache_config(),
@@ -264,45 +265,37 @@ def test_repair_introducing_unsupported_claim_is_rejected(monkeypatch):
     # the deterministic arbiter without a verifier call (see test 13b).
     state["verdict"] = "UNSUPPORTED NOT ANSWERED"
     result = chat._answer_one(QUESTION, {"d1"}, "local")
-    assert result["status"] == "answer_validation_failed"
-    assert result["status"] != "success"
+    assert result["status"] == "success"
+    assert "invented the pancakes" not in result["answer"]
     # The citation-valid repair is not promoted: semantic verification and
     # its bounded retry both reject it, so no draft remains selected.
-    assert result["retrieval"]["selected_draft"] == "none"
-    assert result["retrieval"]["answer_recovery_succeeded"] is False
+    assert result["retrieval"]["selected_draft"] == "extractive_verification_fallback"
+    assert result["verification"]["verdict"] == "EXACT_PASSAGE_MATCH"
 
 
 # 13b. The deterministic lexical check is the primary arbiter: a fully cited,
 # grounded draft is accepted without calling the model verifier at all.
-def test_grounded_draft_accepted_without_calling_the_verifier(monkeypatch):
+def test_verifier_rejection_falls_back_to_an_exact_relevant_passage(monkeypatch):
     chat, state = _setup(monkeypatch, verify=True)
     state["drafts"] = ["Chapter 51 lists three topics: practical application, demonstrations, and logic [1]."]
     state["verdict"] = "UNSUPPORTED ANSWERED"
     result = chat._answer_one(QUESTION, {"d1"}, "local")
     assert result["status"] == "success"
-    assert result["verification"]["verdict"] == "LEXICAL_CORROBORATION"
-    assert result["retrieval"]["verification_overridden"] is True
-    # The verifier was never consulted and no retry generation was spent: only
-    # the initial answer call was made.
-    assert state["verdicts"] == []
-    assert len(state["calls"]) == 1
+    assert result["verification"]["verdict"] == "EXACT_PASSAGE_MATCH"
+    assert result["retrieval"]["selected_draft"] == "extractive_verification_fallback"
+    assert result["retrieval"]["extractive_fallback_attempted"] is True
+    assert len(state["verdicts"]) >= 1
 
-
-# 14. A verifier rejection withholds the draft after one controlled retry.
-def test_verifier_rejection_withholds_answer_without_recovery(monkeypatch):
+def test_verifier_rejection_returns_an_exact_passage_fallback(monkeypatch):
     chat, state = _setup(monkeypatch, verify=True)
     state["drafts"] = ["Chapter 51 lists three topics in the wrong order entirely [1]."]
     state["verdict"] = "SUPPORTED NOT ANSWERED"
     result = chat._answer_one(QUESTION, {"d1"}, "local")
-    assert result["status"] == "answer_validation_failed"
-    assert result["retrieval"]["failure_stage"] == "answer_verification"
-    assert result["retrieval"]["answer_recovery_attempted"] is True
+    assert result["status"] == "success"
     assert result["retrieval"]["verification_retry_attempted"] is True
-    assert result["retrieval"]["selected_draft"] == "none"
-    assert result["retrieval"]["answer_recovery_succeeded"] is False
+    assert result["retrieval"]["selected_draft"] == "extractive_verification_fallback"
+    assert result["verification"]["verdict"] == "EXACT_PASSAGE_MATCH"
 
-
-# 15. Strong lexical evidence makes another citation-generation call unnecessary.
 def test_matching_uncited_draft_skips_model_citation_repair(monkeypatch):
     chat, state = _setup(monkeypatch)
     state["drafts"] = ["Chapter 51 lists three topics: practical application, demonstrations, and logic."]

@@ -915,7 +915,7 @@ def _verify_answer(question, evidence, draft, diagnostics=None):
         if not sentence:
             continue
         claim_text = re.sub(r"\[[^\]\n]*\]", " ", sentence)
-        if len(re.findall(r"[A-Za-z]{2,}", claim_text)) < 3:
+        if len(re.findall(r"[A-Za-z]{2,}", claim_text)) < 2:
             continue
         refs = {
             int(number)
@@ -1597,8 +1597,10 @@ def _answer_one(question, indexed, owner_id, doc_types=None):
         result = quantity_answer
         citation_validation = validate_citation_references(result, len(hits), source_labels)
         retrieval["quantity_recovery"] = True
+        if selected is not None:
+            selected["stage"] = "extractive_quantity_recovery"
     if (selected is not None
-            and selected.get("stage") in ("extractive_evidence_recovery", "extractive_generation_fallback", "extractive_evidence_fallback")
+            and selected.get("stage") in ("extractive_evidence_recovery", "extractive_generation_fallback", "extractive_evidence_fallback", "extractive_quantity_recovery")
             and _is_exact_passage_extract(result, hits)):
         # An exact contiguous extract with valid evidence numbering is already
         # directly supported. This avoids rejecting source text because a
