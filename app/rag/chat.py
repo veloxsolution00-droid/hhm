@@ -485,24 +485,33 @@ def _cited_references(sentence: str) -> list[int]:
 
 
 def _drop_unsupported_sentences(text: str, hits: list[dict]) -> str:
-    """Drop sentence-level claims whose own cited passage does not support them.
+    """Drop sentence-level claims that are uncited or unsupported by their passage.
 
     A small local model often answers correctly and then appends an extra,
-    unsupported sentence. Without pruning, the whole draft fails verification
-    even though the supported sentence is already a complete, cited answer.
-    Only clearly unsupported sentences are dropped (their content words are
-    almost absent from their own cited passages) and the draft is never emptied.
+    uncited or unsupported sentence. Without pruning, a single bad sentence made
+    the whole draft fail citation coverage or verification even though the
+    supported sentences were already a complete, cited answer. Claim-level
+    support is soft: only sentences that carry a real claim but have no citation
+    of their own, or whose content words are almost absent from their own cited
+    passages, are dropped. Structural lead-ins and short fragments are kept, and
+    the draft is never emptied.
     """
     sentences = [part.strip() for part in _SENTENCE_SPLIT.split(text or "") if part.strip()]
     if len(sentences) < 2:
         return text or ""
     kept, dropped = [], 0
     for sentence in sentences:
-        refs = _cited_references(sentence)
-        if not refs or any(ref < 1 or ref > len(hits) for ref in refs):
+        content = _content_terms(sentence)
+        refs = [ref for ref in _cited_references(sentence) if 1 <= ref <= len(hits)]
+        if not refs:
+            # A sentence with a substantive claim but no citation cannot be
+            # checked against any passage. Drop it; a lead-in or fragment
+            # ("These steps are:", "1.") has too little content to be a claim.
+            if len(content) >= 3:
+                dropped += 1
+                continue
             kept.append(sentence)
             continue
-        content = _content_terms(sentence)
         if len(content) < 3:
             kept.append(sentence)
             continue
@@ -1662,7 +1671,7 @@ def _answer_one(question, indexed, owner_id, doc_types=None):
     # exact sentence from retrieved evidence over a generic pipeline error.
     # This fallback is accepted only as a contiguous passage extract.
     if not any(
-            not candidate["abstention"] and candidate["validation"].get("valid")
+            not candidate["abstention"] and candidate["validation"].get("references_valid")
             for candidate in candidates):
         extract = _extractive_answer_for_question(normalized, hits)
         if extract:
@@ -1675,12 +1684,16 @@ def _answer_one(question, indexed, owner_id, doc_types=None):
             retrieval["extractive_fallback_attempted"] = True
 
     substantive = [candidate for candidate in candidates if not candidate["abstention"]]
-    # Only fully cited drafts may advance to semantic verification. The
-    # verifier below deliberately requires every factual claim to name its own
-    # supporting passage; accepting a merely reference-valid draft here would
-    # create a contract mismatch and trigger avoidable model retries.
+    # Citation integrity and claim coverage are separate gates. A draft whose
+    # references are all legal (in range, resolving to a retrieved passage, no
+    # phantom or unknown labels) is trustworthy enough to advance to support
+    # verification; requiring every factual sentence to be cited as well
+    # discarded useful, partly cited answers wholesale. Unsupported/uncited
+    # sentences have already been pruned by _refine_generated_draft, and the
+    # verifier below still rejects a draft whose claims the evidence does not
+    # support.
     selected = next((candidate for candidate in reversed(substantive)
-                     if candidate["validation"].get("valid")), None)
+                     if candidate["validation"].get("references_valid")), None)
 
     # Bounded diagnostics for every draft, regardless of the final status.
     retrieval["candidates"] = [

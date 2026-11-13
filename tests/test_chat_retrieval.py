@@ -96,6 +96,47 @@ def test_document_title_token_does_not_prefix_match_inside_a_word(monkeypatch):
     # The title word itself, as a whole word, still resolves the document.
     assert chat._named_document_scope("What does Think and Grow Rich say?", hits) == {"d2"}
 
+
+def test_uncited_draft_sentence_is_pruned_but_supported_answer_survives(monkeypatch):
+    import sys, types
+    monkeypatch.setitem(sys.modules, "chromadb", types.ModuleType("chromadb"))
+    import app.rag.chat as chat
+
+    hits = [{"text": "Annual revenue was 102.5 crore for FY 2025.",
+             "metadata": {"document_id": "d1", "filename": "annual-report.pdf"}}]
+    draft = ("Revenue was 102.5 crore for FY 2025 [1]. "
+             "The company also operates many regional offices worldwide.")
+    pruned = chat._drop_unsupported_sentences(draft, hits)
+    assert "102.5" in pruned and "[1]" in pruned
+    # The uncited second claim is removed, so the surviving draft is fully cited.
+    assert "regional offices" not in pruned
+
+
+def test_lead_in_sentence_is_not_treated_as_an_uncited_claim(monkeypatch):
+    import sys, types
+    monkeypatch.setitem(sys.modules, "chromadb", types.ModuleType("chromadb"))
+    import app.rag.chat as chat
+
+    hits = [{"text": "The six steps are listed in order.",
+             "metadata": {"document_id": "d1", "filename": "steps.pdf"}}]
+    draft = "These steps are: Step one is desire [1]. Step two is faith [1]."
+    pruned = chat._drop_unsupported_sentences(draft, hits)
+    assert "These steps are" in pruned
+
+
+def test_partial_reference_valid_draft_is_selected_for_verification(monkeypatch):
+    import sys, types
+    monkeypatch.setitem(sys.modules, "chromadb", types.ModuleType("chromadb"))
+    import app.rag.chat as chat
+    from app.rag.citations import validate_citation_references
+
+    # A draft with one legal citation and one uncited factual sentence is
+    # references_valid (citation integrity) but not fully_cited (coverage).
+    partial = "Revenue was 10 crore [1]. The company had 25 employees."
+    validation = validate_citation_references(partial, 1, ["annual-report.pdf"])
+    assert validation["references_valid"] is True
+    assert validation["fully_cited"] is False
+
 def test_verifier_rejects_an_unsupported_draft(monkeypatch):
     import sys, types
     monkeypatch.setitem(sys.modules, "chromadb", types.ModuleType("chromadb"))

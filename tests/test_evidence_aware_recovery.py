@@ -408,8 +408,9 @@ def test_unmatched_subject_guard_does_not_match_substrings():
 # every factual sentence must be returned, not discarded as
 # "citation_validation_failed". This is the regression for the reported
 # "the answer is in the PDF, but the model replies citation-not-passed /
-# no relevant answer" failure.
-def test_partially_cited_answer_is_replaced_by_exact_supported_evidence(monkeypatch):
+# no relevant answer" failure. Claim-level support is soft: the uncited
+# sentence is pruned and the supported, cited sentence is kept.
+def test_partially_cited_answer_is_pruned_to_its_supported_sentence(monkeypatch):
     chat, state = _setup(monkeypatch)
     state["drafts"] = [
         "Chapter 51 lists three topics: practical application, demonstrations, and logic [1]. "
@@ -422,9 +423,9 @@ def test_partially_cited_answer_is_replaced_by_exact_supported_evidence(monkeypa
     assert "birthplace" not in result["answer"]
     assert result["citation_validation"]["valid"] is True
     assert result["citation_validation"]["citation_coverage"] == 1.0
-    assert result["retrieval"]["selected_draft"] == "extractive_evidence_fallback"
-    # Legal but incomplete citation coverage is resolved by exact evidence
-    # extraction, not another expensive generation call.
+    assert result["retrieval"]["selected_draft"] == "generation"
+    # The uncited sentence is dropped deterministically, so no second expensive
+    # generation (citation repair or extractive replacement) is needed.
     assert "citation_repair_attempted" not in result["retrieval"]
     assert len(state["calls"]) == 1
 
