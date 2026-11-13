@@ -1,0 +1,1063 @@
+[
+  {
+    "id": "A01",
+    "category": "A_basic_factual",
+    "expected_groups": 2,
+    "satisfied": 2,
+    "sufficient": true,
+    "partial": false,
+    "missing": [],
+    "page_recall_selected": 1.0,
+    "pages": [
+      "Page 37"
+    ]
+  },
+  {
+    "id": "A02",
+    "category": "A_basic_factual",
+    "expected_groups": 2,
+    "satisfied": 0,
+    "sufficient": false,
+    "partial": false,
+    "missing": [
+      [
+        "tallow-chandler",
+        "tallow chandler"
+      ],
+      [
+        "sope-boiler",
+        "sope boiler"
+      ]
+    ],
+    "page_recall_selected": 0.0,
+    "pages": [
+      "Page 7"
+    ]
+  },
+  {
+    "id": "A03",
+    "category": "A_basic_factual",
+    "expected_groups": 1,
+    "satisfied": 1,
+    "sufficient": true,
+    "partial": false,
+    "missing": [],
+    "page_recall_selected": 0.0,
+    "pages": [
+      "Page 6"
+    ]
+  },
+  {
+    "id": "A04",
+    "category": "A_basic_factual",
+    "expected_groups": 2,
+    "satisfied": 2,
+    "sufficient": true,
+    "partial": false,
+    "missing": [],
+    "page_recall_selected": 1.0,
+    "pages": [
+      "Page 160",
+      "Page 162"
+    ]
+  },
+  {
+    "id": "A05",
+    "category": "A_basic_factual",
+    "expected_groups": 2,
+    "satisfied": 1,
+    "sufficient": false,
+    "partial": true,
+    "missing": [
+      [
+        "amsterdam"
+      ]
+    ],
+    "page_recall_selected": 0.0,
+    "pages": [
+      "Page 218",
+      "Page 4"
+    ]
+  },
+  {
+    "id": "A06",
+    "category": "A_basic_factual",
+    "expected_groups": 2,
+    "satisfied": 2,
+    "sufficient": true,
+    "partial": false,
+    "missing": [],
+    "page_recall_selected": 1.0,
+    "pages": [
+      "Page 5"
+    ]
+  },
+  {
+    "id": "A07",
+    "category": "A_basic_factual",
+    "expected_groups": 1,
+    "satisfied": 1,
+    "sufficient": true,
+    "partial": false,
+    "missing": [],
+    "page_recall_selected": 1.0,
+    "pages": [
+      "Page 2",
+      "Page 74"
+    ]
+  },
+  {
+    "id": "A08",
+    "category": "A_basic_factual",
+    "expected_groups": 6,
+    "satisfied": 6,
+    "sufficient": true,
+    "partial": false,
+    "missing": [],
+    "page_recall_selected": 1.0,
+    "pages": [
+      "Page 432"
+    ]
+  },
+  {
+    "id": "A09",
+    "category": "A_basic_factual",
+    "expected_groups": 2,
+    "satisfied": 2,
+    "sufficient": true,
+    "partial": false,
+    "missing": [],
+    "page_recall_selected": 1.0,
+    "pages": [
+      "Page 122",
+      "Page 5"
+    ]
+  },
+  {
+    "id": "A10",
+    "category": "A_basic_factual",
+    "expected_groups": 1,
+    "satisfied": 1,
+    "sufficient": true,
+    "partial": false,
+    "missing": [],
+    "page_recall_selected": 1.0,
+    "pages": [
+      "Page 107"
+    ]
+  },
+  {
+    "id": "B01",
+    "category": "B_detailed",
+    "expected_groups": 6,
+    "satisfied": 6,
+    "sufficient": true,
+    "partial": false,
+    "missing": [],
+    "page_recall_selected": 1.0,
+    "pages": [
+      "Page 37"
+    ]
+  },
+  {
+    "id": "B02",
+    "category": "B_detailed",
+    "expected_groups": 6,
+    "satisfied": 6,
+    "sufficient": true,
+    "partial": false,
+    "missing": [],
+    "page_recall_selected": 1.0,
+    "pages": [
+      "Page 68",
+      "Page 69",
+      "Page 70"
+    ]
+  },
+  {
+    "id": "B03",
+    "category": "B_detailed",
+    "expected_groups": 2,
+    "satisfied": 2,
+    "sufficient": true,
+    "partial": false,
+    "missing": [],
+    "page_recall_selected": 1.0,
+    "pages": [
+      "Page 31",
+      "Page 74"
+    ]
+  },
+  {
+    "id": "B04",
+    "category": "B_detailed",
+    "expected_groups": 3,
+    "satisfied": 3,
+    "sufficient": true,
+    "partial": false,
+    "missing": [],
+    "page_recall_selected": 1.0,
+    "pages": [
+      "Page 71"
+    ]
+  },
+  {
+    "id": "B05",
+    "category": "B_detailed",
+    "expected_groups": 2,
+    "satisfied": 0,
+    "sufficient": false,
+    "partial": false,
+    "missing": [
+      [
+        "corpse"
+      ],
+      [
+        "helm"
+      ]
+    ],
+    "page_recall_selected": 0.0,
+    "pages": [
+      "Page 156",
+      "Page 165"
+    ]
+  },
+  {
+    "id": "B06",
+    "category": "B_detailed",
+    "expected_groups": 3,
+    "satisfied": 1,
+    "sufficient": false,
+    "partial": true,
+    "missing": [
+      [
+        "grammar-school",
+        "grammar school"
+      ],
+      [
+        "ten years old"
+      ]
+    ],
+    "page_recall_selected": 0.0,
+    "pages": [
+      "Page 6",
+      "Page 7",
+      "Page 8"
+    ]
+  },
+  {
+    "id": "B07",
+    "category": "B_detailed",
+    "expected_groups": 2,
+    "satisfied": 2,
+    "sufficient": true,
+    "partial": false,
+    "missing": [],
+    "page_recall_selected": 0.0,
+    "pages": [
+      "Page 41",
+      "Page 42"
+    ]
+  },
+  {
+    "id": "B08",
+    "category": "B_detailed",
+    "expected_groups": 3,
+    "satisfied": 3,
+    "sufficient": true,
+    "partial": false,
+    "missing": [],
+    "page_recall_selected": 1.0,
+    "pages": [
+      "Page 43"
+    ]
+  },
+  {
+    "id": "C01",
+    "category": "C_multi_hop",
+    "expected_groups": 3,
+    "satisfied": 2,
+    "sufficient": false,
+    "partial": true,
+    "missing": [
+      [
+        "carfax"
+      ]
+    ],
+    "page_recall_selected": 1.0,
+    "pages": [
+      "Page 160",
+      "Page 189",
+      "Page 52"
+    ]
+  },
+  {
+    "id": "C02",
+    "category": "C_multi_hop",
+    "expected_groups": 3,
+    "satisfied": 2,
+    "sufficient": false,
+    "partial": true,
+    "missing": [
+      [
+        "reflection",
+        "locked",
+        "szgany"
+      ]
+    ],
+    "page_recall_selected": 0.0,
+    "pages": [
+      "Page 46",
+      "Page 57",
+      "Page 86"
+    ]
+  },
+  {
+    "id": "C03",
+    "category": "C_multi_hop",
+    "expected_groups": 3,
+    "satisfied": 3,
+    "sufficient": true,
+    "partial": false,
+    "missing": [],
+    "page_recall_selected": 1.0,
+    "pages": [
+      "Page 37",
+      "Page 43"
+    ]
+  },
+  {
+    "id": "C04",
+    "category": "C_multi_hop",
+    "expected_groups": 2,
+    "satisfied": 2,
+    "sufficient": true,
+    "partial": false,
+    "missing": [],
+    "page_recall_selected": 0.0,
+    "pages": [
+      "Page 36",
+      "Page 70"
+    ]
+  },
+  {
+    "id": "C05",
+    "category": "C_multi_hop",
+    "expected_groups": 3,
+    "satisfied": 3,
+    "sufficient": true,
+    "partial": false,
+    "missing": [],
+    "page_recall_selected": 1.0,
+    "pages": [
+      "Page 14",
+      "Page 71"
+    ]
+  },
+  {
+    "id": "C06",
+    "category": "C_multi_hop",
+    "expected_groups": 2,
+    "satisfied": 2,
+    "sufficient": true,
+    "partial": false,
+    "missing": [],
+    "page_recall_selected": 1.0,
+    "pages": [
+      "Page 432"
+    ]
+  },
+  {
+    "id": "D01",
+    "category": "D_comparison",
+    "expected_groups": 2,
+    "satisfied": 0,
+    "sufficient": false,
+    "partial": false,
+    "missing": [
+      [
+        "junto"
+      ],
+      [
+        "master mind"
+      ]
+    ],
+    "page_recall_selected": 0.0,
+    "pages": [
+      "Page 333",
+      "Page 37"
+    ]
+  },
+  {
+    "id": "D02",
+    "category": "D_comparison",
+    "expected_groups": 2,
+    "satisfied": 1,
+    "sufficient": false,
+    "partial": true,
+    "missing": [
+      [
+        "gratitude"
+      ]
+    ],
+    "page_recall_selected": 0.0,
+    "pages": [
+      "Page 33",
+      "Page 99"
+    ]
+  },
+  {
+    "id": "D03",
+    "category": "D_comparison",
+    "expected_groups": 2,
+    "satisfied": 2,
+    "sufficient": true,
+    "partial": false,
+    "missing": [],
+    "page_recall_selected": 0.0,
+    "pages": [
+      "Page 25",
+      "Page 27"
+    ]
+  },
+  {
+    "id": "D04",
+    "category": "D_comparison",
+    "expected_groups": 2,
+    "satisfied": 0,
+    "sufficient": false,
+    "partial": false,
+    "missing": [
+      [
+        "views"
+      ],
+      [
+        "fear"
+      ]
+    ],
+    "page_recall_selected": 0.0,
+    "pages": [
+      "Page 14",
+      "Page 432"
+    ]
+  },
+  {
+    "id": "D05",
+    "category": "D_comparison",
+    "expected_groups": 2,
+    "satisfied": 0,
+    "sufficient": false,
+    "partial": false,
+    "missing": [
+      [
+        "six definite"
+      ],
+      [
+        "steps"
+      ]
+    ],
+    "page_recall_selected": 0.0,
+    "pages": [
+      "Page 68",
+      "Page 69",
+      "Page 74"
+    ]
+  },
+  {
+    "id": "D06",
+    "category": "D_comparison",
+    "expected_groups": 2,
+    "satisfied": 2,
+    "sufficient": true,
+    "partial": false,
+    "missing": [],
+    "page_recall_selected": 1.0,
+    "pages": [
+      "Page 5",
+      "Page 6"
+    ]
+  },
+  {
+    "id": "E01",
+    "category": "E_multi_document",
+    "expected_groups": 2,
+    "satisfied": 2,
+    "sufficient": true,
+    "partial": false,
+    "missing": [],
+    "page_recall_selected": 1.0,
+    "pages": [
+      "Page 333",
+      "Page 37"
+    ]
+  },
+  {
+    "id": "E02",
+    "category": "E_multi_document",
+    "expected_groups": 3,
+    "satisfied": 2,
+    "sufficient": false,
+    "partial": true,
+    "missing": [
+      [
+        "chapter 17"
+      ]
+    ],
+    "page_recall_selected": 1.0,
+    "pages": [
+      "Page 5",
+      "Page 74"
+    ]
+  },
+  {
+    "id": "E03",
+    "category": "E_multi_document",
+    "expected_groups": 2,
+    "satisfied": 1,
+    "sufficient": false,
+    "partial": true,
+    "missing": [
+      [
+        "disturbed"
+      ]
+    ],
+    "page_recall_selected": 0.0,
+    "pages": [
+      "Page 14",
+      "Page 432"
+    ]
+  },
+  {
+    "id": "E04",
+    "category": "E_multi_document",
+    "expected_groups": 3,
+    "satisfied": 0,
+    "sufficient": false,
+    "partial": false,
+    "missing": [
+      [
+        "junto"
+      ],
+      [
+        "steps"
+      ],
+      [
+        "philosophy"
+      ]
+    ],
+    "page_recall_selected": 0.0,
+    "pages": [
+      "Page 37",
+      "Page 68",
+      "Page 71",
+      "Page 74"
+    ]
+  },
+  {
+    "id": "E05",
+    "category": "E_multi_document",
+    "expected_groups": 1,
+    "satisfied": 0,
+    "sufficient": false,
+    "partial": false,
+    "missing": [
+      [
+        "thinking stuff"
+      ]
+    ],
+    "page_recall_selected": 0.0,
+    "pages": [
+      "Page 74"
+    ]
+  },
+  {
+    "id": "E06",
+    "category": "E_multi_document",
+    "expected_groups": 2,
+    "satisfied": 2,
+    "sufficient": true,
+    "partial": false,
+    "missing": [],
+    "page_recall_selected": 1.0,
+    "pages": [
+      "Page 5",
+      "Page 68"
+    ]
+  },
+  {
+    "id": "F01",
+    "category": "F_summarization",
+    "expected_groups": 3,
+    "satisfied": 1,
+    "sufficient": false,
+    "partial": true,
+    "missing": [
+      [
+        "thinking stuff"
+      ],
+      [
+        "gratitude"
+      ]
+    ],
+    "page_recall_selected": 1.0,
+    "pages": [
+      "Page 17",
+      "Page 74",
+      "Page 9"
+    ]
+  },
+  {
+    "id": "F02",
+    "category": "F_summarization",
+    "expected_groups": 3,
+    "satisfied": 1,
+    "sufficient": false,
+    "partial": true,
+    "missing": [
+      [
+        "three"
+      ],
+      [
+        "topics"
+      ]
+    ],
+    "page_recall_selected": 1.0,
+    "pages": [
+      "Page 71"
+    ]
+  },
+  {
+    "id": "F03",
+    "category": "F_summarization",
+    "expected_groups": 3,
+    "satisfied": 2,
+    "sufficient": false,
+    "partial": true,
+    "missing": [
+      [
+        "castle"
+      ]
+    ],
+    "page_recall_selected": 0.0,
+    "pages": [
+      "Page 4"
+    ]
+  },
+  {
+    "id": "F04",
+    "category": "F_summarization",
+    "expected_groups": 3,
+    "satisfied": 1,
+    "sufficient": false,
+    "partial": true,
+    "missing": [
+      [
+        "friday evenings"
+      ],
+      [
+        "queries"
+      ]
+    ],
+    "page_recall_selected": 0.0,
+    "pages": [
+      "Page 37"
+    ]
+  },
+  {
+    "id": "F05",
+    "category": "F_summarization",
+    "expected_groups": 4,
+    "satisfied": 2,
+    "sufficient": false,
+    "partial": true,
+    "missing": [
+      [
+        "exact amount"
+      ],
+      [
+        "definite date"
+      ]
+    ],
+    "page_recall_selected": 1.0,
+    "pages": [
+      "Page 68",
+      "Page 69",
+      "Page 70"
+    ]
+  },
+  {
+    "id": "F06",
+    "category": "F_summarization",
+    "expected_groups": 3,
+    "satisfied": 1,
+    "sufficient": false,
+    "partial": true,
+    "missing": [
+      [
+        "views"
+      ],
+      [
+        "actor"
+      ]
+    ],
+    "page_recall_selected": 1.0,
+    "pages": [
+      "Page 14",
+      "Page 26",
+      "Page 5"
+    ]
+  },
+  {
+    "id": "G01",
+    "category": "G_scenario",
+    "expected_groups": 3,
+    "satisfied": 0,
+    "sufficient": false,
+    "partial": false,
+    "missing": [
+      [
+        "exact amount"
+      ],
+      [
+        "definite date"
+      ],
+      [
+        "twice daily"
+      ]
+    ],
+    "page_recall_selected": 0.0,
+    "pages": [
+      "Page 68",
+      "Page 69",
+      "Page 70"
+    ]
+  },
+  {
+    "id": "G02",
+    "category": "G_scenario",
+    "expected_groups": 2,
+    "satisfied": 0,
+    "sufficient": false,
+    "partial": false,
+    "missing": [
+      [
+        "events should happen"
+      ],
+      [
+        "actor"
+      ]
+    ],
+    "page_recall_selected": 0.0,
+    "pages": [
+      "Page 17",
+      "Page 26"
+    ]
+  },
+  {
+    "id": "G03",
+    "category": "G_scenario",
+    "expected_groups": 2,
+    "satisfied": 0,
+    "sufficient": false,
+    "partial": false,
+    "missing": [
+      [
+        "competitive"
+      ],
+      [
+        "creative"
+      ]
+    ],
+    "page_recall_selected": 0.0,
+    "pages": [
+      "Page 25",
+      "Page 27"
+    ]
+  },
+  {
+    "id": "G04",
+    "category": "G_scenario",
+    "expected_groups": 2,
+    "satisfied": 2,
+    "sufficient": true,
+    "partial": false,
+    "missing": [],
+    "page_recall_selected": 1.0,
+    "pages": [
+      "Page 37"
+    ]
+  },
+  {
+    "id": "G05",
+    "category": "G_scenario",
+    "expected_groups": 2,
+    "satisfied": 2,
+    "sufficient": true,
+    "partial": false,
+    "missing": [],
+    "page_recall_selected": 1.0,
+    "pages": [
+      "Page 462"
+    ]
+  },
+  {
+    "id": "H01",
+    "category": "H_numerical",
+    "expected_groups": 1,
+    "satisfied": 1,
+    "sufficient": true,
+    "partial": false,
+    "missing": [],
+    "page_recall_selected": 1.0,
+    "pages": [
+      "Page 5"
+    ]
+  },
+  {
+    "id": "H02",
+    "category": "H_numerical",
+    "expected_groups": 1,
+    "satisfied": 1,
+    "sufficient": true,
+    "partial": false,
+    "missing": [],
+    "page_recall_selected": 1.0,
+    "pages": [
+      "Page 4"
+    ]
+  },
+  {
+    "id": "H03",
+    "category": "H_numerical",
+    "expected_groups": 1,
+    "satisfied": 1,
+    "sufficient": true,
+    "partial": false,
+    "missing": [],
+    "page_recall_selected": 0.0,
+    "pages": [
+      "Page 5"
+    ]
+  },
+  {
+    "id": "H04",
+    "category": "H_numerical",
+    "expected_groups": 2,
+    "satisfied": 2,
+    "sufficient": true,
+    "partial": false,
+    "missing": [],
+    "page_recall_selected": 1.0,
+    "pages": [
+      "Page 43"
+    ]
+  },
+  {
+    "id": "H05",
+    "category": "H_numerical",
+    "expected_groups": 2,
+    "satisfied": 2,
+    "sufficient": true,
+    "partial": false,
+    "missing": [],
+    "page_recall_selected": 1.0,
+    "pages": [
+      "Page 4",
+      "Page 5"
+    ]
+  },
+  {
+    "id": "I01",
+    "category": "I_ambiguous_conversational",
+    "expected_groups": 1,
+    "satisfied": 1,
+    "sufficient": true,
+    "partial": false,
+    "missing": [],
+    "page_recall_selected": 0.0,
+    "pages": [
+      "Page 37",
+      "Page 6"
+    ]
+  },
+  {
+    "id": "I02",
+    "category": "I_ambiguous_conversational",
+    "expected_groups": 2,
+    "satisfied": 2,
+    "sufficient": true,
+    "partial": false,
+    "missing": [],
+    "page_recall_selected": 1.0,
+    "pages": [
+      "Page 25"
+    ]
+  },
+  {
+    "id": "I03",
+    "category": "I_ambiguous_conversational",
+    "expected_groups": 2,
+    "satisfied": 1,
+    "sufficient": false,
+    "partial": true,
+    "missing": [
+      [
+        "something for nothing"
+      ]
+    ],
+    "page_recall_selected": 0.0,
+    "pages": [
+      "Page 69"
+    ]
+  },
+  {
+    "id": "I04",
+    "category": "I_ambiguous_conversational",
+    "expected_groups": 2,
+    "satisfied": 1,
+    "sufficient": false,
+    "partial": true,
+    "missing": [
+      [
+        "junto"
+      ]
+    ],
+    "page_recall_selected": 1.0,
+    "pages": [
+      "Page 333",
+      "Page 37"
+    ]
+  },
+  {
+    "id": "I05",
+    "category": "I_ambiguous_conversational",
+    "expected_groups": 2,
+    "satisfied": 1,
+    "sufficient": false,
+    "partial": true,
+    "missing": [
+      [
+        "friday"
+      ]
+    ],
+    "page_recall_selected": 0.0,
+    "pages": [
+      "Page 37"
+    ]
+  },
+  {
+    "id": "K01",
+    "category": "K_spelling",
+    "expected_groups": 1,
+    "satisfied": 1,
+    "sufficient": true,
+    "partial": false,
+    "missing": [],
+    "page_recall_selected": 0.0,
+    "pages": [
+      "Page 37",
+      "Page 6"
+    ]
+  },
+  {
+    "id": "K02",
+    "category": "K_spelling",
+    "expected_groups": 1,
+    "satisfied": 1,
+    "sufficient": true,
+    "partial": false,
+    "missing": [],
+    "page_recall_selected": 0.0,
+    "pages": [
+      "Page 37",
+      "Page 6"
+    ]
+  },
+  {
+    "id": "K03",
+    "category": "K_spelling",
+    "expected_groups": 1,
+    "satisfied": 1,
+    "sufficient": true,
+    "partial": false,
+    "missing": [],
+    "page_recall_selected": 0.0,
+    "pages": [
+      "Page 37",
+      "Page 43",
+      "Page 6"
+    ]
+  },
+  {
+    "id": "K04",
+    "category": "K_spelling",
+    "expected_groups": 1,
+    "satisfied": 1,
+    "sufficient": true,
+    "partial": false,
+    "missing": [],
+    "page_recall_selected": 0.0,
+    "pages": [
+      "Page 4"
+    ]
+  },
+  {
+    "id": "K05",
+    "category": "K_spelling",
+    "expected_groups": 2,
+    "satisfied": 0,
+    "sufficient": false,
+    "partial": false,
+    "missing": [
+      [
+        "harker"
+      ],
+      [
+        "castle"
+      ]
+    ],
+    "page_recall_selected": 0.0,
+    "pages": [
+      "Page 4"
+    ]
+  },
+  {
+    "id": "K06",
+    "category": "K_spelling",
+    "expected_groups": 2,
+    "satisfied": 2,
+    "sufficient": true,
+    "partial": false,
+    "missing": [],
+    "page_recall_selected": 1.0,
+    "pages": [
+      "Page 37"
+    ]
+  },
+  {
+    "id": "K07",
+    "category": "K_spelling",
+    "expected_groups": 1,
+    "satisfied": 1,
+    "sufficient": true,
+    "partial": false,
+    "missing": [],
+    "page_recall_selected": 1.0,
+    "pages": [
+      "Page 5"
+    ]
+  },
+  {
+    "id": "K08",
+    "category": "K_spelling",
+    "expected_groups": 2,
+    "satisfied": 2,
+    "sufficient": true,
+    "partial": false,
+    "missing": [],
+    "page_recall_selected": 1.0,
+    "pages": [
+      "Page 432"
+    ]
+  }
+]

@@ -1,0 +1,766 @@
+{
+  "corpus": {
+    "dracula": "dracula-bram-stoker.pdf",
+    "franklin": "the-autobiography-of-benjamin-franklin-benjamin-franklin.pdf",
+    "enchiridion": "the-enchiridion-epictetus.pdf",
+    "science": "the-science-of-getting-rich.pdf",
+    "hill": "think-and-grow-rich-napoleon-hill.pdf"
+  },
+  "note": "Every expected page and evidence term below was read directly from data/extracted/*.jsonl for the five indexed documents. No synthetic client data is used.",
+  "questions": [
+    {
+      "id": "A01",
+      "category": "A_basic_factual",
+      "question": "Who founded the Junto, and on which evening did it meet?",
+      "doc": "franklin",
+      "pages": ["Page 37"],
+      "evidence_terms": ["junto", "friday evenings"],
+      "expected_answer": "Benjamin Franklin formed the Junto from his ingenious acquaintance; it met on Friday evenings.",
+      "answerable": true
+    },
+    {
+      "id": "A02",
+      "category": "A_basic_factual",
+      "question": "What was Benjamin Franklin's father's trade?",
+      "doc": "franklin",
+      "pages": ["Page 7"],
+      "evidence_terms": ["tallow-chandler", "sope-boiler"],
+      "expected_answer": "He was a tallow-chandler and sope-boiler.",
+      "answerable": true
+    },
+    {
+      "id": "A03",
+      "category": "A_basic_factual",
+      "question": "In which city was Benjamin Franklin born?",
+      "doc": "franklin",
+      "pages": ["Page 6"],
+      "evidence_terms": ["born in boston"],
+      "expected_answer": "Boston, New England.",
+      "answerable": true
+    },
+    {
+      "id": "A04",
+      "category": "A_basic_factual",
+      "question": "What kind of ship is the Demeter and where was it sailing from?",
+      "doc": "dracula",
+      "pages": ["Page 160", "Page 162"],
+      "evidence_terms": ["demeter", "varna"],
+      "expected_answer": "A Russian schooner from Varna, carrying silver sand and boxes of earth/mould.",
+      "answerable": true
+    },
+    {
+      "id": "A05",
+      "category": "A_basic_factual",
+      "question": "Who is Professor Van Helsing and where is he from?",
+      "doc": "dracula",
+      "pages": ["Page 4", "Page 218"],
+      "evidence_terms": ["van helsing", "amsterdam"],
+      "expected_answer": "Dr. Seward's old teacher and master, a professor from Amsterdam.",
+      "answerable": true
+    },
+    {
+      "id": "A06",
+      "category": "A_basic_factual",
+      "question": "How many chapters make up the Enchiridion, and how are they arranged?",
+      "doc": "enchiridion",
+      "pages": ["Page 5"],
+      "evidence_terms": ["51 short chapters", "without titles"],
+      "expected_answer": "51 short numbered chapters without titles; each stands on its own.",
+      "answerable": true
+    },
+    {
+      "id": "A07",
+      "category": "A_basic_factual",
+      "question": "What is the title of Chapter 17 of The Science of Getting Rich?",
+      "doc": "science",
+      "pages": ["Page 2", "Page 74"],
+      "evidence_terms": ["summary of the science of getting rich"],
+      "expected_answer": "Summary of the Science of Getting Rich.",
+      "answerable": true
+    },
+    {
+      "id": "A08",
+      "category": "A_basic_factual",
+      "question": "What are the six basic fears according to Napoleon Hill?",
+      "doc": "hill",
+      "pages": ["Page 432"],
+      "evidence_terms": ["poverty", "criticism", "ill health", "loss of love", "old age", "death"],
+      "expected_answer": "Poverty, criticism, ill health, loss of the love of someone, old age, and death.",
+      "answerable": true
+    },
+    {
+      "id": "A09",
+      "category": "A_basic_factual",
+      "question": "Who keeps his diary on a phonograph in Dracula?",
+      "doc": "dracula",
+      "pages": ["Page 5", "Page 122"],
+      "evidence_terms": ["seward", "phonograph"],
+      "expected_answer": "Dr. Seward.",
+      "answerable": true
+    },
+    {
+      "id": "A10",
+      "category": "A_basic_factual",
+      "question": "Under what pseudonym did Benjamin Franklin write his first published essays?",
+      "doc": "franklin",
+      "pages": ["Page 107"],
+      "evidence_terms": ["silence dogood"],
+      "expected_answer": "Silence Dogood.",
+      "answerable": true
+    },
+    {
+      "id": "B01",
+      "category": "B_detailed",
+      "question": "Describe the rules Franklin drew up for the Junto.",
+      "doc": "franklin",
+      "pages": ["Page 37"],
+      "evidence_terms": ["queries", "morals", "politics", "natural philosophy", "essay", "three months", "president"],
+      "expected_answer": "Each member in turn produced queries on Morals, Politics or Natural Philosophy; once in three months produced and read an essay; debates directed by a president in a sincere spirit of inquiry, with positive assertions and direct contradiction prohibited.",
+      "answerable": true
+    },
+    {
+      "id": "B02",
+      "category": "B_detailed",
+      "question": "Describe the six definite practical steps Hill gives for transmuting the desire for riches into money.",
+      "doc": "hill",
+      "pages": ["Page 68", "Page 69", "Page 70"],
+      "evidence_terms": ["exact amount", "give in return", "definite date", "plan", "write out", "read", "twice daily"],
+      "expected_answer": "Fix the exact amount; determine what you will give in return; set a definite date; create a definite plan and begin at once; write a clear statement of amount, time limit, return and plan; read it aloud twice daily, seeing and feeling yourself already in possession.",
+      "answerable": true
+    },
+    {
+      "id": "B03",
+      "category": "B_detailed",
+      "question": "What does Wattles say is the first step toward getting rich, and what role does gratitude play?",
+      "doc": "science",
+      "pages": ["Page 31", "Page 74"],
+      "evidence_terms": ["formless substance", "gratitude"],
+      "expected_answer": "The first step is to convey the idea of your wants to the Formless Substance; gratitude unifies the mind with the Formless Intelligence so that thoughts are received.",
+      "answerable": true
+    },
+    {
+      "id": "B04",
+      "category": "B_detailed",
+      "question": "What three topics does Epictetus say philosophy consists of, and which one is most necessary?",
+      "doc": "enchiridion",
+      "pages": ["Page 71"],
+      "evidence_terms": ["practical application", "demonstrations", "logical", "most necessary"],
+      "expected_answer": "First, the practical application of principles; second, demonstrations; third, the logic that gives strength and connection to the other two. The first is most necessary.",
+      "answerable": true
+    },
+    {
+      "id": "B05",
+      "category": "B_detailed",
+      "question": "What happened to the Demeter and its crew when it reached Whitby?",
+      "doc": "dracula",
+      "pages": ["Page 156", "Page 165"],
+      "evidence_terms": ["corpse", "helm", "crew"],
+      "expected_answer": "The ship ran aground in a storm with a corpse lashed to the helm; the crew had disappeared one by one during the voyage.",
+      "answerable": true
+    },
+    {
+      "id": "B06",
+      "category": "B_detailed",
+      "question": "Describe Franklin's schooling and early apprenticeship.",
+      "doc": "franklin",
+      "pages": ["Page 6", "Page 7", "Page 8"],
+      "evidence_terms": ["grammar-school", "eight years", "ten years old", "apprentice"],
+      "expected_answer": "He was sent to grammar school at eight, taken home at ten to help his father's tallow business, and later apprenticed in printing.",
+      "answerable": true
+    },
+    {
+      "id": "B07",
+      "category": "B_detailed",
+      "question": "What is the story of \"three feet from gold\" in Think and Grow Rich?",
+      "doc": "hill",
+      "pages": ["Page 41", "Page 42"],
+      "evidence_terms": ["darby", "gold", "three feet"],
+      "expected_answer": "R. U. Darby's uncle quit a gold mine and sold his claim; the buyer found the vein three feet from where the uncle stopped, illustrating the habit of quitting under temporary defeat.",
+      "answerable": true
+    },
+    {
+      "id": "B08",
+      "category": "B_detailed",
+      "question": "How was the subscription library in Philadelphia started?",
+      "doc": "franklin",
+      "pages": ["Page 43"],
+      "evidence_terms": ["fifty subscribers", "forty shillings", "ten shillings"],
+      "expected_answer": "Franklin drew up proposals and, with the help of the Junto, obtained fifty subscribers at forty shillings each plus ten shillings a year for fifty years.",
+      "answerable": true
+    },
+    {
+      "id": "C01",
+      "category": "C_multi_hop",
+      "question": "How do the Demeter's cargo and Dracula's plan to move to England connect?",
+      "doc": "dracula",
+      "pages": ["Page 160", "Page 189", "Page 52"],
+      "evidence_terms": ["boxes", "mould", "carfax"],
+      "expected_answer": "The Demeter carried boxes of earth/mould consigned to a Whitby solicitor; other boxes were invoiced to Carfax near Purfleet, the estate Dracula bought near London.",
+      "answerable": true
+    },
+    {
+      "id": "C02",
+      "category": "C_multi_hop",
+      "question": "How does Jonathan Harker gradually learn that he is a prisoner in Dracula's castle?",
+      "doc": "dracula",
+      "pages": ["Page 46", "Page 57", "Page 86"],
+      "evidence_terms": ["locked", "reflection", "szgany"],
+      "expected_answer": "He finds doors locked with no means of exit, notices the Count casts no reflection, and sees the Szgany guarding the castle while the Count intercepts his letters.",
+      "answerable": true
+    },
+    {
+      "id": "C03",
+      "category": "C_multi_hop",
+      "question": "How did Franklin's Junto lead to the creation of the subscription library?",
+      "doc": "franklin",
+      "pages": ["Page 37", "Page 43"],
+      "evidence_terms": ["junto", "proposals", "subscribers"],
+      "expected_answer": "The Junto was a club of mutual improvement; Franklin drew up library proposals and used his friends in the Junto to procure fifty subscribers.",
+      "answerable": true
+    },
+    {
+      "id": "C04",
+      "category": "C_multi_hop",
+      "question": "How does Hill's idea of a burning desire relate to Wattles' instruction to hold a clear mental image?",
+      "doc": "hill",
+      "pages": ["Page 36", "Page 70"],
+      "evidence_terms": ["burning desire", "mental image"],
+      "expected_answer": "Hill says desire must become an obsession that convinces you that you will have the money; Wattles says to form a clear and definite mental image and hold it with unwavering faith, so both require a definite, sustained desire.",
+      "answerable": true
+    },
+    {
+      "id": "C05",
+      "category": "C_multi_hop",
+      "question": "Why does Epictetus say people are disturbed, and how does that fit his three topics of philosophy?",
+      "doc": "enchiridion",
+      "pages": ["Page 14", "Page 71"],
+      "evidence_terms": ["views", "practical application"],
+      "expected_answer": "Men are disturbed not by things but by their views of things; therefore the practical application of principles (the first topic) matters most, while logical demonstration is subordinate.",
+      "answerable": true
+    },
+    {
+      "id": "C06",
+      "category": "C_multi_hop",
+      "question": "How does Hill connect the six basic fears to failure?",
+      "doc": "hill",
+      "pages": ["Page 432"],
+      "evidence_terms": ["fear", "failure"],
+      "expected_answer": "Hill presents the six fears as the states of mind behind failure and says all other fears can be grouped under those six headings.",
+      "answerable": true
+    },
+    {
+      "id": "D01",
+      "category": "D_comparison",
+      "question": "Compare Franklin's Junto with Hill's Master Mind.",
+      "doc": "multi",
+      "docs": ["franklin", "hill"],
+      "pages": ["Page 37", "Page 333"],
+      "evidence_terms": ["junto", "master mind", "coordination"],
+      "expected_answer": "The Junto was a weekly club of mutual improvement with queries and essays; Hill's Master Mind is the coordination of knowledge and effort, in harmony, between two or more people for a definite purpose. Both use a group, but the Junto is an inquiry club and the Master Mind is a purpose-driven alliance.",
+      "answerable": true
+    },
+    {
+      "id": "D02",
+      "category": "D_comparison",
+      "question": "Compare the role of gratitude in Wattles with the role of faith in Hill.",
+      "doc": "multi",
+      "docs": ["science", "hill"],
+      "pages": ["Page 33", "Page 99"],
+      "evidence_terms": ["gratitude", "faith"],
+      "expected_answer": "Wattles says gratitude unifies the mind with the Formless Substance and that faith is born of gratitude; Hill calls faith the head chemist of the mind, a state induced by auto-suggestion. Both treat belief as the mechanism that transmits desire.",
+      "answerable": true
+    },
+    {
+      "id": "D03",
+      "category": "D_comparison",
+      "question": "What is the difference between the competitive plane and the creative plane in The Science of Getting Rich?",
+      "doc": "science",
+      "pages": ["Page 25", "Page 27"],
+      "evidence_terms": ["competitive", "creative"],
+      "expected_answer": "Competitive riches are taken from others and are never satisfactory or permanent; on the creative plane one deals so that every transaction adds more life to the other party, and riches are permanent.",
+      "answerable": true
+    },
+    {
+      "id": "D04",
+      "category": "D_comparison",
+      "question": "Compare Epictetus and Hill on what a person can control.",
+      "doc": "multi",
+      "docs": ["enchiridion", "hill"],
+      "pages": ["Page 14", "Page 432"],
+      "evidence_terms": ["views", "fear", "control"],
+      "expected_answer": "Epictetus locates disturbance in our own views, which we can control, not in external things; Hill locates failure in six fears that are states of mind and therefore also internal. Epictetus is explicit that externals are not up to us, while Hill's claim is practical rather than a doctrine of control.",
+      "answerable": true
+    },
+    {
+      "id": "D05",
+      "category": "D_comparison",
+      "question": "Which book gives an explicit numbered procedure for acquiring money: The Science of Getting Rich or Think and Grow Rich?",
+      "doc": "multi",
+      "docs": ["science", "hill"],
+      "pages": ["Page 68", "Page 69", "Page 74"],
+      "evidence_terms": ["six definite", "steps"],
+      "expected_answer": "Think and Grow Rich gives six definite practical steps; The Science of Getting Rich is organized as principles and a summary rather than six numbered steps.",
+      "answerable": true
+    },
+    {
+      "id": "D06",
+      "category": "D_comparison",
+      "question": "Compare how Dracula and Franklin's autobiography are narrated.",
+      "doc": "multi",
+      "docs": ["dracula", "franklin"],
+      "pages": ["Page 5", "Page 6"],
+      "evidence_terms": ["journals", "autobiography"],
+      "expected_answer": "Dracula is told through journals, diaries, letters, telegrams and newspaper cuttings by multiple hands; Franklin's autobiography is a first-person life narrative in his own voice.",
+      "answerable": true
+    },
+    {
+      "id": "E01",
+      "category": "E_multi_document",
+      "question": "Which documents describe a group formed for mutual improvement or coordinated effort?",
+      "doc": "multi",
+      "docs": ["franklin", "hill"],
+      "pages": ["Page 37", "Page 333"],
+      "evidence_terms": ["junto", "master mind"],
+      "expected_answer": "Franklin's autobiography describes the Junto; Think and Grow Rich describes the Master Mind.",
+      "answerable": true
+    },
+    {
+      "id": "E02",
+      "category": "E_multi_document",
+      "question": "How many chapters does each of Dracula, the Enchiridion, and The Science of Getting Rich have?",
+      "doc": "multi",
+      "docs": ["dracula", "enchiridion", "science"],
+      "pages": ["Page 5", "Page 5", "Page 74"],
+      "evidence_terms": ["27 chapters", "51 short chapters", "chapter 17"],
+      "expected_answer": "Dracula has 27 chapters, the Enchiridion 51 short chapters, and The Science of Getting Rich 17 chapters.",
+      "answerable": true
+    },
+    {
+      "id": "E03",
+      "category": "E_multi_document",
+      "question": "Which documents discuss fear, and what do they say about it?",
+      "doc": "multi",
+      "docs": ["hill", "enchiridion"],
+      "pages": ["Page 432", "Page 14"],
+      "evidence_terms": ["fear", "views"],
+      "expected_answer": "Think and Grow Rich lists six basic fears behind failure; the Enchiridion says men are disturbed by their views, not by things, and that the terror of death is in our notion of it.",
+      "answerable": true
+    },
+    {
+      "id": "E04",
+      "category": "E_multi_document",
+      "question": "Which documents present a method of self-improvement rather than a narrative?",
+      "doc": "multi",
+      "docs": ["franklin", "enchiridion", "hill", "science"],
+      "pages": ["Page 37", "Page 71", "Page 68", "Page 74"],
+      "evidence_terms": ["junto", "philosophy", "steps", "summary"],
+      "expected_answer": "The Enchiridion, Think and Grow Rich and The Science of Getting Rich are instructional; Franklin's autobiography mixes instruction with narrative, and Dracula is a novel.",
+      "answerable": true
+    },
+    {
+      "id": "E05",
+      "category": "E_multi_document",
+      "question": "Which document contains the statement that there is a thinking stuff from which all things are made?",
+      "doc": "science",
+      "pages": ["Page 74"],
+      "evidence_terms": ["thinking stuff"],
+      "expected_answer": "The Science of Getting Rich, in its Chapter 17 summary.",
+      "answerable": true
+    },
+    {
+      "id": "E06",
+      "category": "E_multi_document",
+      "question": "Between Think and Grow Rich and the Enchiridion, which presents a fixed sequence of steps and which presents short independent chapters?",
+      "doc": "multi",
+      "docs": ["hill", "enchiridion"],
+      "pages": ["Page 68", "Page 5"],
+      "evidence_terms": ["steps", "chapters"],
+      "expected_answer": "Think and Grow Rich presents six definite steps; the Enchiridion is 51 short independent chapters.",
+      "answerable": true
+    },
+    {
+      "id": "F01",
+      "category": "F_summarization",
+      "question": "Summarize the main argument of The Science of Getting Rich.",
+      "doc": "science",
+      "pages": ["Page 9", "Page 17", "Page 74"],
+      "evidence_terms": ["certain way", "thinking stuff", "gratitude"],
+      "expected_answer": "Riches come with mathematical certainty to those who act and think in a Certain Way; thought impressed on Formless Substance creates things; one must move from competition to creation and hold the vision with faith and gratitude.",
+      "answerable": true
+    },
+    {
+      "id": "F02",
+      "category": "F_summarization",
+      "question": "Summarize Chapter 51 of the Enchiridion.",
+      "doc": "enchiridion",
+      "pages": ["Page 71"],
+      "evidence_terms": ["three", "topics", "practical application"],
+      "expected_answer": "It distinguishes three topics in philosophy and argues that the practical application of principles is the most necessary, though people spend their time on logical demonstrations instead.",
+      "answerable": true
+    },
+    {
+      "id": "F03",
+      "category": "F_summarization",
+      "question": "Summarize the plot of Dracula as described in the document.",
+      "doc": "dracula",
+      "pages": ["Page 4"],
+      "evidence_terms": ["harker", "castle", "england", "van helsing"],
+      "expected_answer": "Jonathan Harker travels to a Carpathian castle to settle a London house purchase for Count Dracula and becomes his prisoner; in England Mina Murray and Lucy Westenra are drawn into the Count's reach until Dr. Seward calls in Van Helsing and the friends hunt Dracula down.",
+      "answerable": true
+    },
+    {
+      "id": "F04",
+      "category": "F_summarization",
+      "question": "Summarize Franklin's account of the Junto.",
+      "doc": "franklin",
+      "pages": ["Page 37"],
+      "evidence_terms": ["junto", "friday", "queries", "essay"],
+      "expected_answer": "A Friday-evening club of mutual improvement with rotating queries on morals, politics and natural philosophy, quarterly essays, a president, and rules against contentious contradiction.",
+      "answerable": true
+    },
+    {
+      "id": "F05",
+      "category": "F_summarization",
+      "question": "Summarize the six steps Hill recommends.",
+      "doc": "hill",
+      "pages": ["Page 68", "Page 69", "Page 70"],
+      "evidence_terms": ["amount", "date", "plan", "statement", "twice daily"],
+      "expected_answer": "The six steps move from a definite amount and return, through a date and plan, to a written statement read aloud twice daily with the feeling of already possessing the money.",
+      "answerable": true
+    },
+    {
+      "id": "F06",
+      "category": "F_summarization",
+      "question": "Summarize the overall advice of the Enchiridion.",
+      "doc": "enchiridion",
+      "pages": ["Page 5", "Page 14", "Page 26"],
+      "evidence_terms": ["chapters", "views", "actor"],
+      "expected_answer": "The Enchiridion is a handbook of Stoic practice in 51 short chapters: judge events by your views rather than the things themselves, accept what is not up to you, and act well the part assigned to you.",
+      "answerable": true
+    },
+    {
+      "id": "G01",
+      "category": "G_scenario",
+      "question": "Suppose a reader wants to save 10,000 dollars in one year. How would Hill's six steps apply to that goal?",
+      "doc": "hill",
+      "pages": ["Page 68", "Page 69", "Page 70"],
+      "evidence_terms": ["amount", "date", "plan", "statement"],
+      "expected_answer": "Applying Hill's steps: fix the exact amount (10,000), state what will be given in return, set a one-year date, make a definite plan and start, write the statement, and read it aloud twice daily. The application to saving is an inference; the steps themselves are explicit.",
+      "answerable": true,
+      "inference": true
+    },
+    {
+      "id": "G02",
+      "category": "G_scenario",
+      "question": "If a person is passed over for a promotion, what would Epictetus advise according to the Enchiridion?",
+      "doc": "enchiridion",
+      "pages": ["Page 17", "Page 26"],
+      "evidence_terms": ["events", "actor", "part"],
+      "expected_answer": "Do not demand that events happen as you wish; wish them to happen as they do. Remember you are an actor playing the part assigned: act it well, since choosing the part belongs to another.",
+      "answerable": true,
+      "inference": true
+    },
+    {
+      "id": "G03",
+      "category": "G_scenario",
+      "question": "If a business owner faces strong competition, what does Wattles recommend?",
+      "doc": "science",
+      "pages": ["Page 25", "Page 27"],
+      "evidence_terms": ["competitive", "creative"],
+      "expected_answer": "Rise from the competitive to the creative plane and deal so that every transaction adds more life to the other party; competitive riches are not permanent.",
+      "answerable": true,
+      "inference": true
+    },
+    {
+      "id": "G04",
+      "category": "G_scenario",
+      "question": "According to Franklin's Junto rules, how should a member behave when other members disagree with him?",
+      "doc": "franklin",
+      "pages": ["Page 37"],
+      "evidence_terms": ["contradiction", "inquiry", "truth"],
+      "expected_answer": "Debate should be conducted in a sincere spirit of inquiry after truth, without fondness for dispute or desire of victory; expressions of positiveness and direct contradiction were prohibited under small penalties.",
+      "answerable": true,
+      "inference": true
+    },
+    {
+      "id": "G05",
+      "category": "G_scenario",
+      "question": "What does Hill suggest for a person who is anxious about growing old?",
+      "doc": "hill",
+      "pages": ["Page 462"],
+      "evidence_terms": ["old age", "gratitude"],
+      "expected_answer": "Hill criticizes labelling oneself old at forty or fifty and recommends expressing gratitude for having reached the age of wisdom and understanding instead.",
+      "answerable": true,
+      "inference": true
+    },
+    {
+      "id": "H01",
+      "category": "H_numerical",
+      "question": "How many chapters are in the Enchiridion?",
+      "doc": "enchiridion",
+      "pages": ["Page 5"],
+      "evidence_terms": ["51"],
+      "expected_answer": "51.",
+      "answerable": true
+    },
+    {
+      "id": "H02",
+      "category": "H_numerical",
+      "question": "How many principles does Think and Grow Rich say it sets down?",
+      "doc": "hill",
+      "pages": ["Page 4"],
+      "evidence_terms": ["thirteen"],
+      "expected_answer": "Thirteen.",
+      "answerable": true
+    },
+    {
+      "id": "H03",
+      "category": "H_numerical",
+      "question": "How many questions are in Hill's Organized Planning questionnaire?",
+      "doc": "hill",
+      "pages": ["Page 5"],
+      "evidence_terms": ["twenty-eight"],
+      "expected_answer": "Twenty-eight.",
+      "answerable": true
+    },
+    {
+      "id": "H04",
+      "category": "H_numerical",
+      "question": "How many subscribers did Franklin's library start with, and what did each pay?",
+      "doc": "franklin",
+      "pages": ["Page 43"],
+      "evidence_terms": ["fifty subscribers", "forty shillings"],
+      "expected_answer": "Fifty subscribers paid forty shillings each, plus ten shillings a year for fifty years.",
+      "answerable": true
+    },
+    {
+      "id": "H05",
+      "category": "H_numerical",
+      "question": "In what year was Dracula first published, and in how many chapters is it told?",
+      "doc": "dracula",
+      "pages": ["Page 4", "Page 5"],
+      "evidence_terms": ["1897", "27 chapters"],
+      "expected_answer": "1897; 27 chapters.",
+      "answerable": true
+    },
+    {
+      "id": "I01",
+      "category": "I_ambiguous_conversational",
+      "question": "Tell me more about him.",
+      "history": [
+        {"role": "user", "content": "Who founded the Junto?"},
+        {"role": "assistant", "content": "Benjamin Franklin founded the Junto, a club of mutual improvement [1]."}
+      ],
+      "resolved_query": "Tell me more about Benjamin Franklin.",
+      "doc": "franklin",
+      "pages": ["Page 6", "Page 37"],
+      "evidence_terms": ["franklin"],
+      "expected_answer": "Additional Franklin facts from the autobiography, e.g. birth in Boston, tallow-chandler family, printing apprenticeship, Junto.",
+      "answerable": true,
+      "live_only": true
+    },
+    {
+      "id": "I02",
+      "category": "I_ambiguous_conversational",
+      "question": "What about the disadvantages?",
+      "history": [
+        {"role": "user", "content": "Compare the competitive plane and the creative plane in The Science of Getting Rich."},
+        {"role": "assistant", "content": "Competitive riches are taken from others and are not permanent; the creative plane adds life to the other party [1][2]."}
+      ],
+      "resolved_query": "What are the disadvantages of the competitive plane?",
+      "doc": "science",
+      "pages": ["Page 25"],
+      "evidence_terms": ["competitive", "never satisfactory"],
+      "expected_answer": "Competitive riches are never satisfactory and permanent; they are yours today and another's tomorrow.",
+      "answerable": true,
+      "live_only": true
+    },
+    {
+      "id": "I03",
+      "category": "I_ambiguous_conversational",
+      "question": "Explain the second point.",
+      "history": [
+        {"role": "user", "content": "What are Hill's six steps?"},
+        {"role": "assistant", "content": "Fix the amount; determine what you will give in return; set a date; make a plan; write a statement; read it aloud twice daily [1]."}
+      ],
+      "resolved_query": "Explain the second of Hill's six steps.",
+      "doc": "hill",
+      "pages": ["Page 69"],
+      "evidence_terms": ["give in return", "something for nothing"],
+      "expected_answer": "Determine exactly what you intend to give in return for the money; there is no such reality as something for nothing.",
+      "answerable": true,
+      "live_only": true
+    },
+    {
+      "id": "I04",
+      "category": "I_ambiguous_conversational",
+      "question": "Can you compare those two?",
+      "history": [
+        {"role": "user", "content": "Who founded the Junto?"},
+        {"role": "assistant", "content": "Benjamin Franklin founded the Junto [1]."},
+        {"role": "user", "content": "What is the Master Mind?"},
+        {"role": "assistant", "content": "Hill defines it as coordination of knowledge and effort between two or more people for a definite purpose [2]."}
+      ],
+      "resolved_query": "Compare the Junto and the Master Mind.",
+      "doc": "multi",
+      "docs": ["franklin", "hill"],
+      "pages": ["Page 37", "Page 333"],
+      "evidence_terms": ["junto", "master mind"],
+      "expected_answer": "Both are group arrangements, but the Junto is a weekly self-improvement inquiry club while the Master Mind is a purpose-driven coordination of knowledge and effort.",
+      "answerable": true,
+      "live_only": true
+    },
+    {
+      "id": "I05",
+      "category": "I_ambiguous_conversational",
+      "question": "Explain it in simple language.",
+      "history": [
+        {"role": "user", "content": "What was the Junto?"},
+        {"role": "assistant", "content": "The Junto was a club of mutual improvement founded by Franklin that met on Friday evenings [1]."}
+      ],
+      "resolved_query": "Explain the Junto in simple language.",
+      "doc": "franklin",
+      "pages": ["Page 37"],
+      "evidence_terms": ["junto", "friday"],
+      "expected_answer": "A weekly club where Franklin and friends asked questions, read essays and debated in a spirit of inquiry.",
+      "answerable": true,
+      "live_only": true
+    },
+    {
+      "id": "J01",
+      "category": "J_unanswerable",
+      "question": "In what year did Benjamin Franklin first arrive in Philadelphia?",
+      "doc": "franklin",
+      "pages": [],
+      "evidence_terms": [],
+      "expected_answer": "The autobiography does not state the arrival year in the extracted prose; the assistant must abstain rather than supply 1723 from outside knowledge.",
+      "answerable": false
+    },
+    {
+      "id": "J02",
+      "category": "J_unanswerable",
+      "question": "How many copies of Dracula were sold in its first year of publication?",
+      "doc": "dracula",
+      "pages": [],
+      "evidence_terms": [],
+      "expected_answer": "Not stated in the document.",
+      "answerable": false
+    },
+    {
+      "id": "J03",
+      "category": "J_unanswerable",
+      "question": "What was Napoleon Hill's date of birth?",
+      "doc": "hill",
+      "pages": [],
+      "evidence_terms": [],
+      "expected_answer": "Not stated in the document.",
+      "answerable": false
+    },
+    {
+      "id": "J04",
+      "category": "J_unanswerable",
+      "question": "Who wrote the introduction to the 2026 InfoBooks edition?",
+      "doc": "dracula",
+      "pages": [],
+      "evidence_terms": [],
+      "expected_answer": "Not stated; the edition page names no introduction author.",
+      "answerable": false
+    },
+    {
+      "id": "J05",
+      "category": "J_unanswerable",
+      "question": "What is the current CEO of InfoBooks?",
+      "doc": "dracula",
+      "pages": [],
+      "evidence_terms": [],
+      "expected_answer": "Not stated in the uploaded documents.",
+      "answerable": false
+    },
+    {
+      "id": "K01",
+      "category": "K_spelling",
+      "question": "whois benjaminfranklin",
+      "expected_correction": null,
+      "doc": "franklin",
+      "pages": ["Page 6", "Page 37"],
+      "evidence_terms": ["franklin"],
+      "expected_answer": "Identify Benjamin Franklin from the autobiography.",
+      "answerable": true
+    },
+    {
+      "id": "K02",
+      "category": "K_spelling",
+      "question": "whaat is benjmin frankln",
+      "expected_correction_contains": ["benjamin", "franklin"],
+      "doc": "franklin",
+      "pages": ["Page 6", "Page 37"],
+      "evidence_terms": ["franklin"],
+      "expected_answer": "Identify Benjamin Franklin.",
+      "answerable": true
+    },
+    {
+      "id": "K03",
+      "category": "K_spelling",
+      "question": "explane the contrubutions of benjamin",
+      "expected_correction_contains": ["explain", "contributions", "benjamin"],
+      "doc": "franklin",
+      "pages": ["Page 6", "Page 37", "Page 43"],
+      "evidence_terms": ["franklin"],
+      "expected_answer": "Franklin's contributions: Junto, subscription library, Poor Richard's Almanack, electricity experiments.",
+      "answerable": true
+    },
+    {
+      "id": "K04",
+      "category": "K_spelling",
+      "question": "who is dracula and wht does he do",
+      "doc": "dracula",
+      "pages": ["Page 4"],
+      "evidence_terms": ["dracula"],
+      "expected_answer": "Count Dracula, the vampire whose move to England drives the plot.",
+      "answerable": true
+    },
+    {
+      "id": "K05",
+      "category": "K_spelling",
+      "question": "tell me abot the importnt events",
+      "doc": "dracula",
+      "pages": ["Page 4"],
+      "evidence_terms": ["harker", "castle"],
+      "expected_answer": "The key events: Harker's imprisonment, Lucy's illness, Van Helsing's arrival, the hunt for Dracula.",
+      "answerable": true
+    },
+    {
+      "id": "K06",
+      "category": "K_spelling",
+      "question": "what are the responsibilites of the junto",
+      "expected_correction_contains": ["responsibilities"],
+      "doc": "franklin",
+      "pages": ["Page 37"],
+      "evidence_terms": ["queries", "essay"],
+      "expected_answer": "Each member produced queries and, quarterly, an essay; debates were directed by a president.",
+      "answerable": true
+    },
+    {
+      "id": "K07",
+      "category": "K_spelling",
+      "question": "hpw many chaptrs are in the encheeridion",
+      "expected_correction_contains": ["how", "chapters", "enchiridion"],
+      "doc": "enchiridion",
+      "pages": ["Page 5"],
+      "evidence_terms": ["51"],
+      "expected_answer": "51.",
+      "answerable": true
+    },
+    {
+      "id": "K08",
+      "category": "K_spelling",
+      "question": "teh six basik feers",
+      "expected_correction_contains": ["the", "six", "basic", "fears"],
+      "doc": "hill",
+      "pages": ["Page 432"],
+      "evidence_terms": ["poverty", "death"],
+      "expected_answer": "Poverty, criticism, ill health, loss of love, old age, death.",
+      "answerable": true
+    }
+  ]
+}

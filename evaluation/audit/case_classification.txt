@@ -1,0 +1,52 @@
+﻿case distribution: {'OK': 38, 'C1_not_retrieved': 15, 'C5_incomplete': 7, 'C2_retrieved_unused': 5, 'UNANSWERABLE': 5}
+
+answerable adjudicated: 65
+  C1_not_retrieved       15  (23.1%)
+  C2_retrieved_unused     5  (7.7%)
+  C5_incomplete           7  (10.8%)
+  OK                     38  (58.5%)
+
+by category:
+  A_basic_factual              OK=8  C1=2  C2=0  C5=0 
+  B_detailed                   OK=6  C1=2  C2=0  C5=0 
+  C_multi_hop                  OK=4  C1=1  C2=0  C5=1 
+  D_comparison                 OK=2  C1=2  C2=2  C5=0 
+  E_multi_document             OK=2  C1=2  C2=1  C5=1 
+  F_summarization              OK=0  C1=1  C2=1  C5=4 
+  G_scenario                   OK=2  C1=3  C2=0  C5=0 
+  H_numerical                  OK=5  C1=0  C2=0  C5=0 
+  I_ambiguous_conversational   OK=2  C1=1  C2=1  C5=1 
+  K_spelling                   OK=7  C1=1  C2=0  C5=0 
+
+C1 (never retrieved):
+  A02  best_sim=0.7719 eligible=21  passes=1 missing=[['tallow-chandler', 'tallow chandler'], ['sope-boiler', 'sope boiler']]
+  A05  best_sim=0.7721 eligible=113 passes=4 missing=[['amsterdam']]
+  B05  best_sim=0.5943 eligible=39  passes=4 missing=[['corpse'], ['helm']]
+  B06  best_sim=0.7174 eligible=19  passes=1 missing=[['grammar-school', 'grammar school'], ['ten years old']]
+  C02  best_sim=0.7882 eligible=20  passes=1 missing=[['reflection', 'locked', 'szgany']]
+  D01  best_sim=0.6524 eligible=2   passes=4 missing=[['junto'], ['master mind']]
+  D04  best_sim=0.6707 eligible=5   passes=1 missing=[['views'], ['fear']]
+  E04  best_sim=0.5121 eligible=56  passes=4 missing=[['junto'], ['steps'], ['philosophy']]
+  E05  best_sim=0.7313 eligible=15  passes=4 missing=[['thinking stuff']]
+  F04  best_sim=0.594 eligible=20  passes=1 missing=[['friday evenings'], ['queries']]
+  G01  best_sim=0.5893 eligible=66  passes=4 missing=[['exact amount'], ['definite date'], ['twice daily']]
+  G02  best_sim=0.5532 eligible=20  passes=4 missing=[['events should happen'], ['actor']]
+  G03  best_sim=0.4731 eligible=43  passes=4 missing=[['competitive'], ['creative']]
+  I03  best_sim=0.7075 eligible=20  passes=1 missing=[['something for nothing']]
+  K05  best_sim=0.3803 eligible=44  passes=5 missing=[['harker'], ['castle']]
+
+C2 (retrieved but not selected):
+  D02  best_sim=0.5648 eligible=55  passes=4 top_k=7 missing=[['gratitude']]
+  D05  best_sim=0.6577 eligible=79  passes=4 top_k=4 missing=[['six definite'], ['steps']]
+  E03  best_sim=0.6195 eligible=92  passes=4 top_k=4 missing=[['disturbed']]
+  F03  best_sim=0.6337 eligible=26  passes=4 top_k=7 missing=[['castle']]
+  I05  best_sim=0.5469 eligible=46  passes=4 top_k=6 missing=[['friday']]
+
+C5 (incomplete evidence):
+  C01  satisfied=2/3 missing=[['carfax']]
+  E02  satisfied=2/3 missing=[['chapter 17']]
+  F01  satisfied=1/3 missing=[['thinking stuff'], ['gratitude']]
+  F02  satisfied=1/3 missing=[['three'], ['topics']]
+  F05  satisfied=2/4 missing=[['exact amount'], ['definite date']]
+  F06  satisfied=1/3 missing=[['views'], ['actor']]
+  I04  satisfied=1/2 missing=[['junto']]

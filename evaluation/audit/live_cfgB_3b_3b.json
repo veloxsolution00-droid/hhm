@@ -1,0 +1,1236 @@
+{
+  "label": "cfgB_3b_3b",
+  "results": [
+    {
+      "id": "A01",
+      "category": "A_basic_factual",
+      "question": "Who founded the Junto, and on which evening did it meet?",
+      "expected_pages": [
+        "Page 37"
+      ],
+      "expected_answer": "Benjamin Franklin formed the Junto from his ingenious acquaintance; it met on Friday evenings.",
+      "status": "answer_validation_failed",
+      "abstained": true,
+      "answer": "The generated answer failed verification, and no sufficiently relevant verbatim passage could be safely returned. Inspect the retrieved sources or retry when Ollama is available.",
+      "sources": [
+        {
+          "filename": "the-autobiography-of-benjamin-franklin-benjamin-franklin.pdf",
+          "page": "Page 61",
+          "rank": 1
+        },
+        {
+          "filename": "think-and-grow-rich-napoleon-hill.pdf",
+          "page": "Page 202",
+          "rank": 2
+        },
+        {
+          "filename": "the-autobiography-of-benjamin-franklin-benjamin-franklin.pdf",
+          "page": "Page 61",
+          "rank": 3
+        },
+        {
+          "filename": "think-and-grow-rich-napoleon-hill.pdf",
+          "page": "Page 122",
+          "rank": 4
+        }
+      ],
+      "citation_refs": [],
+      "citation_validation": {
+        "valid": true,
+        "references_valid": true,
+        "fully_cited": true,
+        "references_found": [
+          1,
+          2,
+          3,
+          4
+        ],
+        "invalid_reference_numbers": [],
+        "unknown_source_labels": [],
+        "phantom_labels": [],
+        "uncited_sentences": [],
+        "citation_present": true,
+        "citation_coverage": 1.0
+      },
+      "question_type": "factual",
+      "question_resolved": null,
+      "confidence": {
+        "score": 0.0,
+        "label": "none",
+        "calibrated": false,
+        "kind": "heuristic_evidence_score"
+      },
+      "coverage": {
+        "total_requirements": 1,
+        "answered_requirements": 0,
+        "unanswered_requirements": 1,
+        "coverage_ratio": 0.0,
+        "per_requirement": [
+          {
+            "question": "Who founded the Junto, and on which evening did it meet",
+            "status": "answer_validation_failed",
+            "evidence_chunks": 4,
+            "answered": false
+          }
+        ]
+      },
+      "retrieval": {
+        "retrieval_seconds": 17.1809,
+        "generation_seconds": 69.1867,
+        "verification_seconds": 19.4298,
+        "ranking_seconds": 0.0367,
+        "selection_seconds": 0.4441,
+        "candidate_chunks": 55,
+        "selected_chunks": 4,
+        "best_similarity": 0.6021,
+        "top_k": 4,
+        "min_similarity": 0.25,
+        "retrieval_passes": 1,
+        "query_variants_searched": 0,
+        "cache_hit": false,
+        "document_scope": null,
+        "failure_stage": "answer_verification",
+        "verification_retry_attempted": true,
+        "answer_recovery_attempted": true,
+        "selected_context_chars": 3771
+      },
+      "page_match": false,
+      "teacher_forcing_note": null,
+      "elapsed_seconds": 114.452,
+      "response_seconds": 114.447,
+      "error": null,
+      "memory_before": {
+        "ollama_models": [
+          {
+            "name": "nomic-embed-text:latest",
+            "size_mb": 371.0,
+            "size_vram_mb": 0.0
+          }
+        ],
+        "process_rss_mb": 177.7
+      },
+      "memory_after": {
+        "ollama_models": [
+          {
+            "name": "qwen2.5:3b",
+            "size_mb": 2067.9,
+            "size_vram_mb": 0.0
+          },
+          {
+            "name": "nomic-embed-text:latest",
+            "size_mb": 371.0,
+            "size_vram_mb": 0.0
+          }
+        ],
+        "process_rss_mb": 182.7
+      }
+    },
+    {
+      "id": "A02",
+      "category": "A_basic_factual",
+      "question": "What was Benjamin Franklin's father's trade?",
+      "expected_pages": [
+        "Page 7"
+      ],
+      "expected_answer": "He was a tallow-chandler and sope-boiler.",
+      "status": "success",
+      "abstained": false,
+      "answer": "\u201cBenjamin Franklin belonged to the class of apprentices who bound themselves \u201cby their own free will and consent\u201d to a master to learn his trade, not the apprentices involuntarily bound under the auspices of the Poor Law [3].\u201d",
+      "sources": [
+        {
+          "filename": "the-autobiography-of-benjamin-franklin-benjamin-franklin.pdf",
+          "page": "Page 4",
+          "rank": 1
+        },
+        {
+          "filename": "the-autobiography-of-benjamin-franklin-benjamin-franklin.pdf",
+          "page": "Page 105",
+          "rank": 2
+        },
+        {
+          "filename": "the-autobiography-of-benjamin-franklin-benjamin-franklin.pdf",
+          "page": "Page 109",
+          "rank": 3
+        },
+        {
+          "filename": "the-autobiography-of-benjamin-franklin-benjamin-franklin.pdf",
+          "page": "Page 107",
+          "rank": 4
+        }
+      ],
+      "citation_refs": [
+        3
+      ],
+      "citation_validation": {
+        "valid": true,
+        "references_valid": true,
+        "fully_cited": true,
+        "references_found": [
+          3
+        ],
+        "invalid_reference_numbers": [],
+        "unknown_source_labels": [],
+        "phantom_labels": [],
+        "uncited_sentences": [],
+        "citation_present": true,
+        "citation_coverage": 1.0
+      },
+      "question_type": "factual",
+      "question_resolved": null,
+      "confidence": {
+        "score": 1.0,
+        "label": "high",
+        "calibrated": false,
+        "kind": "heuristic_evidence_score",
+        "signals": {
+          "retrieval_similarity": 0.765,
+          "term_coverage": 1.0,
+          "citation_valid": true,
+          "citation_coverage": 1.0,
+          "verified": true
+        }
+      },
+      "coverage": {
+        "total_requirements": 1,
+        "answered_requirements": 1,
+        "unanswered_requirements": 0,
+        "coverage_ratio": 1.0,
+        "per_requirement": [
+          {
+            "question": "What was Benjamin Franklin's father's trade",
+            "status": "success",
+            "evidence_chunks": 4,
+            "answered": true
+          }
+        ]
+      },
+      "retrieval": {
+        "retrieval_seconds": 0.5937,
+        "generation_seconds": 55.3265,
+        "verification_seconds": 10.3405,
+        "ranking_seconds": 0.0095,
+        "selection_seconds": 0.2493,
+        "candidate_chunks": 48,
+        "selected_chunks": 4,
+        "best_similarity": 0.7652,
+        "top_k": 4,
+        "min_similarity": 0.25,
+        "retrieval_passes": 1,
+        "query_variants_searched": 0,
+        "cache_hit": false,
+        "document_scope": [
+          "the-autobiography-of-benjamin-franklin-benjamin-franklin.pdf"
+        ],
+        "verification_retry_attempted": true,
+        "answer_recovery_attempted": true,
+        "selected_context_chars": 4524
+      },
+      "page_match": false,
+      "teacher_forcing_note": null,
+      "elapsed_seconds": 93.309,
+      "response_seconds": 93.276,
+      "error": null,
+      "memory_before": {
+        "ollama_models": [
+          {
+            "name": "qwen2.5:3b",
+            "size_mb": 2067.9,
+            "size_vram_mb": 0.0
+          },
+          {
+            "name": "nomic-embed-text:latest",
+            "size_mb": 371.0,
+            "size_vram_mb": 0.0
+          }
+        ],
+        "process_rss_mb": 182.8
+      },
+      "memory_after": {
+        "ollama_models": [
+          {
+            "name": "qwen2.5:3b",
+            "size_mb": 2067.9,
+            "size_vram_mb": 0.0
+          },
+          {
+            "name": "nomic-embed-text:latest",
+            "size_mb": 371.0,
+            "size_vram_mb": 0.0
+          }
+        ],
+        "process_rss_mb": 183.6
+      }
+    },
+    {
+      "id": "B02",
+      "category": "B_detailed",
+      "question": "Describe the six definite practical steps Hill gives for transmuting the desire for riches into money.",
+      "expected_pages": [
+        "Page 68",
+        "Page 69",
+        "Page 70"
+      ],
+      "expected_answer": "Fix the exact amount; determine what you will give in return; set a definite date; create a definite plan and begin at once; write a clear statement of amount, time limit, return and plan; read it aloud twice daily, seeing and feeling yourself already in possession.",
+      "status": "success",
+      "abstained": false,
+      "answer": "\u201cThe method by which DESIRE for riches can be transmuted into its financial equivalent, consists of six definite, practical steps, viz: First [3].\u201d",
+      "sources": [
+        {
+          "filename": "think-and-grow-rich-napoleon-hill.pdf",
+          "page": "Page 341",
+          "rank": 1
+        },
+        {
+          "filename": "think-and-grow-rich-napoleon-hill.pdf",
+          "page": "Page 201",
+          "rank": 2
+        },
+        {
+          "filename": "think-and-grow-rich-napoleon-hill.pdf",
+          "page": "Page 68",
+          "rank": 3
+        },
+        {
+          "filename": "think-and-grow-rich-napoleon-hill.pdf",
+          "page": "Page 69",
+          "rank": 4
+        }
+      ],
+      "citation_refs": [
+        3
+      ],
+      "citation_validation": {
+        "valid": true,
+        "references_valid": true,
+        "fully_cited": true,
+        "references_found": [
+          3
+        ],
+        "invalid_reference_numbers": [],
+        "unknown_source_labels": [],
+        "phantom_labels": [],
+        "uncited_sentences": [],
+        "citation_present": true,
+        "citation_coverage": 1.0
+      },
+      "question_type": "factual",
+      "question_resolved": null,
+      "confidence": {
+        "score": 0.964,
+        "label": "high",
+        "calibrated": false,
+        "kind": "heuristic_evidence_score",
+        "signals": {
+          "retrieval_similarity": 0.788,
+          "term_coverage": 0.818,
+          "citation_valid": true,
+          "citation_coverage": 1.0,
+          "verified": true
+        }
+      },
+      "coverage": {
+        "total_requirements": 1,
+        "answered_requirements": 1,
+        "unanswered_requirements": 0,
+        "coverage_ratio": 1.0,
+        "per_requirement": [
+          {
+            "question": "Describe the six definite practical steps Hill gives for transmuting the desire for riches into money.",
+            "status": "success",
+            "evidence_chunks": 4,
+            "answered": true
+          }
+        ]
+      },
+      "retrieval": {
+        "retrieval_seconds": 1.509,
+        "generation_seconds": 114.4903,
+        "verification_seconds": 43.1947,
+        "ranking_seconds": 0.0243,
+        "selection_seconds": 0.7489,
+        "candidate_chunks": 80,
+        "selected_chunks": 4,
+        "best_similarity": 0.7881,
+        "top_k": 4,
+        "min_similarity": 0.25,
+        "retrieval_passes": 4,
+        "query_variants_searched": 3,
+        "cache_hit": false,
+        "document_scope": null,
+        "verification_retry_attempted": true,
+        "answer_recovery_attempted": true,
+        "selected_context_chars": 4015
+      },
+      "page_match": true,
+      "teacher_forcing_note": null,
+      "elapsed_seconds": 185.751,
+      "response_seconds": 185.746,
+      "error": null,
+      "memory_before": {
+        "ollama_models": [
+          {
+            "name": "qwen2.5:3b",
+            "size_mb": 2067.9,
+            "size_vram_mb": 0.0
+          },
+          {
+            "name": "nomic-embed-text:latest",
+            "size_mb": 371.0,
+            "size_vram_mb": 0.0
+          }
+        ],
+        "process_rss_mb": 184.1
+      },
+      "memory_after": {
+        "ollama_models": [
+          {
+            "name": "qwen2.5:3b",
+            "size_mb": 2067.9,
+            "size_vram_mb": 0.0
+          },
+          {
+            "name": "nomic-embed-text:latest",
+            "size_mb": 371.0,
+            "size_vram_mb": 0.0
+          }
+        ],
+        "process_rss_mb": 187.0
+      }
+    },
+    {
+      "id": "D01",
+      "category": "D_comparison",
+      "question": "Compare Franklin's Junto with Hill's Master Mind.",
+      "expected_pages": [
+        "Page 333",
+        "Page 37"
+      ],
+      "expected_answer": "The Junto was a weekly club of mutual improvement with queries and essays; Hill's Master Mind is the coordination of knowledge and effort, in harmony, between two or more people for a definite purpose. Both use a group, but the Junto is an inquiry club and the Master Mind is a purpose-driven alliance.",
+      "status": "citation_validation_failed",
+      "abstained": true,
+      "answer": "The document passages were retrieved, but the generated answer did not cite them correctly. Please retry or inspect the listed source passages.",
+      "sources": [
+        {
+          "filename": "the-autobiography-of-benjamin-franklin-benjamin-franklin.pdf",
+          "page": "Page 46",
+          "rank": 1
+        },
+        {
+          "filename": "the-autobiography-of-benjamin-franklin-benjamin-franklin.pdf",
+          "page": "Page 10",
+          "rank": 2
+        }
+      ],
+      "citation_refs": [],
+      "citation_validation": {
+        "valid": false,
+        "references_valid": true,
+        "fully_cited": false,
+        "references_found": [
+          1
+        ],
+        "invalid_reference_numbers": [],
+        "unknown_source_labels": [],
+        "phantom_labels": [],
+        "uncited_sentences": [
+          "Franklin's Junto and Hill's Master Mind both aim to organize social groups with the goal of fostering intellectual and s",
+          "The Junto aimed to provide a platform for members to share ideas, learn from each other, and improve their thinking and ",
+          "This aligns with the Junto's purpose of creating a community where members could master their own experiences and though",
+          "Hill's work focuses on the idea of a master mind, which is a group of people who collaborate to achieve a common goal.",
+          "Hill's work suggests that a master mind can be a powerful tool for personal and collective growth, mirroring the Junto's",
+          "Both Franklin's Junto and Hill's Master Mind share the common goal of creating a community where members can master thei",
+          "However, the Junto was established in the 18th century, while Master Mind is a more contemporary concept.",
+          "Franklin's Junto was a social club for young men, whereas Master Mind is a concept that can be applied to various groups"
+        ],
+        "citation_present": true,
+        "citation_coverage": 0.111
+      },
+      "question_type": "comparison",
+      "question_resolved": null,
+      "confidence": {
+        "score": 0.0,
+        "label": "none",
+        "calibrated": false,
+        "kind": "heuristic_evidence_score"
+      },
+      "coverage": {
+        "total_requirements": 1,
+        "answered_requirements": 0,
+        "unanswered_requirements": 1,
+        "coverage_ratio": 0.0,
+        "per_requirement": [
+          {
+            "question": "Compare Franklin's Junto with Hill's Master Mind.",
+            "status": "citation_validation_failed",
+            "evidence_chunks": 2,
+            "answered": false
+          }
+        ]
+      },
+      "retrieval": {
+        "retrieval_seconds": 0.5464,
+        "generation_seconds": 77.2056,
+        "ranking_seconds": 0.0003,
+        "selection_seconds": 0.0043,
+        "candidate_chunks": 74,
+        "selected_chunks": 2,
+        "best_similarity": 0.7658,
+        "top_k": 7,
+        "min_similarity": 0.25,
+        "retrieval_passes": 4,
+        "query_variants_searched": 3,
+        "cache_hit": false,
+        "document_scope": [
+          "the-autobiography-of-benjamin-franklin-benjamin-franklin.pdf"
+        ],
+        "failure_stage": "citation_validation",
+        "selected_context_chars": 458
+      },
+      "page_match": false,
+      "teacher_forcing_note": null,
+      "elapsed_seconds": 77.783,
+      "response_seconds": 77.781,
+      "error": null,
+      "memory_before": {
+        "ollama_models": [
+          {
+            "name": "qwen2.5:3b",
+            "size_mb": 2067.9,
+            "size_vram_mb": 0.0
+          },
+          {
+            "name": "nomic-embed-text:latest",
+            "size_mb": 371.0,
+            "size_vram_mb": 0.0
+          }
+        ],
+        "process_rss_mb": 186.6
+      },
+      "memory_after": {
+        "ollama_models": [
+          {
+            "name": "qwen2.5:3b",
+            "size_mb": 2067.9,
+            "size_vram_mb": 0.0
+          },
+          {
+            "name": "nomic-embed-text:latest",
+            "size_mb": 371.0,
+            "size_vram_mb": 0.0
+          }
+        ],
+        "process_rss_mb": 121.8
+      }
+    },
+    {
+      "id": "F01",
+      "category": "F_summarization",
+      "question": "Summarize the main argument of The Science of Getting Rich.",
+      "expected_pages": [
+        "Page 17",
+        "Page 74",
+        "Page 9"
+      ],
+      "expected_answer": "Riches come with mathematical certainty to those who act and think in a Certain Way; thought impressed on Formless Substance creates things; one must move from competition to creation and hold the vision with faith and gratitude.",
+      "status": "success",
+      "abstained": false,
+      "answer": "The main argument of The Science of Getting Rich is that getting rich is not solely dependent on having more capital, talents, or doing different things compared to others [4]. Instead, it is argued that getting rich is the result of doing things in a certain way [1], [2], [3], [4], [5], [6]. The book emphasizes that getting rich is not about saving money or doing things others fail to do; it is about doing things in a specific manner [1], [4]. The author also suggests that getting rich is not influenced by one's environment or the business one is in, but rather by the way one does things [2], [3], [5]. Lastly, the book advises readers to focus on their vision and act now, regardless of their current situation, as long as they are doing things in the right way [6], [7].",
+      "sources": [
+        {
+          "filename": "the-science-of-getting-rich.pdf",
+          "page": "Page 11",
+          "rank": 1
+        },
+        {
+          "filename": "the-science-of-getting-rich.pdf",
+          "page": "Page 9",
+          "rank": 2
+        },
+        {
+          "filename": "the-science-of-getting-rich.pdf",
+          "page": "Page 45",
+          "rank": 3
+        },
+        {
+          "filename": "the-science-of-getting-rich.pdf",
+          "page": "Page 10",
+          "rank": 4
+        },
+        {
+          "filename": "the-science-of-getting-rich.pdf",
+          "page": "Page 9",
+          "rank": 5
+        },
+        {
+          "filename": "the-science-of-getting-rich.pdf",
+          "page": "Page 11",
+          "rank": 6
+        },
+        {
+          "filename": "the-science-of-getting-rich.pdf",
+          "page": "Page 52",
+          "rank": 7
+        }
+      ],
+      "citation_refs": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "citation_validation": {
+        "valid": true,
+        "references_valid": true,
+        "fully_cited": true,
+        "references_found": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7
+        ],
+        "invalid_reference_numbers": [],
+        "unknown_source_labels": [],
+        "phantom_labels": [],
+        "uncited_sentences": [],
+        "citation_present": true,
+        "citation_coverage": 1.0
+      },
+      "question_type": "summary",
+      "question_resolved": null,
+      "confidence": {
+        "score": 0.9,
+        "label": "high",
+        "calibrated": false,
+        "kind": "heuristic_evidence_score",
+        "signals": {
+          "retrieval_similarity": 0.85,
+          "term_coverage": 0.5,
+          "citation_valid": true,
+          "citation_coverage": 1.0,
+          "verified": true
+        }
+      },
+      "coverage": {
+        "total_requirements": 1,
+        "answered_requirements": 1,
+        "unanswered_requirements": 0,
+        "coverage_ratio": 1.0,
+        "per_requirement": [
+          {
+            "question": "Summarize the main argument of The Science of Getting Rich.",
+            "status": "success",
+            "evidence_chunks": 7,
+            "answered": true
+          }
+        ]
+      },
+      "retrieval": {
+        "retrieval_seconds": 1.8806,
+        "generation_seconds": 80.2978,
+        "verification_seconds": 81.9777,
+        "ranking_seconds": 0.0168,
+        "selection_seconds": 1.376,
+        "candidate_chunks": 64,
+        "selected_chunks": 7,
+        "best_similarity": 0.8503,
+        "top_k": 7,
+        "min_similarity": 0.25,
+        "retrieval_passes": 4,
+        "query_variants_searched": 3,
+        "cache_hit": false,
+        "document_scope": [
+          "the-science-of-getting-rich.pdf"
+        ],
+        "selected_context_chars": 6760
+      },
+      "page_match": true,
+      "teacher_forcing_note": null,
+      "elapsed_seconds": 164.21,
+      "response_seconds": 164.188,
+      "error": null,
+      "memory_before": {
+        "ollama_models": [
+          {
+            "name": "qwen2.5:3b",
+            "size_mb": 2067.9,
+            "size_vram_mb": 0.0
+          },
+          {
+            "name": "nomic-embed-text:latest",
+            "size_mb": 371.0,
+            "size_vram_mb": 0.0
+          }
+        ],
+        "process_rss_mb": 122.2
+      },
+      "memory_after": {
+        "ollama_models": [
+          {
+            "name": "qwen2.5:3b",
+            "size_mb": 2067.9,
+            "size_vram_mb": 0.0
+          },
+          {
+            "name": "nomic-embed-text:latest",
+            "size_mb": 371.0,
+            "size_vram_mb": 0.0
+          }
+        ],
+        "process_rss_mb": 124.3
+      }
+    },
+    {
+      "id": "H05",
+      "category": "H_numerical",
+      "question": "In what year was Dracula first published, and in how many chapters is it told?",
+      "expected_pages": [
+        "Page 4",
+        "Page 5"
+      ],
+      "expected_answer": "1897; 27 chapters.",
+      "status": "success",
+      "abstained": false,
+      "answer": "\u201cABOU T THIS EDI TION Dracula is a novel told through letters, journals and newspaper cuttings, written by the Irish author Bram Stoker and first published in London in 1897 by Archibald Constable and Company [1].\u201d",
+      "sources": [
+        {
+          "filename": "dracula-bram-stoker.pdf",
+          "page": "Page 727",
+          "rank": 1
+        },
+        {
+          "filename": "dracula-bram-stoker.pdf",
+          "page": "Page 641",
+          "rank": 2
+        },
+        {
+          "filename": "dracula-bram-stoker.pdf",
+          "page": "Page 5",
+          "rank": 3
+        },
+        {
+          "filename": "dracula-bram-stoker.pdf",
+          "page": "Page 4",
+          "rank": 4
+        }
+      ],
+      "citation_refs": [
+        1
+      ],
+      "citation_validation": {
+        "valid": true,
+        "references_valid": true,
+        "fully_cited": true,
+        "references_found": [
+          1
+        ],
+        "invalid_reference_numbers": [],
+        "unknown_source_labels": [],
+        "phantom_labels": [],
+        "uncited_sentences": [],
+        "citation_present": true,
+        "citation_coverage": 1.0
+      },
+      "question_type": "factual",
+      "question_resolved": null,
+      "confidence": {
+        "score": 0.937,
+        "label": "high",
+        "calibrated": false,
+        "kind": "heuristic_evidence_score",
+        "signals": {
+          "retrieval_similarity": 0.685,
+          "term_coverage": 0.857,
+          "citation_valid": true,
+          "citation_coverage": 1.0,
+          "verified": true
+        }
+      },
+      "coverage": {
+        "total_requirements": 1,
+        "answered_requirements": 1,
+        "unanswered_requirements": 0,
+        "coverage_ratio": 1.0,
+        "per_requirement": [
+          {
+            "question": "In what year was Dracula first published, and in how many chapters is it told",
+            "status": "success",
+            "evidence_chunks": 4,
+            "answered": true
+          }
+        ]
+      },
+      "retrieval": {
+        "retrieval_seconds": 1.4908,
+        "generation_seconds": 54.9881,
+        "verification_seconds": 0.4878,
+        "ranking_seconds": 0.0046,
+        "selection_seconds": 0.134,
+        "candidate_chunks": 57,
+        "selected_chunks": 4,
+        "best_similarity": 0.6853,
+        "top_k": 4,
+        "min_similarity": 0.25,
+        "retrieval_passes": 1,
+        "query_variants_searched": 0,
+        "cache_hit": false,
+        "document_scope": [
+          "dracula-bram-stoker.pdf"
+        ],
+        "verification_retry_attempted": true,
+        "answer_recovery_attempted": true,
+        "selected_context_chars": 3696
+      },
+      "page_match": true,
+      "teacher_forcing_note": null,
+      "elapsed_seconds": 71.924,
+      "response_seconds": 71.914,
+      "error": null,
+      "memory_before": {
+        "ollama_models": [
+          {
+            "name": "qwen2.5:3b",
+            "size_mb": 2067.9,
+            "size_vram_mb": 0.0
+          },
+          {
+            "name": "nomic-embed-text:latest",
+            "size_mb": 371.0,
+            "size_vram_mb": 0.0
+          }
+        ],
+        "process_rss_mb": 124.3
+      },
+      "memory_after": {
+        "ollama_models": [
+          {
+            "name": "qwen2.5:3b",
+            "size_mb": 2067.9,
+            "size_vram_mb": 0.0
+          },
+          {
+            "name": "nomic-embed-text:latest",
+            "size_mb": 371.0,
+            "size_vram_mb": 0.0
+          }
+        ],
+        "process_rss_mb": 109.6
+      }
+    },
+    {
+      "id": "I01",
+      "category": "I_ambiguous_conversational",
+      "question": "Tell me more about him.",
+      "expected_pages": [
+        "Page 37",
+        "Page 6"
+      ],
+      "expected_answer": "Additional Franklin facts from the autobiography, e.g. birth in Boston, tallow-chandler family, printing apprenticeship, Junto.",
+      "status": "success",
+      "abstained": false,
+      "answer": "\u201cA little more than thirty years ago, Edwin C [2].\u201d",
+      "sources": [
+        {
+          "filename": "dracula-bram-stoker.pdf",
+          "page": "Page 460",
+          "rank": 1
+        },
+        {
+          "filename": "think-and-grow-rich-napoleon-hill.pdf",
+          "page": "Page 36",
+          "rank": 2
+        },
+        {
+          "filename": "think-and-grow-rich-napoleon-hill.pdf",
+          "page": "Page 4",
+          "rank": 3
+        },
+        {
+          "filename": "dracula-bram-stoker.pdf",
+          "page": "Page 615",
+          "rank": 4
+        }
+      ],
+      "citation_refs": [
+        2
+      ],
+      "citation_validation": {
+        "valid": true,
+        "references_valid": true,
+        "fully_cited": true,
+        "references_found": [
+          2
+        ],
+        "invalid_reference_numbers": [],
+        "unknown_source_labels": [],
+        "phantom_labels": [],
+        "uncited_sentences": [],
+        "citation_present": true,
+        "citation_coverage": 1.0
+      },
+      "question_type": "factual",
+      "question_resolved": null,
+      "confidence": {
+        "score": 0.976,
+        "label": "high",
+        "calibrated": false,
+        "kind": "heuristic_evidence_score",
+        "signals": {
+          "retrieval_similarity": 0.705,
+          "term_coverage": 1.0,
+          "citation_valid": true,
+          "citation_coverage": 1.0,
+          "verified": true
+        }
+      },
+      "coverage": {
+        "total_requirements": 1,
+        "answered_requirements": 1,
+        "unanswered_requirements": 0,
+        "coverage_ratio": 1.0,
+        "per_requirement": [
+          {
+            "question": "Tell me more about him.",
+            "status": "success",
+            "evidence_chunks": 4,
+            "answered": true
+          }
+        ]
+      },
+      "retrieval": {
+        "retrieval_seconds": 4.7055,
+        "generation_seconds": 53.2569,
+        "verification_seconds": 7.4433,
+        "ranking_seconds": 0.0907,
+        "selection_seconds": 2.2918,
+        "candidate_chunks": 143,
+        "selected_chunks": 4,
+        "best_similarity": 0.7054,
+        "top_k": 4,
+        "min_similarity": 0.25,
+        "retrieval_passes": 3,
+        "query_variants_searched": 2,
+        "cache_hit": false,
+        "document_scope": null,
+        "verification_retry_attempted": true,
+        "answer_recovery_attempted": true,
+        "selected_context_chars": 3071
+      },
+      "page_match": false,
+      "teacher_forcing_note": null,
+      "elapsed_seconds": 80.362,
+      "response_seconds": 80.315,
+      "error": null,
+      "memory_before": {
+        "ollama_models": [
+          {
+            "name": "qwen2.5:3b",
+            "size_mb": 2067.9,
+            "size_vram_mb": 0.0
+          },
+          {
+            "name": "nomic-embed-text:latest",
+            "size_mb": 371.0,
+            "size_vram_mb": 0.0
+          }
+        ],
+        "process_rss_mb": 110.1
+      },
+      "memory_after": {
+        "ollama_models": [
+          {
+            "name": "qwen2.5:3b",
+            "size_mb": 2067.9,
+            "size_vram_mb": 0.0
+          },
+          {
+            "name": "nomic-embed-text:latest",
+            "size_mb": 371.0,
+            "size_vram_mb": 0.0
+          }
+        ],
+        "process_rss_mb": 233.0
+      }
+    },
+    {
+      "id": "J01",
+      "category": "J_unanswerable",
+      "question": "In what year did Benjamin Franklin first arrive in Philadelphia?",
+      "expected_pages": [],
+      "expected_answer": "The autobiography does not state the arrival year in the extracted prose; the assistant must abstain rather than supply 1723 from outside knowledge.",
+      "status": "success",
+      "abstained": false,
+      "answer": "\u201c-  Elegy This broadside elegy for Aquila Rose, the young poet and printer whose death at the age of 28 was the reason why William Bradford had recommended Franklin to come to Philadelphia in the first place, is the first thing that Franklin printed in the city [2].\u201d",
+      "sources": [
+        {
+          "filename": "the-autobiography-of-benjamin-franklin-benjamin-franklin.pdf",
+          "page": "Page 127",
+          "rank": 1
+        },
+        {
+          "filename": "the-autobiography-of-benjamin-franklin-benjamin-franklin.pdf",
+          "page": "Page 114",
+          "rank": 2
+        },
+        {
+          "filename": "the-autobiography-of-benjamin-franklin-benjamin-franklin.pdf",
+          "page": "Page 112",
+          "rank": 3
+        },
+        {
+          "filename": "the-autobiography-of-benjamin-franklin-benjamin-franklin.pdf",
+          "page": "Page 40",
+          "rank": 4
+        }
+      ],
+      "citation_refs": [
+        2
+      ],
+      "citation_validation": {
+        "valid": true,
+        "references_valid": true,
+        "fully_cited": true,
+        "references_found": [
+          2
+        ],
+        "invalid_reference_numbers": [],
+        "unknown_source_labels": [],
+        "phantom_labels": [],
+        "uncited_sentences": [],
+        "citation_present": true,
+        "citation_coverage": 1.0
+      },
+      "question_type": "factual",
+      "question_resolved": null,
+      "confidence": {
+        "score": 0.899,
+        "label": "high",
+        "calibrated": false,
+        "kind": "heuristic_evidence_score",
+        "signals": {
+          "retrieval_similarity": 0.614,
+          "term_coverage": 0.857,
+          "citation_valid": true,
+          "citation_coverage": 1.0,
+          "verified": true
+        }
+      },
+      "coverage": {
+        "total_requirements": 1,
+        "answered_requirements": 1,
+        "unanswered_requirements": 0,
+        "coverage_ratio": 1.0,
+        "per_requirement": [
+          {
+            "question": "In what year did Benjamin Franklin first arrive in Philadelphia",
+            "status": "success",
+            "evidence_chunks": 4,
+            "answered": true
+          }
+        ]
+      },
+      "retrieval": {
+        "retrieval_seconds": 7.1678,
+        "generation_seconds": 56.387,
+        "verification_seconds": 5.8897,
+        "ranking_seconds": 0.0188,
+        "selection_seconds": 0.6143,
+        "candidate_chunks": 94,
+        "selected_chunks": 4,
+        "best_similarity": 0.6137,
+        "top_k": 4,
+        "min_similarity": 0.25,
+        "retrieval_passes": 3,
+        "query_variants_searched": 2,
+        "cache_hit": false,
+        "document_scope": [
+          "the-autobiography-of-benjamin-franklin-benjamin-franklin.pdf"
+        ],
+        "verification_retry_attempted": true,
+        "answer_recovery_attempted": true,
+        "selected_context_chars": 4651
+      },
+      "page_match": null,
+      "teacher_forcing_note": null,
+      "elapsed_seconds": 76.152,
+      "response_seconds": 76.089,
+      "error": null,
+      "memory_before": {
+        "ollama_models": [
+          {
+            "name": "qwen2.5:3b",
+            "size_mb": 2067.9,
+            "size_vram_mb": 0.0
+          },
+          {
+            "name": "nomic-embed-text:latest",
+            "size_mb": 371.0,
+            "size_vram_mb": 0.0
+          }
+        ],
+        "process_rss_mb": 231.6
+      },
+      "memory_after": {
+        "ollama_models": [
+          {
+            "name": "qwen2.5:3b",
+            "size_mb": 2067.9,
+            "size_vram_mb": 0.0
+          },
+          {
+            "name": "nomic-embed-text:latest",
+            "size_mb": 371.0,
+            "size_vram_mb": 0.0
+          }
+        ],
+        "process_rss_mb": 208.4
+      }
+    },
+    {
+      "id": "K02",
+      "category": "K_spelling",
+      "question": "whaat is benjmin frankln",
+      "expected_pages": [
+        "Page 37",
+        "Page 6"
+      ],
+      "expected_answer": "Identify Benjamin Franklin.",
+      "status": "success",
+      "abstained": false,
+      "answer": "\u201cThough Mather and Benjamin Franklin held opposing views upon various matters, there is no doubt that Mather exerted major influence upon Franklin [3].\u201d",
+      "sources": [
+        {
+          "filename": "the-autobiography-of-benjamin-franklin-benjamin-franklin.pdf",
+          "page": "Page 105",
+          "rank": 1
+        },
+        {
+          "filename": "the-autobiography-of-benjamin-franklin-benjamin-franklin.pdf",
+          "page": "Page 112",
+          "rank": 2
+        },
+        {
+          "filename": "the-autobiography-of-benjamin-franklin-benjamin-franklin.pdf",
+          "page": "Page 107",
+          "rank": 3
+        },
+        {
+          "filename": "the-autobiography-of-benjamin-franklin-benjamin-franklin.pdf",
+          "page": "Page 4",
+          "rank": 4
+        }
+      ],
+      "citation_refs": [
+        3
+      ],
+      "citation_validation": {
+        "valid": true,
+        "references_valid": true,
+        "fully_cited": true,
+        "references_found": [
+          3
+        ],
+        "invalid_reference_numbers": [],
+        "unknown_source_labels": [],
+        "phantom_labels": [],
+        "uncited_sentences": [],
+        "citation_present": true,
+        "citation_coverage": 1.0
+      },
+      "question_type": "factual",
+      "question_resolved": null,
+      "confidence": {
+        "score": 1.0,
+        "label": "high",
+        "calibrated": false,
+        "kind": "heuristic_evidence_score",
+        "signals": {
+          "retrieval_similarity": 0.77,
+          "term_coverage": 1.0,
+          "citation_valid": true,
+          "citation_coverage": 1.0,
+          "verified": true
+        }
+      },
+      "coverage": {
+        "total_requirements": 1,
+        "answered_requirements": 1,
+        "unanswered_requirements": 0,
+        "coverage_ratio": 1.0,
+        "per_requirement": [
+          {
+            "question": "whaat is benjmin frankln",
+            "status": "success",
+            "evidence_chunks": 4,
+            "answered": true
+          }
+        ]
+      },
+      "retrieval": {
+        "retrieval_seconds": 5.5044,
+        "generation_seconds": 83.4165,
+        "verification_seconds": 15.5104,
+        "ranking_seconds": 0.026,
+        "selection_seconds": 0.3505,
+        "candidate_chunks": 58,
+        "selected_chunks": 4,
+        "best_similarity": 0.7703,
+        "top_k": 4,
+        "min_similarity": 0.25,
+        "retrieval_passes": 2,
+        "query_variants_searched": 0,
+        "spelling_correction": {
+          "from": "whaat is benjmin frankln",
+          "to": "what is benjamin franklin"
+        },
+        "cache_hit": false,
+        "document_scope": [
+          "the-autobiography-of-benjamin-franklin-benjamin-franklin.pdf"
+        ],
+        "verification_retry_attempted": true,
+        "answer_recovery_attempted": true,
+        "selected_context_chars": 4523
+      },
+      "page_match": false,
+      "teacher_forcing_note": null,
+      "elapsed_seconds": 133.877,
+      "response_seconds": 133.852,
+      "error": null,
+      "memory_before": {
+        "ollama_models": [
+          {
+            "name": "qwen2.5:3b",
+            "size_mb": 2067.9,
+            "size_vram_mb": 0.0
+          },
+          {
+            "name": "nomic-embed-text:latest",
+            "size_mb": 371.0,
+            "size_vram_mb": 0.0
+          }
+        ],
+        "process_rss_mb": 220.6
+      },
+      "memory_after": {
+        "ollama_models": [
+          {
+            "name": "qwen2.5:3b",
+            "size_mb": 2067.9,
+            "size_vram_mb": 0.0
+          },
+          {
+            "name": "nomic-embed-text:latest",
+            "size_mb": 371.0,
+            "size_vram_mb": 0.0
+          }
+        ],
+        "process_rss_mb": 101.4
+      }
+    }
+  ]
+}

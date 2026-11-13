@@ -1,0 +1,90 @@
+﻿A01  A_basic_factual            rec@sel=1.0 mrr=0.3333 prec=0.25 cov=1.0 sim=0.5933 t=2.404s
+A02  A_basic_factual            rec@sel=0.0 mrr=0.0 prec=0.0 cov=0.0 sim=0.7719 t=0.402s
+A03  A_basic_factual            rec@sel=0.0 mrr=0.0 prec=0.0 cov=0.0 sim=0.6762 t=0.92s
+A04  A_basic_factual            rec@sel=1.0 mrr=0.125 prec=0.25 cov=0.5 sim=0.5901 t=0.547s
+A05  A_basic_factual            rec@sel=0.0 mrr=0.0312 prec=0.0 cov=0.0 sim=0.7721 t=2.049s
+A06  A_basic_factual            rec@sel=1.0 mrr=1.0 prec=0.25 cov=1.0 sim=0.632 t=0.306s
+A07  A_basic_factual            rec@sel=1.0 mrr=1.0 prec=0.75 cov=1.0 sim=0.8807 t=0.368s
+A08  A_basic_factual            rec@sel=1.0 mrr=0.5 prec=0.25 cov=1.0 sim=0.8783 t=0.394s
+A09  A_basic_factual            rec@sel=1.0 mrr=1.0 prec=0.25 cov=0.5 sim=0.847 t=0.402s
+A10  A_basic_factual            rec@sel=1.0 mrr=0.5 prec=0.5 cov=1.0 sim=0.8108 t=0.417s
+B01  B_detailed                 rec@sel=1.0 mrr=1.0 prec=0.25 cov=1.0 sim=0.6359 t=0.345s
+B02  B_detailed                 rec@sel=1.0 mrr=0.3333 prec=0.5 cov=0.6667 sim=0.7547 t=1.594s
+B03  B_detailed                 rec@sel=1.0 mrr=1.0 prec=0.25 cov=0.5 sim=0.646 t=0.282s
+B04  B_detailed                 rec@sel=1.0 mrr=1.0 prec=0.25 cov=1.0 sim=0.5459 t=0.763s
+B05  B_detailed                 rec@sel=0.0 mrr=0.0476 prec=0.0 cov=0.0 sim=0.5943 t=0.991s
+B06  B_detailed                 rec@sel=0.0 mrr=0.0 prec=0.0 cov=0.0 sim=0.7174 t=0.303s
+B07  B_detailed                 rec@sel=0.0 mrr=0.1 prec=0.0 cov=0.0 sim=0.7281 t=1.127s
+B08  B_detailed                 rec@sel=1.0 mrr=0.5 prec=0.25 cov=1.0 sim=0.6499 t=0.914s
+C01  C_multi_hop                rec@sel=1.0 mrr=0.1667 prec=0.1667 cov=0.3333 sim=0.5566 t=1.261s
+C02  C_multi_hop                rec@sel=0.0 mrr=0.0 prec=0.0 cov=0.0 sim=0.7882 t=0.628s
+C03  C_multi_hop                rec@sel=1.0 mrr=1.0 prec=0.25 cov=0.5 sim=0.6286 t=0.415s
+C04  C_multi_hop                rec@sel=0.0 mrr=0.0 prec=0.0 cov=0.0 sim=0.5671 t=2.067s
+C05  C_multi_hop                rec@sel=1.0 mrr=0.5 prec=0.3333 cov=1.0 sim=0.5627 t=1.133s
+C06  C_multi_hop                rec@sel=1.0 mrr=0.1667 prec=0.1667 cov=1.0 sim=0.7452 t=1.866s
+D01  D_comparison               rec@sel=0.0 mrr=0.0 prec=0.0 cov=0.0 sim=0.6524 t=0.621s
+D02  D_comparison               rec@sel=0.0 mrr=0.0833 prec=0.0 cov=0.0 sim=0.5648 t=3.007s
+D03  D_comparison               rec@sel=0.0 mrr=0.0455 prec=0.0 cov=0.0 sim=0.7053 t=2.788s
+D04  D_comparison               rec@sel=0.0 mrr=0.0 prec=0.0 cov=0.0 sim=0.6707 t=0.186s
+D05  D_comparison               rec@sel=0.0 mrr=0.125 prec=0.0 cov=0.0 sim=0.6577 t=1.305s
+D06  D_comparison               rec@sel=1.0 mrr=0.25 prec=0.1429 cov=0.5 sim=0.6091 t=2.654s
+E01  E_multi_document           rec@sel=1.0 mrr=0.25 prec=0.25 cov=0.5 sim=0.4759 t=0.963s
+E02  E_multi_document           rec@sel=1.0 mrr=1.0 prec=0.2857 cov=0.5 sim=0.5787 t=0.753s
+E03  E_multi_document           rec@sel=0.0 mrr=0.2 prec=0.0 cov=0.0 sim=0.6195 t=1.438s
+E04  E_multi_document           rec@sel=0.0 mrr=0.0238 prec=0.0 cov=0.0 sim=0.5121 t=1.187s
+E05  E_multi_document           rec@sel=0.0 mrr=0.0 prec=0.0 cov=0.0 sim=0.7313 t=0.866s
+E06  E_multi_document           rec@sel=1.0 mrr=1.0 prec=0.5 cov=0.5 sim=0.6078 t=0.526s
+F01  F_summarization            rec@sel=1.0 mrr=0.5 prec=0.2857 cov=0.3333 sim=0.7249 t=2.046s
+F02  F_summarization            rec@sel=1.0 mrr=0.25 prec=0.1429 cov=1.0 sim=0.7468 t=0.517s
+F03  F_summarization            rec@sel=0.0 mrr=0.0667 prec=0.0 cov=0.0 sim=0.6337 t=1.52s
+F04  F_summarization            rec@sel=0.0 mrr=0.0 prec=0.0 cov=0.0 sim=0.594 t=1.237s
+F05  F_summarization            rec@sel=1.0 mrr=0.2 prec=0.1429 cov=0.3333 sim=0.645 t=3.11s
+F06  F_summarization            rec@sel=1.0 mrr=0.5 prec=0.1429 cov=0.3333 sim=0.5601 t=0.861s
+G01  G_scenario                 rec@sel=0.0 mrr=0.0345 prec=0.0 cov=0.0 sim=0.5893 t=1.353s
+G02  G_scenario                 rec@sel=0.0 mrr=0.0 prec=0.0 cov=0.0 sim=0.5532 t=1.048s
+G03  G_scenario                 rec@sel=0.0 mrr=0.0 prec=0.0 cov=0.0 sim=0.4731 t=0.88s
+G04  G_scenario                 rec@sel=1.0 mrr=1.0 prec=0.25 cov=1.0 sim=0.574 t=0.673s
+G05  G_scenario                 rec@sel=1.0 mrr=0.3333 prec=0.25 cov=1.0 sim=0.5737 t=0.885s
+H01  H_numerical                rec@sel=1.0 mrr=1.0 prec=0.25 cov=1.0 sim=0.7036 t=0.217s
+H02  H_numerical                rec@sel=1.0 mrr=0.5 prec=0.25 cov=1.0 sim=0.6915 t=0.756s
+H03  H_numerical                rec@sel=0.0 mrr=0.1111 prec=0.0 cov=0.0 sim=0.5755 t=0.959s
+H04  H_numerical                rec@sel=1.0 mrr=0.5 prec=0.25 cov=1.0 sim=0.6273 t=0.34s
+H05  H_numerical                rec@sel=1.0 mrr=0.3333 prec=0.5 cov=1.0 sim=0.6805 t=0.279s
+I01  I_ambiguous_conversational rec@sel=0.0 mrr=0.0 prec=0.0 cov=0.0 sim=0.6112 t=0.862s
+I02  I_ambiguous_conversational rec@sel=1.0 mrr=0.5 prec=0.25 cov=1.0 sim=0.5683 t=0.963s
+I03  I_ambiguous_conversational rec@sel=0.0 mrr=0.0 prec=0.0 cov=0.0 sim=0.7075 t=0.58s
+I04  I_ambiguous_conversational rec@sel=1.0 mrr=1.0 prec=0.1429 cov=0.5 sim=0.6263 t=2.265s
+I05  I_ambiguous_conversational rec@sel=0.0 mrr=0.125 prec=0.0 cov=0.0 sim=0.5469 t=1.536s
+J01  J_unanswerable             rec@sel=0.0 mrr=0.0 prec=0.0 cov=None sim=0.6241 t=0.85s
+J02  J_unanswerable             rec@sel=0.0 mrr=0.0 prec=0.0 cov=None sim=0.5773 t=0.623s
+J03  J_unanswerable             rec@sel=0.0 mrr=0.0 prec=0.0 cov=None sim=0.6932 t=0.719s
+J04  J_unanswerable             rec@sel=0.0 mrr=0.0 prec=0.0 cov=None sim=0.605 t=0.642s
+J05  J_unanswerable             rec@sel=0.0 mrr=0.0 prec=0.0 cov=None sim=0.6116 t=0.202s
+K01  K_spelling                 rec@sel=0.0 mrr=0.0 prec=0.0 cov=0.0 sim=0.3621 t=0.22s
+K02  K_spelling                 rec@sel=0.0 mrr=0.0 prec=0.0 cov=0.0 sim=0.7925 t=0.566s
+K03  K_spelling                 rec@sel=0.0 mrr=0.0 prec=0.0 cov=0.0 sim=0.5731 t=1.024s
+K04  K_spelling                 rec@sel=0.0 mrr=0.0667 prec=0.0 cov=0.0 sim=0.7267 t=0.522s
+K05  K_spelling                 rec@sel=0.0 mrr=0.0 prec=0.0 cov=0.0 sim=0.3803 t=0.955s
+K06  K_spelling                 rec@sel=1.0 mrr=0.3333 prec=0.25 cov=1.0 sim=0.6464 t=0.524s
+K07  K_spelling                 rec@sel=1.0 mrr=1.0 prec=0.25 cov=1.0 sim=0.5459 t=0.749s
+K08  K_spelling                 rec@sel=1.0 mrr=1.0 prec=0.25 cov=1.0 sim=0.4439 t=0.637s
+
+=== SUMMARY ===
+cases: 70
+answerable: 65
+unanswerable: 5
+recall@1: 0.2154
+recall@3: 0.4308
+recall@4: 0.4769
+recall@8: 0.5846
+recall@20: 0.6615
+recall_selected: 0.5385
+mrr: 0.3482
+precision_selected: 0.1493
+page_coverage_selected: 0.4231
+term_coverage_selected: 0.6828
+retrieval_seconds: {'mean': 1.02, 'p50': 0.87, 'max': 3.11}
+empty_after_gate: 0
+recall_selected_by_category: {'A_basic_factual': 0.7, 'B_detailed': 0.625, 'C_multi_hop': 0.6667, 'D_comparison': 0.1667, 'E_multi_document': 0.5, 'F_summarization': 0.6667, 'G_scenario': 0.4, 'H_numerical': 0.8, 'I_ambiguous_conversational': 0.4, 'K_spelling': 0.375}
+
+wrote C:\Users\Admin\Downloads\RND2_2\RND2_1\RND\evaluation\audit\retrieval_results_baseline.json

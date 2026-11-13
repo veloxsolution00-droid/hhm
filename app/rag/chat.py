@@ -13,6 +13,7 @@ from app.rag.planner import classify_question as _plan_question, query_variants
 from app.reasoning.calculator import direct_calculation, apply_evidence_calculation_plan
 from app.rag.answer_validator import validate_answer as validate_citation_references
 from app.rag.citations import cite_verbatim_urls, cite_supported_uncited_sentences
+from app.rag.sufficiency import assess_evidence_sufficiency
 from app.reasoning.conflict_resolver import inspect_conflicts
 from app.rag.planner import correct_query_from_vocabulary
 from app.storage.database import indexed_vocabulary
@@ -1448,6 +1449,29 @@ def _answer_one(question, indexed, owner_id, doc_types=None):
         retrieval["spelling_correction"] = {"from": misspelled, "to": normalized}
     if not hits:
         return {"question": question, "status": "insufficient_evidence", "answer": ABSTENTION, "sources": [], "abstained": True, "retrieval": retrieval}
+    # Deterministic evidence sufficiency is evaluated before any generation call.
+    # Degenerate retrieval (nothing usable came back, or the question's subject is
+    # essentially absent from the evidence) abstains without spending a local
+    # generation; partial or contradictory evidence still answers, but the prompt
+    # is qualified so the model states what the documents do not establish.
+    sufficiency = assess_evidence_sufficiency(normalized, hits)
+    retrieval["evidence_sufficiency"] = {
+        "state": sufficiency["state"], "best_similarity": sufficiency["best_similarity"],
+        "term_coverage": sufficiency["term_coverage"], "anchor_coverage": sufficiency["anchor_coverage"],
+        "conflicts": sufficiency["conflicts"], "reasons": sufficiency["reasons"],
+    }
+    if sufficiency["abstain"]:
+        retrieval["failure_stage"] = "evidence_sufficiency"
+        retrieval["abstained_before_generation"] = True
+        return {"question": question, "status": "insufficient_evidence", "answer": ABSTENTION,
+                "sources": [], "abstained": True, "retrieval": retrieval,
+                "evidence_sufficiency": retrieval["evidence_sufficiency"]}
+    sufficiency_note = ""
+    if sufficiency["qualify"]:
+        sufficiency_note = (
+            "EVIDENCE COVERAGE: " + "; ".join(sufficiency["reasons"]) + ". Answer only the parts "
+            "the evidence supports, and state plainly which part the documents do not establish.\n"
+        )
     # The document type was detected during ingestion. Use it to steer the answer
     # shape (exact invoice values, verbatim clauses, question-bank disclosure).
     type_counts = {}
@@ -1514,6 +1538,7 @@ def _answer_one(question, indexed, owner_id, doc_types=None):
         "8. Answer the QUESTION that was asked. If it asks who or what a named thing is, state its "
         "role or identity; do not describe only the book, chapter or section where it appears.\n"
         "9. Do not merely repeat the QUESTION. Give the specific answer supported by the passages.\n"
+        f"{sufficiency_note}"
         f"{guidance}\n"
         f"{type_guidance}\n"
         "Good style: The schooner was Russian and called the Demeter [1]. It ran aground at Whitby in a storm [2].\n"

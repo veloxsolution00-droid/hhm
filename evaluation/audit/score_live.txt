@@ -1,0 +1,356 @@
+﻿==============================================================================================================
+CONFIG cfgA_3b_programmatic  (9 cases)
+==============================================================================================================
+
+--- A01 [A_basic_factual] Who founded the Junto, and on which evening did it meet?
+    status=success abstained=False total=50.198s
+    stages: retrieval=16.6592 generation=32.6144 verification=None ranking=0.015 selection=0.4018
+    flags: passes=1 variants=0 cache=False recovery=None verify_retry=None extractive=None scope=None
+    sources(4): franklin:Page 61, hill:Page 202, franklin:Page 61, hill:Page 122
+    cited refs=[1] invalid=[] citation_pages=['Page 61'] expected_pages=['Page 37'] page_hits=0/1
+    expected_docs=['franklin'] cited_docs=['franklin']
+    citation_validation={"valid": true, "references_valid": true, "fully_cited": true, "references_found": [1], "invalid_reference_numbers": [], "unknown_source_labels": [], "phantom_labels": [], "uncited_sentences": [], "citation_present": true, "citation_coverage": 1.0}
+    confidence={'score': 0.731, 'label': 'medium', 'calibrated': False, 'kind': 'heuristic_evidence_score', 'signals': {'retrieval_similarity': 0.602, 'term_coverage': 0.8, 'citation_valid': True, 'citation_coverage': 1.0, 'verified': None}} coverage={'total_requirements': 1, 'answered_requirements': 1, 'unanswered_requirements': 0, 'coverage_ratio': 1.0, 'per_requirement': [{'question': 'Who founded the Junto, and on which evening did it meet', 'status': 'success', 'evidence_chunks': 4, 'answered': True}]}
+    expected: Benjamin Franklin formed the Junto from his ingenious acquaintance; it met on Friday evenings.
+    ANSWER: The Junto was founded by Benjamin Franklin [1]. The Junto met on evenings [1].
+
+--- A02 [A_basic_factual] What was Benjamin Franklin's father's trade?
+    status=success abstained=False total=26.428s
+    stages: retrieval=0.838 generation=25.547 verification=None ranking=0.0261 selection=0.184
+    flags: passes=1 variants=0 cache=False recovery=None verify_retry=None extractive=None scope=['the-autobiography-of-benjamin-franklin-benjamin-franklin.pdf']
+    sources(4): franklin:Page 4, franklin:Page 105, franklin:Page 109, franklin:Page 107
+    cited refs=[1, 2, 3, 4] invalid=[] citation_pages=['Page 105', 'Page 107', 'Page 109', 'Page 4'] expected_pages=['Page 7'] page_hits=0/1
+    expected_docs=['franklin'] cited_docs=['franklin']
+    citation_validation={"valid": true, "references_valid": true, "fully_cited": true, "references_found": [1, 2, 3, 4], "invalid_reference_numbers": [], "unknown_source_labels": [], "phantom_labels": [], "uncited_sentences": [], "citation_present": true, "citation_coverage": 1.0}
+    confidence={'score': 0.85, 'label': 'high', 'calibrated': False, 'kind': 'heuristic_evidence_score', 'signals': {'retrieval_similarity': 0.765, 'term_coverage': 1.0, 'citation_valid': True, 'citation_coverage': 1.0, 'verified': None}} coverage={'total_requirements': 1, 'answered_requirements': 1, 'unanswered_requirements': 0, 'coverage_ratio': 1.0, 'per_requirement': [{'question': "What was Benjamin Franklin's father's trade", 'status': 'success', 'evidence_chunks': 4, 'answered': True}]}
+    expected: He was a tallow-chandler and sope-boiler.
+    ANSWER: The requested information about Benjamin Franklin's father's trade is not present in the provided evidence [1], [2], [3], [4].
+
+--- B02 [B_detailed] Describe the six definite practical steps Hill gives for transmuting the desire for riches into money.
+    status=success abstained=False total=55.973s
+    stages: retrieval=2.3662 generation=53.573 verification=None ranking=0.04 selection=0.7576
+    flags: passes=4 variants=3 cache=False recovery=None verify_retry=None extractive=None scope=None
+    sources(4): hill:Page 341, hill:Page 201, hill:Page 68, hill:Page 69
+    cited refs=[2, 3, 4] invalid=[] citation_pages=['Page 201', 'Page 68', 'Page 69'] expected_pages=['Page 68', 'Page 69', 'Page 70'] page_hits=2/3
+    expected_docs=['hill'] cited_docs=['hill']
+    citation_validation={"valid": true, "references_valid": true, "fully_cited": true, "references_found": [2, 3, 4], "invalid_reference_numbers": [], "unknown_source_labels": [], "phantom_labels": [], "uncited_sentences": [], "citation_present": true, "citation_coverage": 1.0}
+    confidence={'score': 0.814, 'label': 'high', 'calibrated': False, 'kind': 'heuristic_evidence_score', 'signals': {'retrieval_similarity': 0.788, 'term_coverage': 0.818, 'citation_valid': True, 'citation_coverage': 1.0, 'verified': None}} coverage={'total_requirements': 1, 'answered_requirements': 1, 'unanswered_requirements': 0, 'coverage_ratio': 1.0, 'per_requirement': [{'question': 'Describe the six definite practical steps Hill gives for transmuting the desire for riches into money.', 'status': 'success', 'evidence_chunks': 4, 'answered': True}]}
+    expected: Fix the exact amount; determine what you will give in return; set a definite date; create a definite plan and begin at once; write a clear statement of amount, time limit, return and plan; read it aloud twice daily, seeing and feeling yourself already in possession.
+    ANSWER: [2] Determine exactly what you intend to give in return for the money you desire. [3] Establish a definite date when you intend to possess the money you desire. [4] Create a definite plan for carrying out your desire, and begin at once, whether you are ready or not, to put this plan into action. Write out a clear, concise statement of the amount of money you intend to acquire, name the time limit for its acquisition, state what you intend to give in return for the money, and describe clearly the plan through which you intend to accumulate it [4]. Read your written statement aloud, twice daily, once just before retiring at night, and once after arising in the morning [4].
+
+--- D01 [D_comparison] Compare Franklin's Junto with Hill's Master Mind.
+    status=citation_validation_failed abstained=True total=68.895s
+    stages: retrieval=0.7317 generation=68.1127 verification=None ranking=0.0004 selection=0.0017
+    flags: passes=4 variants=3 cache=False recovery=None verify_retry=None extractive=None scope=['the-autobiography-of-benjamin-franklin-benjamin-franklin.pdf']
+    sources(2): franklin:Page 46, franklin:Page 10
+    cited refs=[] invalid=[] citation_pages=[] expected_pages=['Page 333', 'Page 37'] page_hits=0/2
+    expected_docs=['franklin', 'hill'] cited_docs=[]
+    citation_validation={"valid": false, "references_valid": true, "fully_cited": false, "references_found": [1, 2], "invalid_reference_numbers": [], "unknown_source_labels": [], "phantom_labels": [], "uncited_sentences": ["Franklin's Junto and Hill's Master Mind both aim to organize social groups for intellectual and soci
+    confidence={'score': 0.0, 'label': 'none', 'calibrated': False, 'kind': 'heuristic_evidence_score'} coverage={'total_requirements': 1, 'answered_requirements': 0, 'unanswered_requirements': 1, 'coverage_ratio': 0.0, 'per_requirement': [{'question': "Compare Franklin's Junto with Hill's Master Mind.", 'status': 'citation_validation_failed', 'evidence_chunks': 2, 'answered': False}]}
+    expected: The Junto was a weekly club of mutual improvement with queries and essays; Hill's Master Mind is the coordination of knowledge and effort, in harmony, between two or more people for a definite purpose. Both use a group, but the Junto is an inquiry club and the Master Mind is a purpose-driven alliance.
+    ANSWER: The document passages were retrieved, but the generated answer did not cite them correctly. Please retry or inspect the listed source passages.
+
+--- F01 [F_summarization] Summarize the main argument of The Science of Getting Rich.
+    status=success abstained=False total=77.016s
+    stages: retrieval=2.8164 generation=74.1567 verification=None ranking=0.016 selection=1.6695
+    flags: passes=4 variants=3 cache=False recovery=None verify_retry=None extractive=None scope=['the-science-of-getting-rich.pdf']
+    sources(7): science:Page 11, science:Page 9, science:Page 45, science:Page 10, science:Page 9, science:Page 11, science:Page 52
+    cited refs=[1, 2, 3, 4, 5, 6, 7] invalid=[] citation_pages=['Page 10', 'Page 11', 'Page 45', 'Page 52', 'Page 9'] expected_pages=['Page 17', 'Page 74', 'Page 9'] page_hits=1/3
+    expected_docs=['science'] cited_docs=['science']
+    citation_validation={"valid": true, "references_valid": true, "fully_cited": true, "references_found": [1, 2, 3, 4, 5, 6, 7], "invalid_reference_numbers": [], "unknown_source_labels": [], "phantom_labels": [], "uncited_sentences": [], "citation_present": true, "citation_coverage": 1.0}
+    confidence={'score': 0.75, 'label': 'high', 'calibrated': False, 'kind': 'heuristic_evidence_score', 'signals': {'retrieval_similarity': 0.85, 'term_coverage': 0.5, 'citation_valid': True, 'citation_coverage': 1.0, 'verified': None}} coverage={'total_requirements': 1, 'answered_requirements': 1, 'unanswered_requirements': 0, 'coverage_ratio': 1.0, 'per_requirement': [{'question': 'Summarize the main argument of The Science of Getting Rich.', 'status': 'success', 'evidence_chunks': 7, 'answered': True}]}
+    expected: Riches come with mathematical certainty to those who act and think in a Certain Way; thought impressed on Formless Substance creates things; one must move from competition to creation and hold the vision with faith and gratitude.
+    ANSWER: The main argument of The Science of Getting Rich is that getting rich is not solely dependent on having more capital, talents, or doing different things compared to others [4]. Instead, it is argued that getting rich is the result of doing things in a certain way [1], [2], [3], [4], [5], [6]. The book emphasizes that getting rich is not about saving money or doing things others fail to do; it is about doing things in a specific manner [1], [4]. The author also suggests that getting rich is not influenced by one's environment or the business one is in, but rather by the way one does things [2], [3], [5]. Lastly, the book advises readers to focus on their vision and act now, regardless of their current situation, as long as they are doing things in the right way [6], [7].
+
+--- H05 [H_numerical] In what year was Dracula first published, and in how many chapters is it told?
+    status=success abstained=False total=26.483s
+    stages: retrieval=0.8049 generation=25.6278 verification=None ranking=0.0064 selection=0.1432
+    flags: passes=1 variants=0 cache=False recovery=None verify_retry=None extractive=None scope=['dracula-bram-stoker.pdf']
+    sources(4): dracula:Page 727, dracula:Page 641, dracula:Page 5, dracula:Page 4
+    cited refs=[1, 3] invalid=[] citation_pages=['Page 5', 'Page 727'] expected_pages=['Page 4', 'Page 5'] page_hits=1/2
+    expected_docs=['dracula'] cited_docs=['dracula']
+    citation_validation={"valid": true, "references_valid": true, "fully_cited": true, "references_found": [1, 3], "invalid_reference_numbers": [], "unknown_source_labels": [], "phantom_labels": [], "uncited_sentences": [], "citation_present": true, "citation_coverage": 1.0}
+    confidence={'score': 0.787, 'label': 'high', 'calibrated': False, 'kind': 'heuristic_evidence_score', 'signals': {'retrieval_similarity': 0.685, 'term_coverage': 0.857, 'citation_valid': True, 'citation_coverage': 1.0, 'verified': None}} coverage={'total_requirements': 1, 'answered_requirements': 1, 'unanswered_requirements': 0, 'coverage_ratio': 1.0, 'per_requirement': [{'question': 'In what year was Dracula first published, and in how many chapters is it told', 'status': 'success', 'evidence_chunks': 4, 'answered': True}]}
+    expected: 1897; 27 chapters.
+    ANSWER: Dracula was first published in 1897 [1]. It is told through 27 chapters [3].
+
+--- I01 [I_ambiguous_conversational] Tell me more about him.
+    history=2 turns
+    status=success abstained=False total=21.759s
+    stages: retrieval=1.4795 generation=20.2082 verification=None ranking=0.0387 selection=0.8975
+    flags: passes=3 variants=2 cache=False recovery=None verify_retry=None extractive=None scope=None
+    sources(4): dracula:Page 460, hill:Page 36, hill:Page 4, dracula:Page 615
+    cited refs=[1, 2, 4] invalid=[] citation_pages=['Page 36', 'Page 460', 'Page 615'] expected_pages=['Page 37', 'Page 6'] page_hits=0/2
+    expected_docs=['franklin'] cited_docs=['dracula', 'hill']
+    citation_validation={"valid": true, "references_valid": true, "fully_cited": true, "references_found": [1, 2, 4], "invalid_reference_numbers": [], "unknown_source_labels": [], "phantom_labels": [], "uncited_sentences": [], "citation_present": true, "citation_coverage": 1.0}
+    confidence={'score': 0.826, 'label': 'high', 'calibrated': False, 'kind': 'heuristic_evidence_score', 'signals': {'retrieval_similarity': 0.705, 'term_coverage': 1.0, 'citation_valid': True, 'citation_coverage': 1.0, 'verified': None}} coverage={'total_requirements': 1, 'answered_requirements': 1, 'unanswered_requirements': 0, 'coverage_ratio': 1.0, 'per_requirement': [{'question': 'Tell me more about him.', 'status': 'success', 'evidence_chunks': 4, 'answered': True}]}
+    expected: Additional Franklin facts from the autobiography, e.g. birth in Boston, tallow-chandler family, printing apprenticeship, Junto.
+    ANSWER: The given evidence does not provide information about "him," as "him" is not mentioned or defined in the provided documents [1], [2], and [4].
+
+--- J01 [J_unanswerable] In what year did Benjamin Franklin first arrive in Philadelphia?
+    status=success abstained=False total=25.057s
+    stages: retrieval=0.7803 generation=24.2463 verification=None ranking=0.0142 selection=0.3199
+    flags: passes=3 variants=2 cache=False recovery=None verify_retry=None extractive=None scope=['the-autobiography-of-benjamin-franklin-benjamin-franklin.pdf']
+    sources(4): franklin:Page 127, franklin:Page 114, franklin:Page 112, franklin:Page 40
+    cited refs=[4] invalid=[] citation_pages=['Page 40'] expected_pages=[] page_hits=0/-
+    expected_docs=['franklin'] cited_docs=['franklin']
+    citation_validation={"valid": true, "references_valid": true, "fully_cited": true, "references_found": [4], "invalid_reference_numbers": [], "unknown_source_labels": [], "phantom_labels": [], "uncited_sentences": [], "citation_present": true, "citation_coverage": 1.0}
+    confidence={'score': 0.749, 'label': 'medium', 'calibrated': False, 'kind': 'heuristic_evidence_score', 'signals': {'retrieval_similarity': 0.614, 'term_coverage': 0.857, 'citation_valid': True, 'citation_coverage': 1.0, 'verified': None}} coverage={'total_requirements': 1, 'answered_requirements': 1, 'unanswered_requirements': 0, 'coverage_ratio': 1.0, 'per_requirement': [{'question': 'In what year did Benjamin Franklin first arrive in Philadelphia', 'status': 'success', 'evidence_chunks': 4, 'answered': True}]}
+    expected: The autobiography does not state the arrival year in the extracted prose; the assistant must abstain rather than supply 1723 from outside knowledge.
+    ANSWER: [4] Benjamin Franklin first arrived in Philadelphia in the year 1729.
+
+--- K02 [K_spelling] whaat is benjmin frankln
+    status=success abstained=False total=58.945s
+    stages: retrieval=0.5697 generation=58.2641 verification=None ranking=0.0114 selection=0.3406
+    flags: passes=2 variants=0 cache=False recovery=None verify_retry=None extractive=None scope=['the-autobiography-of-benjamin-franklin-benjamin-franklin.pdf']
+    sources(4): franklin:Page 105, franklin:Page 112, franklin:Page 107, franklin:Page 4
+    cited refs=[2, 3] invalid=[] citation_pages=['Page 107', 'Page 112'] expected_pages=['Page 37', 'Page 6'] page_hits=0/2
+    expected_docs=['franklin'] cited_docs=['franklin']
+    citation_validation={"valid": true, "references_valid": true, "fully_cited": true, "references_found": [2, 3], "invalid_reference_numbers": [], "unknown_source_labels": [], "phantom_labels": [], "uncited_sentences": [], "citation_present": true, "citation_coverage": 1.0}
+    confidence={'score': 0.85, 'label': 'high', 'calibrated': False, 'kind': 'heuristic_evidence_score', 'signals': {'retrieval_similarity': 0.77, 'term_coverage': 1.0, 'citation_valid': True, 'citation_coverage': 1.0, 'verified': None}} coverage={'total_requirements': 1, 'answered_requirements': 1, 'unanswered_requirements': 0, 'coverage_ratio': 1.0, 'per_requirement': [{'question': 'whaat is benjmin frankln', 'status': 'success', 'evidence_chunks': 4, 'answered': True}]}
+    expected: Identify Benjamin Franklin.
+    ANSWER: Franklin was influenced by deist philosophy, as stated in [2]. He wrote under the pseudonym "Silence Dogood" for The New England Courant, as mentioned in [3]. Franklin's father's library contained Mather's book, which influenced Franklin's thinking, as noted in [3]. Franklin's father was Samuel Franklin, who now lives in Boston, as mentioned in [3]. Franklin's poetry was published in his own journal, the Poor Richard's Almanac, as stated in [3].
+
+cfgA_3b_programmatic LATENCY: n=9 mean=45.6s p50=50.2s p90=68.9s max=77.0s min=21.8s
+  generation: mean=42.5s max=74.2s
+  statuses: {'success': 8, 'citation_validation_failed': 1}
+  rss MB: min=112 max=184
+  models loaded at end: [{'name': 'qwen2.5:3b', 'size_mb': 2067.9, 'size_vram_mb': 0.0}, {'name': 'nomic-embed-text:latest', 'size_mb': 371.0, 'size_vram_mb': 0.0}]
+==============================================================================================================
+CONFIG cfgB_3b_3b  (9 cases)
+==============================================================================================================
+
+--- A01 [A_basic_factual] Who founded the Junto, and on which evening did it meet?
+    status=answer_validation_failed abstained=True total=114.452s
+    stages: retrieval=17.1809 generation=69.1867 verification=19.4298 ranking=0.0367 selection=0.4441
+    flags: passes=1 variants=0 cache=False recovery=True verify_retry=True extractive=None scope=None
+    sources(4): franklin:Page 61, hill:Page 202, franklin:Page 61, hill:Page 122
+    cited refs=[] invalid=[] citation_pages=[] expected_pages=['Page 37'] page_hits=0/1
+    expected_docs=['franklin'] cited_docs=[]
+    citation_validation={"valid": true, "references_valid": true, "fully_cited": true, "references_found": [1, 2, 3, 4], "invalid_reference_numbers": [], "unknown_source_labels": [], "phantom_labels": [], "uncited_sentences": [], "citation_present": true, "citation_coverage": 1.0}
+    confidence={'score': 0.0, 'label': 'none', 'calibrated': False, 'kind': 'heuristic_evidence_score'} coverage={'total_requirements': 1, 'answered_requirements': 0, 'unanswered_requirements': 1, 'coverage_ratio': 0.0, 'per_requirement': [{'question': 'Who founded the Junto, and on which evening did it meet', 'status': 'answer_validation_failed', 'evidence_chunks': 4, 'answered': False}]}
+    expected: Benjamin Franklin formed the Junto from his ingenious acquaintance; it met on Friday evenings.
+    ANSWER: The generated answer failed verification, and no sufficiently relevant verbatim passage could be safely returned. Inspect the retrieved sources or retry when Ollama is available.
+
+--- A02 [A_basic_factual] What was Benjamin Franklin's father's trade?
+    status=success abstained=False total=93.309s
+    stages: retrieval=0.5937 generation=55.3265 verification=10.3405 ranking=0.0095 selection=0.2493
+    flags: passes=1 variants=0 cache=False recovery=True verify_retry=True extractive=None scope=['the-autobiography-of-benjamin-franklin-benjamin-franklin.pdf']
+    sources(4): franklin:Page 4, franklin:Page 105, franklin:Page 109, franklin:Page 107
+    cited refs=[3] invalid=[] citation_pages=['Page 109'] expected_pages=['Page 7'] page_hits=0/1
+    expected_docs=['franklin'] cited_docs=['franklin']
+    citation_validation={"valid": true, "references_valid": true, "fully_cited": true, "references_found": [3], "invalid_reference_numbers": [], "unknown_source_labels": [], "phantom_labels": [], "uncited_sentences": [], "citation_present": true, "citation_coverage": 1.0}
+    confidence={'score': 1.0, 'label': 'high', 'calibrated': False, 'kind': 'heuristic_evidence_score', 'signals': {'retrieval_similarity': 0.765, 'term_coverage': 1.0, 'citation_valid': True, 'citation_coverage': 1.0, 'verified': True}} coverage={'total_requirements': 1, 'answered_requirements': 1, 'unanswered_requirements': 0, 'coverage_ratio': 1.0, 'per_requirement': [{'question': "What was Benjamin Franklin's father's trade", 'status': 'success', 'evidence_chunks': 4, 'answered': True}]}
+    expected: He was a tallow-chandler and sope-boiler.
+    ANSWER: ôBenjamin Franklin belonged to the class of apprentices who bound themselves ôby their own free will and consentö to a master to learn his trade, not the apprentices involuntarily bound under the auspices of the Poor Law [3].ö
+
+--- B02 [B_detailed] Describe the six definite practical steps Hill gives for transmuting the desire for riches into money.
+    status=success abstained=False total=185.751s
+    stages: retrieval=1.509 generation=114.4903 verification=43.1947 ranking=0.0243 selection=0.7489
+    flags: passes=4 variants=3 cache=False recovery=True verify_retry=True extractive=None scope=None
+    sources(4): hill:Page 341, hill:Page 201, hill:Page 68, hill:Page 69
+    cited refs=[3] invalid=[] citation_pages=['Page 68'] expected_pages=['Page 68', 'Page 69', 'Page 70'] page_hits=1/3
+    expected_docs=['hill'] cited_docs=['hill']
+    citation_validation={"valid": true, "references_valid": true, "fully_cited": true, "references_found": [3], "invalid_reference_numbers": [], "unknown_source_labels": [], "phantom_labels": [], "uncited_sentences": [], "citation_present": true, "citation_coverage": 1.0}
+    confidence={'score': 0.964, 'label': 'high', 'calibrated': False, 'kind': 'heuristic_evidence_score', 'signals': {'retrieval_similarity': 0.788, 'term_coverage': 0.818, 'citation_valid': True, 'citation_coverage': 1.0, 'verified': True}} coverage={'total_requirements': 1, 'answered_requirements': 1, 'unanswered_requirements': 0, 'coverage_ratio': 1.0, 'per_requirement': [{'question': 'Describe the six definite practical steps Hill gives for transmuting the desire for riches into money.', 'status': 'success', 'evidence_chunks': 4, 'answered': True}]}
+    expected: Fix the exact amount; determine what you will give in return; set a definite date; create a definite plan and begin at once; write a clear statement of amount, time limit, return and plan; read it aloud twice daily, seeing and feeling yourself already in possession.
+    ANSWER: ôThe method by which DESIRE for riches can be transmuted into its financial equivalent, consists of six definite, practical steps, viz: First [3].ö
+
+--- D01 [D_comparison] Compare Franklin's Junto with Hill's Master Mind.
+    status=citation_validation_failed abstained=True total=77.783s
+    stages: retrieval=0.5464 generation=77.2056 verification=None ranking=0.0003 selection=0.0043
+    flags: passes=4 variants=3 cache=False recovery=None verify_retry=None extractive=None scope=['the-autobiography-of-benjamin-franklin-benjamin-franklin.pdf']
+    sources(2): franklin:Page 46, franklin:Page 10
+    cited refs=[] invalid=[] citation_pages=[] expected_pages=['Page 333', 'Page 37'] page_hits=0/2
+    expected_docs=['franklin', 'hill'] cited_docs=[]
+    citation_validation={"valid": false, "references_valid": true, "fully_cited": false, "references_found": [1], "invalid_reference_numbers": [], "unknown_source_labels": [], "phantom_labels": [], "uncited_sentences": ["Franklin's Junto and Hill's Master Mind both aim to organize social groups with the goal of fostering i
+    confidence={'score': 0.0, 'label': 'none', 'calibrated': False, 'kind': 'heuristic_evidence_score'} coverage={'total_requirements': 1, 'answered_requirements': 0, 'unanswered_requirements': 1, 'coverage_ratio': 0.0, 'per_requirement': [{'question': "Compare Franklin's Junto with Hill's Master Mind.", 'status': 'citation_validation_failed', 'evidence_chunks': 2, 'answered': False}]}
+    expected: The Junto was a weekly club of mutual improvement with queries and essays; Hill's Master Mind is the coordination of knowledge and effort, in harmony, between two or more people for a definite purpose. Both use a group, but the Junto is an inquiry club and the Master Mind is a purpose-driven alliance.
+    ANSWER: The document passages were retrieved, but the generated answer did not cite them correctly. Please retry or inspect the listed source passages.
+
+--- F01 [F_summarization] Summarize the main argument of The Science of Getting Rich.
+    status=success abstained=False total=164.21s
+    stages: retrieval=1.8806 generation=80.2978 verification=81.9777 ranking=0.0168 selection=1.376
+    flags: passes=4 variants=3 cache=False recovery=None verify_retry=None extractive=None scope=['the-science-of-getting-rich.pdf']
+    sources(7): science:Page 11, science:Page 9, science:Page 45, science:Page 10, science:Page 9, science:Page 11, science:Page 52
+    cited refs=[1, 2, 3, 4, 5, 6, 7] invalid=[] citation_pages=['Page 10', 'Page 11', 'Page 45', 'Page 52', 'Page 9'] expected_pages=['Page 17', 'Page 74', 'Page 9'] page_hits=1/3
+    expected_docs=['science'] cited_docs=['science']
+    citation_validation={"valid": true, "references_valid": true, "fully_cited": true, "references_found": [1, 2, 3, 4, 5, 6, 7], "invalid_reference_numbers": [], "unknown_source_labels": [], "phantom_labels": [], "uncited_sentences": [], "citation_present": true, "citation_coverage": 1.0}
+    confidence={'score': 0.9, 'label': 'high', 'calibrated': False, 'kind': 'heuristic_evidence_score', 'signals': {'retrieval_similarity': 0.85, 'term_coverage': 0.5, 'citation_valid': True, 'citation_coverage': 1.0, 'verified': True}} coverage={'total_requirements': 1, 'answered_requirements': 1, 'unanswered_requirements': 0, 'coverage_ratio': 1.0, 'per_requirement': [{'question': 'Summarize the main argument of The Science of Getting Rich.', 'status': 'success', 'evidence_chunks': 7, 'answered': True}]}
+    expected: Riches come with mathematical certainty to those who act and think in a Certain Way; thought impressed on Formless Substance creates things; one must move from competition to creation and hold the vision with faith and gratitude.
+    ANSWER: The main argument of The Science of Getting Rich is that getting rich is not solely dependent on having more capital, talents, or doing different things compared to others [4]. Instead, it is argued that getting rich is the result of doing things in a certain way [1], [2], [3], [4], [5], [6]. The book emphasizes that getting rich is not about saving money or doing things others fail to do; it is about doing things in a specific manner [1], [4]. The author also suggests that getting rich is not influenced by one's environment or the business one is in, but rather by the way one does things [2], [3], [5]. Lastly, the book advises readers to focus on their vision and act now, regardless of their current situation, as long as they are doing things in the right way [6], [7].
+
+--- H05 [H_numerical] In what year was Dracula first published, and in how many chapters is it told?
+    status=success abstained=False total=71.924s
+    stages: retrieval=1.4908 generation=54.9881 verification=0.4878 ranking=0.0046 selection=0.134
+    flags: passes=1 variants=0 cache=False recovery=True verify_retry=True extractive=None scope=['dracula-bram-stoker.pdf']
+    sources(4): dracula:Page 727, dracula:Page 641, dracula:Page 5, dracula:Page 4
+    cited refs=[1] invalid=[] citation_pages=['Page 727'] expected_pages=['Page 4', 'Page 5'] page_hits=0/2
+    expected_docs=['dracula'] cited_docs=['dracula']
+    citation_validation={"valid": true, "references_valid": true, "fully_cited": true, "references_found": [1], "invalid_reference_numbers": [], "unknown_source_labels": [], "phantom_labels": [], "uncited_sentences": [], "citation_present": true, "citation_coverage": 1.0}
+    confidence={'score': 0.937, 'label': 'high', 'calibrated': False, 'kind': 'heuristic_evidence_score', 'signals': {'retrieval_similarity': 0.685, 'term_coverage': 0.857, 'citation_valid': True, 'citation_coverage': 1.0, 'verified': True}} coverage={'total_requirements': 1, 'answered_requirements': 1, 'unanswered_requirements': 0, 'coverage_ratio': 1.0, 'per_requirement': [{'question': 'In what year was Dracula first published, and in how many chapters is it told', 'status': 'success', 'evidence_chunks': 4, 'answered': True}]}
+    expected: 1897; 27 chapters.
+    ANSWER: ôABOU T THIS EDI TION Dracula is a novel told through letters, journals and newspaper cuttings, written by the Irish author Bram Stoker and first published in London in 1897 by Archibald Constable and Company [1].ö
+
+--- I01 [I_ambiguous_conversational] Tell me more about him.
+    history=2 turns
+    status=success abstained=False total=80.362s
+    stages: retrieval=4.7055 generation=53.2569 verification=7.4433 ranking=0.0907 selection=2.2918
+    flags: passes=3 variants=2 cache=False recovery=True verify_retry=True extractive=None scope=None
+    sources(4): dracula:Page 460, hill:Page 36, hill:Page 4, dracula:Page 615
+    cited refs=[2] invalid=[] citation_pages=['Page 36'] expected_pages=['Page 37', 'Page 6'] page_hits=0/2
+    expected_docs=['franklin'] cited_docs=['hill']
+    citation_validation={"valid": true, "references_valid": true, "fully_cited": true, "references_found": [2], "invalid_reference_numbers": [], "unknown_source_labels": [], "phantom_labels": [], "uncited_sentences": [], "citation_present": true, "citation_coverage": 1.0}
+    confidence={'score': 0.976, 'label': 'high', 'calibrated': False, 'kind': 'heuristic_evidence_score', 'signals': {'retrieval_similarity': 0.705, 'term_coverage': 1.0, 'citation_valid': True, 'citation_coverage': 1.0, 'verified': True}} coverage={'total_requirements': 1, 'answered_requirements': 1, 'unanswered_requirements': 0, 'coverage_ratio': 1.0, 'per_requirement': [{'question': 'Tell me more about him.', 'status': 'success', 'evidence_chunks': 4, 'answered': True}]}
+    expected: Additional Franklin facts from the autobiography, e.g. birth in Boston, tallow-chandler family, printing apprenticeship, Junto.
+    ANSWER: ôA little more than thirty years ago, Edwin C [2].ö
+
+--- J01 [J_unanswerable] In what year did Benjamin Franklin first arrive in Philadelphia?
+    status=success abstained=False total=76.152s
+    stages: retrieval=7.1678 generation=56.387 verification=5.8897 ranking=0.0188 selection=0.6143
+    flags: passes=3 variants=2 cache=False recovery=True verify_retry=True extractive=None scope=['the-autobiography-of-benjamin-franklin-benjamin-franklin.pdf']
+    sources(4): franklin:Page 127, franklin:Page 114, franklin:Page 112, franklin:Page 40
+    cited refs=[2] invalid=[] citation_pages=['Page 114'] expected_pages=[] page_hits=0/-
+    expected_docs=['franklin'] cited_docs=['franklin']
+    citation_validation={"valid": true, "references_valid": true, "fully_cited": true, "references_found": [2], "invalid_reference_numbers": [], "unknown_source_labels": [], "phantom_labels": [], "uncited_sentences": [], "citation_present": true, "citation_coverage": 1.0}
+    confidence={'score': 0.899, 'label': 'high', 'calibrated': False, 'kind': 'heuristic_evidence_score', 'signals': {'retrieval_similarity': 0.614, 'term_coverage': 0.857, 'citation_valid': True, 'citation_coverage': 1.0, 'verified': True}} coverage={'total_requirements': 1, 'answered_requirements': 1, 'unanswered_requirements': 0, 'coverage_ratio': 1.0, 'per_requirement': [{'question': 'In what year did Benjamin Franklin first arrive in Philadelphia', 'status': 'success', 'evidence_chunks': 4, 'answered': True}]}
+    expected: The autobiography does not state the arrival year in the extracted prose; the assistant must abstain rather than supply 1723 from outside knowledge.
+    ANSWER: ô- Elegy This broadside elegy for Aquila Rose, the young poet and printer whose death at the age of 28 was the reason why William Bradford had recommended Franklin to come to Philadelphia in the first place, is the first thing that Franklin printed in the city [2].ö
+
+--- K02 [K_spelling] whaat is benjmin frankln
+    status=success abstained=False total=133.877s
+    stages: retrieval=5.5044 generation=83.4165 verification=15.5104 ranking=0.026 selection=0.3505
+    flags: passes=2 variants=0 cache=False recovery=True verify_retry=True extractive=None scope=['the-autobiography-of-benjamin-franklin-benjamin-franklin.pdf']
+    sources(4): franklin:Page 105, franklin:Page 112, franklin:Page 107, franklin:Page 4
+    cited refs=[3] invalid=[] citation_pages=['Page 107'] expected_pages=['Page 37', 'Page 6'] page_hits=0/2
+    expected_docs=['franklin'] cited_docs=['franklin']
+    citation_validation={"valid": true, "references_valid": true, "fully_cited": true, "references_found": [3], "invalid_reference_numbers": [], "unknown_source_labels": [], "phantom_labels": [], "uncited_sentences": [], "citation_present": true, "citation_coverage": 1.0}
+    confidence={'score': 1.0, 'label': 'high', 'calibrated': False, 'kind': 'heuristic_evidence_score', 'signals': {'retrieval_similarity': 0.77, 'term_coverage': 1.0, 'citation_valid': True, 'citation_coverage': 1.0, 'verified': True}} coverage={'total_requirements': 1, 'answered_requirements': 1, 'unanswered_requirements': 0, 'coverage_ratio': 1.0, 'per_requirement': [{'question': 'whaat is benjmin frankln', 'status': 'success', 'evidence_chunks': 4, 'answered': True}]}
+    expected: Identify Benjamin Franklin.
+    ANSWER: ôThough Mather and Benjamin Franklin held opposing views upon various matters, there is no doubt that Mather exerted major influence upon Franklin [3].ö
+
+cfgB_3b_3b LATENCY: n=9 mean=110.9s p50=93.3s p90=164.2s max=185.8s min=71.9s
+  generation: mean=71.6s max=114.5s
+  verification: n=8 mean=23.0s max=82.0s
+  statuses: {'answer_validation_failed': 1, 'success': 7, 'citation_validation_failed': 1}
+  rss MB: min=101 max=233
+  models loaded at end: [{'name': 'qwen2.5:3b', 'size_mb': 2067.9, 'size_vram_mb': 0.0}, {'name': 'nomic-embed-text:latest', 'size_mb': 371.0, 'size_vram_mb': 0.0}]
+==============================================================================================================
+CONFIG cfgC_3b_7b  (9 cases)
+==============================================================================================================
+
+--- A01 [A_basic_factual] Who founded the Junto, and on which evening did it meet?
+    status=answer_validation_failed abstained=True total=518.57s
+    stages: retrieval=9.6311 generation=172.0276 verification=246.2405 ranking=0.0084 selection=0.4702
+    flags: passes=1 variants=0 cache=False recovery=True verify_retry=True extractive=None scope=None
+    sources(4): franklin:Page 61, hill:Page 202, franklin:Page 61, hill:Page 122
+    cited refs=[] invalid=[] citation_pages=[] expected_pages=['Page 37'] page_hits=0/1
+    expected_docs=['franklin'] cited_docs=[]
+    citation_validation={"valid": true, "references_valid": true, "fully_cited": true, "references_found": [1, 2, 3, 4], "invalid_reference_numbers": [], "unknown_source_labels": [], "phantom_labels": [], "uncited_sentences": [], "citation_present": true, "citation_coverage": 1.0}
+    confidence={'score': 0.0, 'label': 'none', 'calibrated': False, 'kind': 'heuristic_evidence_score'} coverage={'total_requirements': 1, 'answered_requirements': 0, 'unanswered_requirements': 1, 'coverage_ratio': 0.0, 'per_requirement': [{'question': 'Who founded the Junto, and on which evening did it meet', 'status': 'answer_validation_failed', 'evidence_chunks': 4, 'answered': False}]}
+    expected: Benjamin Franklin formed the Junto from his ingenious acquaintance; it met on Friday evenings.
+    ANSWER: The generated answer failed verification, and no sufficiently relevant verbatim passage could be safely returned. Inspect the retrieved sources or retry when Ollama is available.
+
+--- A02 [A_basic_factual] What was Benjamin Franklin's father's trade?
+    status=success abstained=False total=428.497s
+    stages: retrieval=5.0235 generation=99.7374 verification=101.1621 ranking=0.0094 selection=0.2102
+    flags: passes=1 variants=0 cache=False recovery=True verify_retry=True extractive=None scope=['the-autobiography-of-benjamin-franklin-benjamin-franklin.pdf']
+    sources(4): franklin:Page 4, franklin:Page 105, franklin:Page 109, franklin:Page 107
+    cited refs=[3] invalid=[] citation_pages=['Page 109'] expected_pages=['Page 7'] page_hits=0/1
+    expected_docs=['franklin'] cited_docs=['franklin']
+    citation_validation={"valid": true, "references_valid": true, "fully_cited": true, "references_found": [3], "invalid_reference_numbers": [], "unknown_source_labels": [], "phantom_labels": [], "uncited_sentences": [], "citation_present": true, "citation_coverage": 1.0}
+    confidence={'score': 1.0, 'label': 'high', 'calibrated': False, 'kind': 'heuristic_evidence_score', 'signals': {'retrieval_similarity': 0.765, 'term_coverage': 1.0, 'citation_valid': True, 'citation_coverage': 1.0, 'verified': True}} coverage={'total_requirements': 1, 'answered_requirements': 1, 'unanswered_requirements': 0, 'coverage_ratio': 1.0, 'per_requirement': [{'question': "What was Benjamin Franklin's father's trade", 'status': 'success', 'evidence_chunks': 4, 'answered': True}]}
+    expected: He was a tallow-chandler and sope-boiler.
+    ANSWER: ôBenjamin Franklin belonged to the class of apprentices who bound themselves ôby their own free will and consentö to a master to learn his trade, not the apprentices involuntarily bound under the auspices of the Poor Law [3].ö
+
+--- B02 [B_detailed] Describe the six definite practical steps Hill gives for transmuting the desire for riches into money.
+    status=success abstained=False total=362.483s
+    stages: retrieval=5.2603 generation=71.0361 verification=285.7764 ranking=0.0191 selection=0.6528
+    flags: passes=4 variants=3 cache=False recovery=None verify_retry=None extractive=None scope=None
+    sources(4): hill:Page 341, hill:Page 201, hill:Page 68, hill:Page 69
+    cited refs=[2, 3, 4] invalid=[] citation_pages=['Page 201', 'Page 68', 'Page 69'] expected_pages=['Page 68', 'Page 69', 'Page 70'] page_hits=2/3
+    expected_docs=['hill'] cited_docs=['hill']
+    citation_validation={"valid": true, "references_valid": true, "fully_cited": true, "references_found": [2, 3, 4], "invalid_reference_numbers": [], "unknown_source_labels": [], "phantom_labels": [], "uncited_sentences": [], "citation_present": true, "citation_coverage": 1.0}
+    confidence={'score': 0.964, 'label': 'high', 'calibrated': False, 'kind': 'heuristic_evidence_score', 'signals': {'retrieval_similarity': 0.788, 'term_coverage': 0.818, 'citation_valid': True, 'citation_coverage': 1.0, 'verified': True}} coverage={'total_requirements': 1, 'answered_requirements': 1, 'unanswered_requirements': 0, 'coverage_ratio': 1.0, 'per_requirement': [{'question': 'Describe the six definite practical steps Hill gives for transmuting the desire for riches into money.', 'status': 'success', 'evidence_chunks': 4, 'answered': True}]}
+    expected: Fix the exact amount; determine what you will give in return; set a definite date; create a definite plan and begin at once; write a clear statement of amount, time limit, return and plan; read it aloud twice daily, seeing and feeling yourself already in possession.
+    ANSWER: [2] Determine exactly what you intend to give in return for the money you desire. [3] Establish a definite date when you intend to possess the money you desire. [4] Create a definite plan for carrying out your desire, and begin at once, whether you are ready or not, to put this plan into action. Write out a clear, concise statement of the amount of money you intend to acquire, name the time limit for its acquisition, state what you intend to give in return for the money, and describe clearly the plan through which you intend to accumulate it [4]. Read your written statement aloud, twice daily, once just before retiring at night, and once after arising in the morning [4].
+
+--- D01 [D_comparison] Compare Franklin's Junto with Hill's Master Mind.
+    status=citation_validation_failed abstained=True total=115.05s
+    stages: retrieval=13.8834 generation=100.8904 verification=None ranking=0.0027 selection=0.0023
+    flags: passes=4 variants=3 cache=False recovery=None verify_retry=None extractive=None scope=['the-autobiography-of-benjamin-franklin-benjamin-franklin.pdf']
+    sources(2): franklin:Page 46, franklin:Page 10
+    cited refs=[] invalid=[] citation_pages=[] expected_pages=['Page 333', 'Page 37'] page_hits=0/2
+    expected_docs=['franklin', 'hill'] cited_docs=[]
+    citation_validation={"valid": false, "references_valid": true, "fully_cited": false, "references_found": [1, 2], "invalid_reference_numbers": [], "unknown_source_labels": [], "phantom_labels": [], "uncited_sentences": ["Franklin's Junto and Hill's Master Mind both aim to organize social groups for intellectual and soci
+    confidence={'score': 0.0, 'label': 'none', 'calibrated': False, 'kind': 'heuristic_evidence_score'} coverage={'total_requirements': 1, 'answered_requirements': 0, 'unanswered_requirements': 1, 'coverage_ratio': 0.0, 'per_requirement': [{'question': "Compare Franklin's Junto with Hill's Master Mind.", 'status': 'citation_validation_failed', 'evidence_chunks': 2, 'answered': False}]}
+    expected: The Junto was a weekly club of mutual improvement with queries and essays; Hill's Master Mind is the coordination of knowledge and effort, in harmony, between two or more people for a definite purpose. Both use a group, but the Junto is an inquiry club and the Master Mind is a purpose-driven alliance.
+    ANSWER: The document passages were retrieved, but the generated answer did not cite them correctly. Please retry or inspect the listed source passages.
+
+--- F01 [F_summarization] Summarize the main argument of The Science of Getting Rich.
+    status=success abstained=False total=348.369s
+    stages: retrieval=4.1129 generation=74.0518 verification=269.9929 ranking=0.0209 selection=1.2511
+    flags: passes=4 variants=3 cache=False recovery=None verify_retry=None extractive=None scope=['the-science-of-getting-rich.pdf']
+    sources(7): science:Page 11, science:Page 9, science:Page 45, science:Page 10, science:Page 9, science:Page 11, science:Page 52
+    cited refs=[1, 2, 3, 4, 5, 6, 7] invalid=[] citation_pages=['Page 10', 'Page 11', 'Page 45', 'Page 52', 'Page 9'] expected_pages=['Page 17', 'Page 74', 'Page 9'] page_hits=1/3
+    expected_docs=['science'] cited_docs=['science']
+    citation_validation={"valid": true, "references_valid": true, "fully_cited": true, "references_found": [1, 2, 3, 4, 5, 6, 7], "invalid_reference_numbers": [], "unknown_source_labels": [], "phantom_labels": [], "uncited_sentences": [], "citation_present": true, "citation_coverage": 1.0}
+    confidence={'score': 0.9, 'label': 'high', 'calibrated': False, 'kind': 'heuristic_evidence_score', 'signals': {'retrieval_similarity': 0.85, 'term_coverage': 0.5, 'citation_valid': True, 'citation_coverage': 1.0, 'verified': True}} coverage={'total_requirements': 1, 'answered_requirements': 1, 'unanswered_requirements': 0, 'coverage_ratio': 1.0, 'per_requirement': [{'question': 'Summarize the main argument of The Science of Getting Rich.', 'status': 'success', 'evidence_chunks': 7, 'answered': True}]}
+    expected: Riches come with mathematical certainty to those who act and think in a Certain Way; thought impressed on Formless Substance creates things; one must move from competition to creation and hold the vision with faith and gratitude.
+    ANSWER: The main argument of The Science of Getting Rich is that getting rich is not solely dependent on having more capital, talents, or doing different things compared to others [4]. Instead, it is argued that getting rich is the result of doing things in a certain way [1], [2], [3], [4], [5], [6]. The book emphasizes that getting rich is not about saving money or doing things others fail to do; it is about doing things in a specific manner [1], [4]. The author also suggests that getting rich is not influenced by one's environment or the business one is in, but rather by the way one does things [2], [3], [5]. Lastly, the book advises readers to focus on their vision and act now, regardless of their current situation, as long as they are doing things in the right way [6], [7].
+
+--- H05 [H_numerical] In what year was Dracula first published, and in how many chapters is it told?
+    status=success abstained=False total=359.376s
+    stages: retrieval=9.412 generation=102.4949 verification=59.9997 ranking=0.0054 selection=0.1243
+    flags: passes=1 variants=0 cache=False recovery=True verify_retry=True extractive=None scope=['dracula-bram-stoker.pdf']
+    sources(4): dracula:Page 727, dracula:Page 641, dracula:Page 5, dracula:Page 4
+    cited refs=[1] invalid=[] citation_pages=['Page 727'] expected_pages=['Page 4', 'Page 5'] page_hits=0/2
+    expected_docs=['dracula'] cited_docs=['dracula']
+    citation_validation={"valid": true, "references_valid": true, "fully_cited": true, "references_found": [1], "invalid_reference_numbers": [], "unknown_source_labels": [], "phantom_labels": [], "uncited_sentences": [], "citation_present": true, "citation_coverage": 1.0}
+    confidence={'score': 0.937, 'label': 'high', 'calibrated': False, 'kind': 'heuristic_evidence_score', 'signals': {'retrieval_similarity': 0.685, 'term_coverage': 0.857, 'citation_valid': True, 'citation_coverage': 1.0, 'verified': True}} coverage={'total_requirements': 1, 'answered_requirements': 1, 'unanswered_requirements': 0, 'coverage_ratio': 1.0, 'per_requirement': [{'question': 'In what year was Dracula first published, and in how many chapters is it told', 'status': 'success', 'evidence_chunks': 4, 'answered': True}]}
+    expected: 1897; 27 chapters.
+    ANSWER: ôABOU T THIS EDI TION Dracula is a novel told through letters, journals and newspaper cuttings, written by the Irish author Bram Stoker and first published in London in 1897 by Archibald Constable and Company [1].ö
+
+--- I01 [I_ambiguous_conversational] Tell me more about him.
+    history=2 turns
+    status=success abstained=False total=292.343s
+    stages: retrieval=4.3424 generation=84.9499 verification=69.1634 ranking=0.0403 selection=0.8934
+    flags: passes=3 variants=2 cache=False recovery=True verify_retry=True extractive=None scope=None
+    sources(4): dracula:Page 460, hill:Page 36, hill:Page 4, dracula:Page 615
+    cited refs=[2] invalid=[] citation_pages=['Page 36'] expected_pages=['Page 37', 'Page 6'] page_hits=0/2
+    expected_docs=['franklin'] cited_docs=['hill']
+    citation_validation={"valid": true, "references_valid": true, "fully_cited": true, "references_found": [2], "invalid_reference_numbers": [], "unknown_source_labels": [], "phantom_labels": [], "uncited_sentences": [], "citation_present": true, "citation_coverage": 1.0}
+    confidence={'score': 0.976, 'label': 'high', 'calibrated': False, 'kind': 'heuristic_evidence_score', 'signals': {'retrieval_similarity': 0.705, 'term_coverage': 1.0, 'citation_valid': True, 'citation_coverage': 1.0, 'verified': True}} coverage={'total_requirements': 1, 'answered_requirements': 1, 'unanswered_requirements': 0, 'coverage_ratio': 1.0, 'per_requirement': [{'question': 'Tell me more about him.', 'status': 'success', 'evidence_chunks': 4, 'answered': True}]}
+    expected: Additional Franklin facts from the autobiography, e.g. birth in Boston, tallow-chandler family, printing apprenticeship, Junto.
+    ANSWER: ôA little more than thirty years ago, Edwin C [2].ö
+
+--- J01 [J_unanswerable] In what year did Benjamin Franklin first arrive in Philadelphia?
+    status=success abstained=False total=151.606s
+    stages: retrieval=3.6149 generation=42.968 verification=104.8852 ranking=0.0145 selection=0.3404
+    flags: passes=3 variants=2 cache=False recovery=None verify_retry=None extractive=None scope=['the-autobiography-of-benjamin-franklin-benjamin-franklin.pdf']
+    sources(4): franklin:Page 127, franklin:Page 114, franklin:Page 112, franklin:Page 40
+    cited refs=[4] invalid=[] citation_pages=['Page 40'] expected_pages=[] page_hits=0/-
+    expected_docs=['franklin'] cited_docs=['franklin']
+    citation_validation={"valid": true, "references_valid": true, "fully_cited": true, "references_found": [4], "invalid_reference_numbers": [], "unknown_source_labels": [], "phantom_labels": [], "uncited_sentences": [], "citation_present": true, "citation_coverage": 1.0}
+    confidence={'score': 0.899, 'label': 'high', 'calibrated': False, 'kind': 'heuristic_evidence_score', 'signals': {'retrieval_similarity': 0.614, 'term_coverage': 0.857, 'citation_valid': True, 'citation_coverage': 1.0, 'verified': True}} coverage={'total_requirements': 1, 'answered_requirements': 1, 'unanswered_requirements': 0, 'coverage_ratio': 1.0, 'per_requirement': [{'question': 'In what year did Benjamin Franklin first arrive in Philadelphia', 'status': 'success', 'evidence_chunks': 4, 'answered': True}]}
+    expected: The autobiography does not state the arrival year in the extracted prose; the assistant must abstain rather than supply 1723 from outside knowledge.
+    ANSWER: [4] Benjamin Franklin first arrived in Philadelphia in the year 1729.
+
+--- K02 [K_spelling] whaat is benjmin frankln
+    status=success abstained=False total=755.493s
+    stages: retrieval=1.1733 generation=190.4857 verification=263.6287 ranking=0.0108 selection=0.3336
+    flags: passes=2 variants=0 cache=False recovery=True verify_retry=True extractive=None scope=['the-autobiography-of-benjamin-franklin-benjamin-franklin.pdf']
+    sources(4): franklin:Page 105, franklin:Page 112, franklin:Page 107, franklin:Page 4
+    cited refs=[3] invalid=[] citation_pages=['Page 107'] expected_pages=['Page 37', 'Page 6'] page_hits=0/2
+    expected_docs=['franklin'] cited_docs=['franklin']
+    citation_validation={"valid": true, "references_valid": true, "fully_cited": true, "references_found": [3], "invalid_reference_numbers": [], "unknown_source_labels": [], "phantom_labels": [], "uncited_sentences": [], "citation_present": true, "citation_coverage": 1.0}
+    confidence={'score': 1.0, 'label': 'high', 'calibrated': False, 'kind': 'heuristic_evidence_score', 'signals': {'retrieval_similarity': 0.77, 'term_coverage': 1.0, 'citation_valid': True, 'citation_coverage': 1.0, 'verified': True}} coverage={'total_requirements': 1, 'answered_requirements': 1, 'unanswered_requirements': 0, 'coverage_ratio': 1.0, 'per_requirement': [{'question': 'whaat is benjmin frankln', 'status': 'success', 'evidence_chunks': 4, 'answered': True}]}
+    expected: Identify Benjamin Franklin.
+    ANSWER: ôThough Mather and Benjamin Franklin held opposing views upon various matters, there is no doubt that Mather exerted major influence upon Franklin [3].ö
+
+cfgC_3b_7b LATENCY: n=9 mean=370.2s p50=359.4s p90=518.6s max=755.5s min=115.0s
+  generation: mean=104.3s max=190.5s
+  verification: n=8 mean=175.1s max=285.8s
+  statuses: {'answer_validation_failed': 1, 'success': 7, 'citation_validation_failed': 1}
+  rss MB: min=51 max=87
+  models loaded at end: [{'name': 'qwen2.5:7b', 'size_mb': 4835.0, 'size_vram_mb': 0.0}, {'name': 'qwen2.5:3b', 'size_mb': 2067.9, 'size_vram_mb': 0.0}]
