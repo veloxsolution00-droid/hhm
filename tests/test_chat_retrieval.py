@@ -67,6 +67,35 @@ def test_named_document_scope_isolates_a_file_named_in_the_question(monkeypatch)
     document_hit = [{"metadata": {"document_id": "d3", "filename": "document.pdf"}}]
     assert chat._named_document_scope("What does the document say?", document_hit) == set()
 
+
+def test_comparison_question_is_not_scoped_to_a_single_named_file(monkeypatch):
+    import sys, types
+    monkeypatch.setitem(sys.modules, "chromadb", types.ModuleType("chromadb"))
+    import app.rag.chat as chat
+
+    hits = [
+        {"metadata": {"document_id": "d1", "filename": "the-autobiography-of-benjamin-franklin-benjamin-franklin.pdf"}},
+        {"metadata": {"document_id": "d2", "filename": "think-and-grow-rich-napoleon-hill.pdf"}},
+    ]
+    # Only the Franklin filename token matches, but both documents are required,
+    # so the question must not be pinned to Franklin alone.
+    assert chat._named_document_scope("Compare Franklin's Junto with Hill's Master Mind.", hits) == set()
+    # A survey question ("which document") also spans files.
+    assert chat._named_document_scope("Which document contains the statement?", hits) == set()
+
+
+def test_document_title_token_does_not_prefix_match_inside_a_word(monkeypatch):
+    import sys, types
+    monkeypatch.setitem(sys.modules, "chromadb", types.ModuleType("chromadb"))
+    import app.rag.chat as chat
+
+    hits = [{"metadata": {"document_id": "d2", "filename": "think-and-grow-rich-napoleon-hill.pdf"}}]
+    # "thinking" must not match the "think" title token, so an ordinary question
+    # about a "thinking stuff" is not wrongly pinned to the Think and Grow Rich file.
+    assert chat._named_document_scope("What is this thinking stuff made of?", hits) == set()
+    # The title word itself, as a whole word, still resolves the document.
+    assert chat._named_document_scope("What does Think and Grow Rich say?", hits) == {"d2"}
+
 def test_verifier_rejects_an_unsupported_draft(monkeypatch):
     import sys, types
     monkeypatch.setitem(sys.modules, "chromadb", types.ModuleType("chromadb"))

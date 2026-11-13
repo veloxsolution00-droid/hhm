@@ -694,19 +694,35 @@ def _document_title_tokens(filename):
             if token not in _GENERIC_TITLE_WORDS}
 
 
+# A question that asks to compare, or to survey "which document(s)" / "which
+# book(s)", legitimately draws evidence from more than one file. Such questions
+# must never be scoped to a single document, even when only one filename token
+# happens to match.
+_MULTI_DOCUMENT_QUESTION = re.compile(
+    r"\b(?:which\s+(?:documents?|books?|works?|files?)|"
+    r"across\s+(?:the\s+)?(?:documents?|books?))\b", re.I)
+
+
 def _named_document_scope(question, hits):
     """Return the single document the question names, or an empty set.
 
     When a question names one uploaded file, evidence should come from that file.
     Otherwise a word shared by two documents (for example "chapters", which
     occurs in both the Enchiridion and Dracula) can pull a passage from the other
-    document into the answer. Scoping is skipped when the question names no file
-    or several files, because those are exactly the cases where evidence is
-    legitimately drawn from more than one document.
+    document into the answer. Scoping is skipped when the question names no file,
+    names several files, or is itself a comparison / multi-document question,
+    because those are exactly the cases where evidence is legitimately drawn from
+    more than one document.
     """
     if not question or not hits:
         return set()
-    lowered = str(question).lower()
+    text = str(question)
+    # "Compare Franklin's Junto with Hill's Master Mind" matches only the
+    # Franklin filename, yet both files are required; "Which document contains
+    # ..." surveys several files. Neither may be pinned to one document.
+    if _plan_question(text) == "comparison" or _MULTI_DOCUMENT_QUESTION.search(text):
+        return set()
+    lowered = text.lower()
     by_document = {}
     for hit in hits:
         metadata = hit.get("metadata") or {}
@@ -715,7 +731,9 @@ def _named_document_scope(question, hits):
             by_document[document_id] = metadata.get("filename") or ""
     named = {
         document_id for document_id, filename in by_document.items()
-        if any(re.search(rf"\b{re.escape(token)}", lowered)
+        # Whole-word match: a title word must appear as a word, so "think" in a
+        # filename no longer matches "thinking" inside an ordinary question.
+        if any(re.search(rf"\b{re.escape(token)}\b", lowered)
                for token in _document_title_tokens(filename))
     }
     return named if len(named) == 1 else set()
