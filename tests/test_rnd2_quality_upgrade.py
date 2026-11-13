@@ -30,8 +30,43 @@ def test_evidence_selector_reports_uncovered_terms_and_selection_metadata():
     )
     assert result["evidence_found"] is True
     assert "budget" in result["missing_terms"]
-    assert result["selection_strategy"] == "relevance_coverage_redundancy"
+    assert result["selection_strategy"] == "relevance_coverage_redundancy_diversity"
+    assert result["multi_document"] is False
     assert result["selected_characters"] == len("The manager approves travel")
+
+
+def test_single_document_question_keeps_depth_from_its_source():
+    from app.retrieval.evidence_selector import select_evidence
+
+    hits = [
+        {"id": "a:1", "text": "The policy limits reimbursements to 5000 rupees per trip.",
+         "rerank_score": 0.90, "metadata": {"document_id": "a", "source_location": "p1"}},
+        {"id": "a:2", "text": "Travel reimbursement policy details and approval limits for staff.",
+         "rerank_score": 0.85, "metadata": {"document_id": "a", "source_location": "p2"}},
+        {"id": "b:1", "text": "An unrelated document mentioning travel in passing.",
+         "rerank_score": 0.30, "metadata": {"document_id": "b", "source_location": "p1"}},
+    ]
+    result = select_evidence("What is the reimbursement limit?", hits, max_chunks=2)
+    assert result["multi_document"] is False
+    selected_docs = [h["metadata"]["document_id"] for h in result["hits"]]
+    assert selected_docs == ["a", "a"]
+
+
+def test_comparison_question_includes_evidence_from_every_document():
+    from app.retrieval.evidence_selector import select_evidence
+
+    hits = [
+        {"id": "a:1", "text": "Document A reports annual revenue of 10 crore.",
+         "rerank_score": 0.92, "metadata": {"document_id": "a", "source_location": "p1"}},
+        {"id": "a:2", "text": "Document A also lists additional revenue details for the year.",
+         "rerank_score": 0.88, "metadata": {"document_id": "a", "source_location": "p2"}},
+        {"id": "b:1", "text": "Document B reports annual revenue of 12 crore.",
+         "rerank_score": 0.80, "metadata": {"document_id": "b", "source_location": "p1"}},
+    ]
+    result = select_evidence("Compare the annual revenue across both documents", hits, max_chunks=2)
+    assert result["multi_document"] is True
+    selected_docs = {h["metadata"]["document_id"] for h in result["hits"]}
+    assert selected_docs == {"a", "b"}
 
 
 def test_multi_question_retrieval_diagnostics_are_aggregated(monkeypatch):
