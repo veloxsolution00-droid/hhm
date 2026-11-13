@@ -620,3 +620,32 @@ def indexed_vocabulary(limit=20000):
         if "chunk_search" in str(exc) or "fts5" in str(exc).lower():
             return []
         raise
+
+
+def indexed_lexical_statistics(terms):
+    """Return (indexed_chunk_count, {term: number-of-chunks-containing-it}).
+
+    Both values come from one connection so a search does not pay two separate
+    index round-trips. The vocabulary lookup is bounded to the supplied query
+    terms, so it never scans the whole vocabulary. Used to weight rare query
+    terms more heavily than ubiquitous ones. Returns (0, {}) when the FTS index
+    or its vocabulary is unavailable, which lets the caller fall back to
+    uniform weighting.
+    """
+    wanted = sorted({str(term) for term in terms if term})
+    try:
+        with connect() as conn:
+            total = int(conn.execute("SELECT COUNT(*) FROM chunk_search").fetchone()[0])
+            if not wanted:
+                return total, {}
+            conn.execute("CREATE VIRTUAL TABLE IF NOT EXISTS temp.chunk_vocab USING fts5vocab(main, chunk_search, 'row')")
+            placeholders = ",".join("?" for _ in wanted)
+            rows = conn.execute(
+                f"SELECT term, doc FROM temp.chunk_vocab WHERE term IN ({placeholders})",
+                tuple(wanted),
+            ).fetchall()
+            return total, {str(row[0]): int(row[1]) for row in rows}
+    except sqlite3.OperationalError as exc:
+        if "chunk_search" in str(exc) or "fts5" in str(exc).lower():
+            return 0, {}
+        raise

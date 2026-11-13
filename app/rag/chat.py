@@ -13,6 +13,7 @@ from app.rag.planner import classify_question as _plan_question, query_variants
 from app.reasoning.calculator import direct_calculation, apply_evidence_calculation_plan
 from app.rag.answer_validator import validate_answer as validate_citation_references
 from app.rag.citations import cite_verbatim_urls, cite_supported_uncited_sentences
+from app.rag.sufficiency import assess_evidence_sufficiency
 from app.reasoning.conflict_resolver import inspect_conflicts
 from app.rag.planner import correct_query_from_vocabulary
 from app.storage.database import indexed_vocabulary
@@ -485,24 +486,33 @@ def _cited_references(sentence: str) -> list[int]:
 
 
 def _drop_unsupported_sentences(text: str, hits: list[dict]) -> str:
-    """Drop sentence-level claims whose own cited passage does not support them.
+    """Drop sentence-level claims that are uncited or unsupported by their passage.
 
     A small local model often answers correctly and then appends an extra,
-    unsupported sentence. Without pruning, the whole draft fails verification
-    even though the supported sentence is already a complete, cited answer.
-    Only clearly unsupported sentences are dropped (their content words are
-    almost absent from their own cited passages) and the draft is never emptied.
+    uncited or unsupported sentence. Without pruning, a single bad sentence made
+    the whole draft fail citation coverage or verification even though the
+    supported sentences were already a complete, cited answer. Claim-level
+    support is soft: only sentences that carry a real claim but have no citation
+    of their own, or whose content words are almost absent from their own cited
+    passages, are dropped. Structural lead-ins and short fragments are kept, and
+    the draft is never emptied.
     """
     sentences = [part.strip() for part in _SENTENCE_SPLIT.split(text or "") if part.strip()]
     if len(sentences) < 2:
         return text or ""
     kept, dropped = [], 0
     for sentence in sentences:
-        refs = _cited_references(sentence)
-        if not refs or any(ref < 1 or ref > len(hits) for ref in refs):
+        content = _content_terms(sentence)
+        refs = [ref for ref in _cited_references(sentence) if 1 <= ref <= len(hits)]
+        if not refs:
+            # A sentence with a substantive claim but no citation cannot be
+            # checked against any passage. Drop it; a lead-in or fragment
+            # ("These steps are:", "1.") has too little content to be a claim.
+            if len(content) >= 3:
+                dropped += 1
+                continue
             kept.append(sentence)
             continue
-        content = _content_terms(sentence)
         if len(content) < 3:
             kept.append(sentence)
             continue
@@ -694,19 +704,35 @@ def _document_title_tokens(filename):
             if token not in _GENERIC_TITLE_WORDS}
 
 
+# A question that asks to compare, or to survey "which document(s)" / "which
+# book(s)", legitimately draws evidence from more than one file. Such questions
+# must never be scoped to a single document, even when only one filename token
+# happens to match.
+_MULTI_DOCUMENT_QUESTION = re.compile(
+    r"\b(?:which\s+(?:documents?|books?|works?|files?)|"
+    r"across\s+(?:the\s+)?(?:documents?|books?))\b", re.I)
+
+
 def _named_document_scope(question, hits):
     """Return the single document the question names, or an empty set.
 
     When a question names one uploaded file, evidence should come from that file.
     Otherwise a word shared by two documents (for example "chapters", which
     occurs in both the Enchiridion and Dracula) can pull a passage from the other
-    document into the answer. Scoping is skipped when the question names no file
-    or several files, because those are exactly the cases where evidence is
-    legitimately drawn from more than one document.
+    document into the answer. Scoping is skipped when the question names no file,
+    names several files, or is itself a comparison / multi-document question,
+    because those are exactly the cases where evidence is legitimately drawn from
+    more than one document.
     """
     if not question or not hits:
         return set()
-    lowered = str(question).lower()
+    text = str(question)
+    # "Compare Franklin's Junto with Hill's Master Mind" matches only the
+    # Franklin filename, yet both files are required; "Which document contains
+    # ..." surveys several files. Neither may be pinned to one document.
+    if _plan_question(text) == "comparison" or _MULTI_DOCUMENT_QUESTION.search(text):
+        return set()
+    lowered = text.lower()
     by_document = {}
     for hit in hits:
         metadata = hit.get("metadata") or {}
@@ -715,7 +741,9 @@ def _named_document_scope(question, hits):
             by_document[document_id] = metadata.get("filename") or ""
     named = {
         document_id for document_id, filename in by_document.items()
-        if any(re.search(rf"\b{re.escape(token)}", lowered)
+        # Whole-word match: a title word must appear as a word, so "think" in a
+        # filename no longer matches "thinking" inside an ordinary question.
+        if any(re.search(rf"\b{re.escape(token)}\b", lowered)
                for token in _document_title_tokens(filename))
     }
     return named if len(named) == 1 else set()
@@ -1421,6 +1449,29 @@ def _answer_one(question, indexed, owner_id, doc_types=None):
         retrieval["spelling_correction"] = {"from": misspelled, "to": normalized}
     if not hits:
         return {"question": question, "status": "insufficient_evidence", "answer": ABSTENTION, "sources": [], "abstained": True, "retrieval": retrieval}
+    # Deterministic evidence sufficiency is evaluated before any generation call.
+    # Degenerate retrieval (nothing usable came back, or the question's subject is
+    # essentially absent from the evidence) abstains without spending a local
+    # generation; partial or contradictory evidence still answers, but the prompt
+    # is qualified so the model states what the documents do not establish.
+    sufficiency = assess_evidence_sufficiency(normalized, hits)
+    retrieval["evidence_sufficiency"] = {
+        "state": sufficiency["state"], "best_similarity": sufficiency["best_similarity"],
+        "term_coverage": sufficiency["term_coverage"], "anchor_coverage": sufficiency["anchor_coverage"],
+        "conflicts": sufficiency["conflicts"], "reasons": sufficiency["reasons"],
+    }
+    if sufficiency["abstain"]:
+        retrieval["failure_stage"] = "evidence_sufficiency"
+        retrieval["abstained_before_generation"] = True
+        return {"question": question, "status": "insufficient_evidence", "answer": ABSTENTION,
+                "sources": [], "abstained": True, "retrieval": retrieval,
+                "evidence_sufficiency": retrieval["evidence_sufficiency"]}
+    sufficiency_note = ""
+    if sufficiency["qualify"]:
+        sufficiency_note = (
+            "EVIDENCE COVERAGE: " + "; ".join(sufficiency["reasons"]) + ". Answer only the parts "
+            "the evidence supports, and state plainly which part the documents do not establish.\n"
+        )
     # The document type was detected during ingestion. Use it to steer the answer
     # shape (exact invoice values, verbatim clauses, question-bank disclosure).
     type_counts = {}
@@ -1487,6 +1538,7 @@ def _answer_one(question, indexed, owner_id, doc_types=None):
         "8. Answer the QUESTION that was asked. If it asks who or what a named thing is, state its "
         "role or identity; do not describe only the book, chapter or section where it appears.\n"
         "9. Do not merely repeat the QUESTION. Give the specific answer supported by the passages.\n"
+        f"{sufficiency_note}"
         f"{guidance}\n"
         f"{type_guidance}\n"
         "Good style: The schooner was Russian and called the Demeter [1]. It ran aground at Whitby in a storm [2].\n"
@@ -1644,7 +1696,7 @@ def _answer_one(question, indexed, owner_id, doc_types=None):
     # exact sentence from retrieved evidence over a generic pipeline error.
     # This fallback is accepted only as a contiguous passage extract.
     if not any(
-            not candidate["abstention"] and candidate["validation"].get("valid")
+            not candidate["abstention"] and candidate["validation"].get("references_valid")
             for candidate in candidates):
         extract = _extractive_answer_for_question(normalized, hits)
         if extract:
@@ -1657,12 +1709,16 @@ def _answer_one(question, indexed, owner_id, doc_types=None):
             retrieval["extractive_fallback_attempted"] = True
 
     substantive = [candidate for candidate in candidates if not candidate["abstention"]]
-    # Only fully cited drafts may advance to semantic verification. The
-    # verifier below deliberately requires every factual claim to name its own
-    # supporting passage; accepting a merely reference-valid draft here would
-    # create a contract mismatch and trigger avoidable model retries.
+    # Citation integrity and claim coverage are separate gates. A draft whose
+    # references are all legal (in range, resolving to a retrieved passage, no
+    # phantom or unknown labels) is trustworthy enough to advance to support
+    # verification; requiring every factual sentence to be cited as well
+    # discarded useful, partly cited answers wholesale. Unsupported/uncited
+    # sentences have already been pruned by _refine_generated_draft, and the
+    # verifier below still rejects a draft whose claims the evidence does not
+    # support.
     selected = next((candidate for candidate in reversed(substantive)
-                     if candidate["validation"].get("valid")), None)
+                     if candidate["validation"].get("references_valid")), None)
 
     # Bounded diagnostics for every draft, regardless of the final status.
     retrieval["candidates"] = [

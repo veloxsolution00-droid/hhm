@@ -1,0 +1,10 @@
+﻿A01  success                      total=    31.7s retr=0.9944 gen=30.4558 ver=None page_match=False
+A02  success                      total=    27.7s retr=1.3568 gen=26.2534 ver=None page_match=False
+B02  success                      total=    49.4s retr=1.785 gen=47.5119 ver=None page_match=True
+D01  citation_validation_failed   total=    58.6s retr=0.7606 gen=57.5376 ver=None page_match=False
+F01  success                      total=    70.6s retr=1.855 gen=68.6555 ver=None page_match=True
+H05  success                      total=    23.5s retr=0.3449 gen=23.0652 ver=None page_match=True
+I01  success                      total=    21.4s retr=1.4236 gen=19.8452 ver=None page_match=False
+J01  success                      total=    25.1s retr=0.7994 gen=24.1987 ver=None page_match=None
+K02  success                      total=    56.4s retr=0.6879 gen=55.567 ver=None page_match=False
+written evaluation\audit\live_cfgA_3b_programmatic.json

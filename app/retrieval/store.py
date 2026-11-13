@@ -1,5 +1,6 @@
 from pathlib import Path
 import logging
+import math
 import time
 import re
 import chromadb
@@ -21,20 +22,115 @@ def _query_terms(question):
     return {term for term in re.findall(r"[\w-]+", question.lower(), flags=re.UNICODE)
             if len(term) > 1 and term not in _LEXICAL_STOP_WORDS}
 
+def _document_terms(text):
+    return set(re.findall(r"[\w-]+", (text or "").lower(), flags=re.UNICODE))
+
+
 def _lexical_similarity(question_terms, text):
     """Measure exact query-term coverage for names, dates, IDs, and table values.
 
-    The score is bounded to [0, 1] and is used consistently for dense and FTS
-    candidates. Candidate generation remains bounded by the Chroma and FTS limits.
+    Kept for callers that expect an unweighted ratio; the retrieval path uses
+    `_weighted_lexical_similarity` so rare terms outweigh ubiquitous ones.
     """
     if not question_terms:
         return 0.0
-    document_terms = set(re.findall(r"[\w-]+", text.lower(), flags=re.UNICODE))
-    return len(question_terms & document_terms) / len(question_terms)
+    document_terms = _document_terms(text)
+    return len(set(question_terms) & document_terms) / len(set(question_terms))
+
+
+def _query_term_stats(question_terms):
+    """Return IDF weights, document frequencies and the indexed chunk count.
+
+    A term that occurs in nearly every chunk (for example a repeatedly named
+    person) carries little discriminating power, so it is down-weighted. A rare
+    term — an identifier, a distinctive name, a numeric value — carries more.
+    When index statistics are unavailable the weights are uniform, which
+    reproduces the previous unweighted behaviour exactly.
+    """
+    terms = {term for term in question_terms if term}
+    if not terms:
+        return {}, {}, 0
+    try:
+        total, frequencies = db.indexed_lexical_statistics(terms)
+    except Exception:  # noqa: BLE001 - index statistics must never break retrieval
+        return {term: 1.0 for term in terms}, {}, 0
+    if total <= 0:
+        return {term: 1.0 for term in terms}, frequencies, total
+    weights = {}
+    for term in terms:
+        df = max(0, int(frequencies.get(term, 0)))
+        if df <= 0:
+            # A term no chunk contains cannot discriminate between candidates,
+            # so it is treated as maximally common (the lowest weight) instead
+            # of inflating the denominator for every candidate.
+            df = total
+        weights[term] = math.log(1.0 + (total + 1) / (df + 1))
+    return weights, frequencies, total
+
+
+def _weighted_lexical_similarity(weights, text):
+    total_weight = sum(weights.values())
+    if total_weight <= 0:
+        return 0.0
+    document_terms = _document_terms(text)
+    matched = sum(weight for term, weight in weights.items() if term in document_terms)
+    return matched / total_weight
+
+
+def _quote_fts_term(term):
+    # Quote individual terms so punctuation cannot become FTS query syntax.
+    return f'"{term.replace(chr(34), "")}"'
+
 
 def _fts_query(question_terms):
-    # Quote individual terms so punctuation cannot become FTS query syntax.
-    return " OR ".join(f'"{term.replace(chr(34), "")}"' for term in sorted(question_terms))
+    return " OR ".join(_quote_fts_term(term) for term in sorted(question_terms))
+
+
+def _fts_rare_query(terms):
+    """OR over only the rarest query terms.
+
+    Restricting the route to discriminating terms keeps a chunk that matches a
+    distinctive term at the top even when ubiquitous words dominate BM25 over
+    the full query. The full OR route is still run alongside this one, so no
+    candidate is lost.
+    """
+    if len(terms) < 2:
+        return ""
+    return " OR ".join(_quote_fts_term(term) for term in terms)
+
+
+def _fts_phrase_query(question):
+    """One quoted adjacent-word-pair query for exact entity and identifier phrases.
+
+    Expressed as a single FTS query (``"a b" OR "b c" OR ...``) so phrase
+    matching costs one index round-trip instead of one per word pair.
+    """
+    tokens = [t for t in re.findall(r"[\w-]+", (question or "").lower(), flags=re.UNICODE)
+              if len(t) > 1]
+    if len(tokens) < 2:
+        return ""
+    phrases = []
+    seen = set()
+    for left, right in zip(tokens, tokens[1:]):
+        phrase = f'"{left} {right}"'
+        if phrase not in seen:
+            seen.add(phrase)
+            phrases.append(phrase)
+    return " OR ".join(phrases)
+
+
+def _rarest_terms(weights, frequencies, maximum=3):
+    """Return the rarest indexed query terms (absent terms excluded).
+
+    Sorted by IDF descending, so terms appearing in the fewest chunks come
+    first. Terms with no indexed document frequency are dropped: they cannot
+    match, so including them would only crowd the route.
+    """
+    candidates = [(term, int(frequencies.get(term, 0))) for term in weights]
+    candidates = [(term, df) for term, df in candidates if df > 0]
+    candidates.sort(key=lambda item: (item[1], item[0]))
+    return [term for term, _ in candidates[:maximum]]
+
 
 def collection():
     global _client, _collection
@@ -103,6 +199,7 @@ def search(question, owner_id="local"):
 
     question_terms = _query_terms(question)
     lexical_weight = max(0.0, min(1.0, float(settings.hybrid_lexical_weight)))
+    weights, frequencies, _total_chunks = _query_term_stats(question_terms)
     q_vector = None
     try:
         q_vector = embed_query(question)
@@ -134,7 +231,7 @@ def search(question, owner_id="local"):
             if not document or distance is None:
                 continue
             semantic_similarity = 1 - float(distance)
-            lexical_similarity = _lexical_similarity(question_terms, document)
+            lexical_similarity = _weighted_lexical_similarity(weights, document)
             hybrid_similarity = (
                 (1 - lexical_weight) * semantic_similarity
                 + lexical_weight * lexical_similarity
@@ -148,16 +245,17 @@ def search(question, owner_id="local"):
             seen_chunk_ids.add(chunk_id)
 
     # FTS brings in exact hits that semantic retrieval may not rank highly,
-    # particularly identifiers, dates, codes, and values from tables. Its limit
-    # is independent of the dense candidate count and is always enforced.
+    # particularly identifiers, dates, codes, and values from tables. It runs as
+    # a few bounded routes over the SAME index: the full OR query (always), an
+    # OR over only the rarest terms, and one combined quoted-phrase query. The
+    # full OR route always runs, so the original query never loses candidates.
     lexical_limit = max(1, int(settings.lexical_candidate_limit))
     if question_terms and lexical_weight > 0:
-        for fts_hit in db.search_indexed_chunks(
-            _fts_query(question_terms), owner_id, lexical_limit
-        ):
+        for fts_hit in _fts_candidates(question, question_terms, weights, frequencies,
+                                       owner_id, lexical_limit):
             if fts_hit["chunk_id"] in seen_chunk_ids:
                 continue
-            lexical_similarity = _lexical_similarity(question_terms, fts_hit["text"])
+            lexical_similarity = _weighted_lexical_similarity(weights, fts_hit["text"])
             results.append({
                 "id": fts_hit["chunk_id"], "text": fts_hit["text"],
                 "metadata": {
@@ -165,9 +263,8 @@ def search(question, owner_id="local"):
                     "filename": fts_hit["filename"],
                     "source_location": fts_hit["source_location"],
                 },
-                # Match the lexical component of the dense hybrid score. The
-                # previous (1 - weight) multiplier incorrectly gave FTS-only
-                # hits the dense weight and could reorder candidates.
+                # An FTS-only hit has no semantic component, so it contributes
+                # only the lexical term of the dense hybrid score.
                 "similarity": lexical_weight * lexical_similarity,
                 "semantic_similarity": None,
                 "lexical_similarity": lexical_similarity,
@@ -179,6 +276,43 @@ def search(question, owner_id="local"):
         owner_id, candidate_count, lexical_limit, len(results), q_vector is not None,
     )
     return sorted(results, key=lambda item: item["similarity"], reverse=True)
+
+
+def _fts_candidates(question, question_terms, weights, frequencies, owner_id, limit):
+    """Merge the bounded FTS routes into one deduplicated candidate list.
+
+    Each route is capped at `limit`, so candidate generation stays bounded. A
+    chunk surfaced by several routes keeps the best (lowest) BM25 rank.
+    """
+    queries = []
+    or_query = _fts_query(question_terms)
+    if or_query:
+        queries.append(or_query)
+    rare_terms = _rarest_terms(weights, frequencies)
+    rare_query = _fts_rare_query(rare_terms)
+    if rare_query and rare_query != or_query and len(rare_terms) < len(question_terms):
+        queries.append(rare_query)
+    phrase_query = _fts_phrase_query(question)
+    if phrase_query and phrase_query not in queries:
+        queries.append(phrase_query)
+
+    merged = {}
+    for query in queries:
+        for hit in db.search_indexed_chunks(query, owner_id, limit):
+            chunk_id = hit["chunk_id"]
+            previous = merged.get(chunk_id)
+            if previous is None or _bm25_rank(hit) < _bm25_rank(previous):
+                merged[chunk_id] = hit
+    return list(merged.values())
+
+
+def _bm25_rank(hit):
+    value = hit.get("rank")
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return 0.0
+
 
 def delete(document_id):
     # Explicit deletion/recovery only; never called on normal initialization.

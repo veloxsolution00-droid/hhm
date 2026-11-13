@@ -1,0 +1,217 @@
+{
+  "cases": 9,
+  "runs": {
+    "qwen2.5:3b": {
+      "rows": [
+        {
+          "id": "V01",
+          "kind": "supported_list",
+          "expected": true,
+          "verdict": true,
+          "correct": true,
+          "verdict_text": "YES",
+          "claims_checked": 1,
+          "seconds": 36.52,
+          "error": null
+        },
+        {
+          "id": "V02",
+          "kind": "supported_fact",
+          "expected": true,
+          "verdict": true,
+          "correct": true,
+          "verdict_text": "YES",
+          "claims_checked": 1,
+          "seconds": 2.32,
+          "error": null
+        },
+        {
+          "id": "V03",
+          "kind": "supported_number",
+          "expected": true,
+          "verdict": true,
+          "correct": true,
+          "verdict_text": "YES",
+          "claims_checked": 1,
+          "seconds": 2.46,
+          "error": null
+        },
+        {
+          "id": "V04",
+          "kind": "supported_paraphrase",
+          "expected": true,
+          "verdict": false,
+          "correct": false,
+          "verdict_text": "NO",
+          "claims_checked": 1,
+          "seconds": 2.24,
+          "error": null
+        },
+        {
+          "id": "V05",
+          "kind": "wrong_number",
+          "expected": false,
+          "verdict": false,
+          "correct": true,
+          "verdict_text": "NO",
+          "claims_checked": 1,
+          "seconds": 2.24,
+          "error": null
+        },
+        {
+          "id": "V06",
+          "kind": "unsupported_addition",
+          "expected": false,
+          "verdict": false,
+          "correct": true,
+          "verdict_text": "NO",
+          "claims_checked": 1,
+          "seconds": 1.8,
+          "error": null
+        },
+        {
+          "id": "V07",
+          "kind": "wrong_passage",
+          "expected": false,
+          "verdict": false,
+          "correct": true,
+          "verdict_text": "NO",
+          "claims_checked": 1,
+          "seconds": 2.0,
+          "error": null
+        },
+        {
+          "id": "V08",
+          "kind": "incomplete_set",
+          "expected": false,
+          "verdict": false,
+          "correct": true,
+          "verdict_text": "NO",
+          "claims_checked": 1,
+          "seconds": 2.29,
+          "error": null
+        },
+        {
+          "id": "V09",
+          "kind": "supported_step",
+          "expected": true,
+          "verdict": false,
+          "correct": false,
+          "verdict_text": "NO",
+          "claims_checked": 1,
+          "seconds": 1.9,
+          "error": null
+        }
+      ],
+      "accuracy": 0.778,
+      "mean_seconds": 5.97,
+      "max_seconds": 36.52
+    },
+    "qwen2.5:7b": {
+      "rows": [
+        {
+          "id": "V01",
+          "kind": "supported_list",
+          "expected": true,
+          "verdict": true,
+          "correct": true,
+          "verdict_text": "YES",
+          "claims_checked": 1,
+          "seconds": 135.46,
+          "error": null
+        },
+        {
+          "id": "V02",
+          "kind": "supported_fact",
+          "expected": true,
+          "verdict": true,
+          "correct": true,
+          "verdict_text": "YES",
+          "claims_checked": 1,
+          "seconds": 8.96,
+          "error": null
+        },
+        {
+          "id": "V03",
+          "kind": "supported_number",
+          "expected": true,
+          "verdict": true,
+          "correct": true,
+          "verdict_text": "YES",
+          "claims_checked": 1,
+          "seconds": 7.1,
+          "error": null
+        },
+        {
+          "id": "V04",
+          "kind": "supported_paraphrase",
+          "expected": true,
+          "verdict": false,
+          "correct": false,
+          "verdict_text": "NO",
+          "claims_checked": 1,
+          "seconds": 5.93,
+          "error": null
+        },
+        {
+          "id": "V05",
+          "kind": "wrong_number",
+          "expected": false,
+          "verdict": false,
+          "correct": true,
+          "verdict_text": "NO",
+          "claims_checked": 1,
+          "seconds": 6.02,
+          "error": null
+        },
+        {
+          "id": "V06",
+          "kind": "unsupported_addition",
+          "expected": false,
+          "verdict": false,
+          "correct": true,
+          "verdict_text": "NO",
+          "claims_checked": 1,
+          "seconds": 5.76,
+          "error": null
+        },
+        {
+          "id": "V07",
+          "kind": "wrong_passage",
+          "expected": false,
+          "verdict": false,
+          "correct": true,
+          "verdict_text": "NO",
+          "claims_checked": 1,
+          "seconds": 5.18,
+          "error": null
+        },
+        {
+          "id": "V08",
+          "kind": "incomplete_set",
+          "expected": false,
+          "verdict": false,
+          "correct": true,
+          "verdict_text": "NO",
+          "claims_checked": 1,
+          "seconds": 6.43,
+          "error": null
+        },
+        {
+          "id": "V09",
+          "kind": "supported_step",
+          "expected": true,
+          "verdict": true,
+          "correct": true,
+          "verdict_text": "YES",
+          "claims_checked": 1,
+          "seconds": 5.66,
+          "error": null
+        }
+      ],
+      "accuracy": 0.889,
+      "mean_seconds": 20.72,
+      "max_seconds": 135.46
+    }
+  }
+}

@@ -1,0 +1,93 @@
+[
+  {
+    "format": "txt",
+    "status": "ok",
+    "blocks": 2,
+    "chars": 68,
+    "ms": 14.2,
+    "locations": [
+      "Section 1",
+      "Section 2"
+    ],
+    "sample": "First paragraph about the Junto. Second paragraph about the library."
+  },
+  {
+    "format": "csv",
+    "status": "ok",
+    "blocks": 1,
+    "chars": 152,
+    "ms": 11.1,
+    "locations": [
+      "CSV"
+    ],
+    "sample": "Columns: Name | Amount | Date\nFirst source row (header candidate): Name | Amount | Date\nRow 2: Alpha | 1200 | 2024-01-05\nRow 3: Beta | 3400 | 2024-02-11"
+  },
+  {
+    "format": "docx",
+    "status": "ok",
+    "blocks": 2,
+    "chars": 184,
+    "ms": 60.1,
+    "locations": [
+      "Table 1",
+      "document"
+    ],
+    "sample": "Quarterly Report\nRevenue rose by 12 percent in the second quarter. Columns: Region | Revenue\nFirst source row (header candidate): Region | Revenue\nRow 2: North | 100\nRow 3: South | 200"
+  },
+  {
+    "format": "xlsx",
+    "status": "ok",
+    "blocks": 1,
+    "chars": 111,
+    "ms": 158.4,
+    "locations": [
+      "Sheet Budget"
+    ],
+    "sample": "Columns: Item | Cost\nFirst source row (header candidate): Item | Cost\nRow 2: Hosting | 250\nRow 3: Support | 800"
+  },
+  {
+    "format": "html",
+    "status": "ok",
+    "blocks": 1,
+    "chars": 29,
+    "ms": 742.8,
+    "locations": [
+      "HTML section 1"
+    ],
+    "sample": "Title\nVisible paragraph text."
+  },
+  {
+    "format": "md",
+    "status": "ok",
+    "blocks": 2,
+    "chars": 48,
+    "ms": 13.9,
+    "locations": [
+      "Section 1",
+      "Section 2"
+    ],
+    "sample": "# Heading Markdown paragraph with **bold** text."
+  },
+  {
+    "format": "json",
+    "status": "ok",
+    "blocks": 1,
+    "chars": 72,
+    "ms": 20.5,
+    "locations": [
+      "Section 1"
+    ],
+    "sample": "{\n  \"alpha\": 1,\n  \"nested\": {\n    \"beta\": [\n      1,\n      2\n    ]\n  }\n}"
+  },
+  {
+    "format": "png",
+    "status": "ok",
+    "blocks": 1,
+    "chars": 26,
+    "ms": 6314.1,
+    "locations": [
+      "Image OCR"
+    ],
+    "sample": "JUNTO MEETS FRIDAY EVENING"
+  }
+]

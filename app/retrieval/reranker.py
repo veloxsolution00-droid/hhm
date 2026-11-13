@@ -4,14 +4,28 @@ import re
 _STOP = {"the", "and", "for", "with", "what", "when", "where", "which", "who", "does",
          "from", "that", "this", "are", "was", "how", "about", "into", "you", "is",
          "a", "an", "of", "to", "in", "on", "it", "be", "by", "as"}
-_BOILERPLATE = re.compile(
-    r"(about this edition|table of contents|^\s*contents\s*$|copyright|isbn|"
-    r"transcription, correction|editorial commentary|\[UVAstudstaff\]|"
-    r"^\s*glossary\s*$|^\s*index\s*$|"
-    # Generic publisher marketing pages can crowd out substantive passages.
-    r"read and download free books|downloaded from [a-z0-9.-]+)",
+# Editorial, publisher and back-matter apparatus. This is not the source
+# passage itself, so it must not outrank it merely because it repeats the
+# subject's name; it is demoted unless the question is actually about it.
+_APPARATUS = re.compile(
+    r"(about this edition|copyright|isbn|transcription, correction|"
+    r"editorial commentary|\[UVAstudstaff\]|^\s*glossary\s*$|^\s*index\s*$|"
+    r"all rights reserved|read and download free books|downloaded from [a-z0-9.-]+)",
     re.I | re.M
 )
+# Structural front matter. A table of contents legitimately answers chapter or
+# title questions, so it is demoted only when it barely relates to the query
+# rather than merely because it is structural.
+_STRUCTURE = re.compile(r"table of contents|^\s*contents\s*$", re.I | re.M)
+# Vocabulary of the apparatus detected by _APPARATUS. A question that actually
+# asks about the apparatus (its edition, commentary, download instructions, ...)
+# is recognised by these words and must not have the apparatus suppressed.
+_BOILERPLATE_TOPIC = {
+    "edition", "transcription", "correction", "corrections", "commentary",
+    "editorial", "glossary", "index", "contents", "copyright", "isbn", "markup",
+    "download", "downloads", "downloaded", "free", "catalogue", "catalog",
+    "publisher", "publishers", "order", "orders", "buy", "purchase", "scan", "code",
+}
 _NUMBER = re.compile(r"(?<!\w)(?:₹|rs\.?\s*)?\d[\d,]*(?:\.\d+)?%?(?!\w)", re.I)
 
 
@@ -20,7 +34,20 @@ def _tokens(text):
 
 
 def _boilerplate(text):
-    return bool(_BOILERPLATE.search(text or ""))
+    return bool(_APPARATUS.search(text or ""))
+
+
+def _query_about_boilerplate(query):
+    """True when the question itself concerns the boilerplate/apparatus.
+
+    The previous gate keyed on the chunk's overall query-term coverage, which let
+    high-overlap commentary (for example an editor's notes that repeat the
+    subject's name) escape the penalty and outrank the real source passage. This
+    asks the question-topic directly instead.
+    """
+    if _APPARATUS.search(query or "") or _STRUCTURE.search(query or ""):
+        return True
+    return bool({t for t in _tokens(query) if len(t) > 2} & _BOILERPLATE_TOPIC)
 
 
 def extract_answer_lists(text: str) -> list[list[str]]:
@@ -137,6 +164,9 @@ def rerank(query: str, hits: list[dict], limit: int | None = None) -> list[dict]
     asks_about_group = bool(re.search(
         r"\b(?:club|alliance|group|society|association|organization)\b", query or "", re.I))
     query_numbers = set(_NUMBER.findall(query or ""))
+    # Whether the question concerns apparatus is a property of the question, so
+    # it is decided once here rather than from each candidate's coverage.
+    about_boilerplate = _query_about_boilerplate(query)
     ranked = []
     for hit in hits:
         text = hit.get("text", "") or ""
@@ -177,10 +207,16 @@ def rerank(query: str, hits: list[dict], limit: int | None = None) -> list[dict]
                              + 0.02 * phrase + 0.02 * number_match + 0.06 * answer_cue
                              + 0.14 * list_answer_cue + 0.18 * group_answer_cue),
         })
-        # Penalize boilerplate only when it has little direct lexical relation
-        # to the query. This keeps it available when the question is actually
-        # about a notice, publisher route, edition, or other boilerplate topic.
-        if _boilerplate(text) and not _boilerplate(query) and coverage < 0.25:
+        # Penalize apparatus (front matter, editorial notes, back matter,
+        # publisher pages) whenever the question is not itself about that
+        # apparatus. This no longer depends on the candidate's term coverage,
+        # which previously let high-overlap commentary escape the penalty.
+        if _boilerplate(text) and not about_boilerplate:
+            item["rerank_score"] *= 0.60
+            item["boilerplate"] = True
+        elif _STRUCTURE.search(text) and not about_boilerplate and coverage < 0.25:
+            # Structural front matter keeps the previous, milder behaviour:
+            # demoted only when it barely relates to the query.
             item["rerank_score"] *= 0.65
             item["boilerplate"] = True
         ranked.append(item)

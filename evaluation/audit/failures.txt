@@ -1,0 +1,498 @@
+cases with no selected match: 30
+
+====================================================================================================
+A02 [A_basic_factual] What was Benjamin Franklin's father's trade?
+  expected ['Page 7'] | terms 2 | term_cov=0.0 | sim=0.7719
+  normalized: "What was Benjamin Franklin's father's trade?" | correction=None
+  selected:
+    - franklin     Page 4    sim=0.7719 :: believe of woolens. Benjamin was bred a silk dyer, serving an apprenticeship at London. - 3 - He was an ingenious man. I remember him well, for when I was a boy he came over to my 
+    - franklin     Page 105  sim=0.7152 :: wrote the first section of this memoir while he was visiting Shipley and his family at Twyford House for several weeks in July and August 1771. - [UVAstudstaff] William William Fra
+    - franklin     Page 109  sim=0.6773 :: practices of the English system, which dates back to the middle ages. One of the major pieces of legislation governing apprenticeship was the English Statute of Artificers (1563), 
+    - franklin     Page 107  sim=0.6774 :: public outcry. At the same time, James Franklin published numerous articles against inoculation in the Courant. Years later, and after his own child contracted smallpox, Franklin c
+  top ranked:
+    1  franklin     Page 4    sim=0.7719 sem=0.6491 lex=1.0 :: believe of woolens. Benjamin was bred a silk dyer, serving an apprenticeship at London. - 3 - He was an ingenious man. I
+    2  franklin     Page 105  sim=0.7152 sem=0.6964 lex=0.75 :: wrote the first section of this memoir while he was visiting Shipley and his family at Twyford House for several weeks i
+    3  franklin     Page 109  sim=0.6773 sem=0.6381 lex=0.75 :: practices of the English system, which dates back to the middle ages. One of the major pieces of legislation governing a
+    4  franklin     Page 107  sim=0.6774 sem=0.6383 lex=0.75 :: public outcry. At the same time, James Franklin published numerous articles against inoculation in the Courant. Years la
+    5  franklin     Page 106  sim=0.6147 sem=0.6765 lex=0.5 :: meetings were prohibited by the law. Source: Oxford English Dictionary - [UVAstudstaff] Folger Peter Folger (1617-1690):
+    6  franklin     Page 105  sim=0.6032 sem=0.6587 lex=0.5 :: jamin met a few times after the war, but never really reconciled. - [UVAstudstaff] advantagesFranklin's figurative langu
+====================================================================================================
+A03 [A_basic_factual] In which city was Benjamin Franklin born?
+  expected ['Page 6'] | terms 1 | term_cov=1.0 | sim=0.6762
+  normalized: 'In which city was Benjamin Franklin born?' | correction=None
+  selected:
+    - franklin     Page 106  sim=0.7543 :: meetings were prohibited by the law. Source: Oxford English Dictionary - [UVAstudstaff] Folger Peter Folger (1617-1690): Folger, born in Norwich, migrated to Massachusetts in 1635.
+    - franklin     Page 114  sim=0.7344 :: - [UVAstudstaff] Keimer Born in England in 1689, Samuel Keimer ran a printing business in London in the 1710s, publishing a variety of things, including plays by Susanna Centlivre,
+    - franklin     Page 107  sim=0.7302 :: Mather Cotton Mather, born in Boston, Massachusetts in 1663 to one of the city's most influential families, became arguably the most prominent minister in the American colonies. In
+    - franklin     Page 117  sim=0.6422 :: way that Ralph had mocked Pope in his 1728 poem Sawney . - [UVAstudstaff] Mr. Andrew Hamilton (c.1676–1741) was a prominent lawyer in the American colonies in the first half of the
+  top ranked:
+    1  franklin     Page 106  sim=0.7543 sem=0.622 lex=1.0 :: meetings were prohibited by the law. Source: Oxford English Dictionary - [UVAstudstaff] Folger Peter Folger (1617-1690):
+    2  franklin     Page 114  sim=0.7344 sem=0.5914 lex=1.0 :: - [UVAstudstaff] Keimer Born in England in 1689, Samuel Keimer ran a printing business in London in the 1710s, publishin
+    3  franklin     Page 107  sim=0.7302 sem=0.585 lex=1.0 :: Mather Cotton Mather, born in Boston, Massachusetts in 1663 to one of the city's most influential families, became argua
+    4  franklin     Page 117  sim=0.6422 sem=0.5841 lex=0.75 :: way that Ralph had mocked Pope in his 1728 poem Sawney . - [UVAstudstaff] Mr. Andrew Hamilton (c.1676–1741) was a promin
+    5  franklin     Page 114  sim=0.589 sem=0.637 lex=0.5 :: a printer and his character. After going bankrupt in Philadelphia, Keimer ended up in Barbados, and founded the first ne
+    6  franklin     Page 105  sim=0.577 sem=0.6185 lex=0.5 :: jamin met a few times after the war, but never really reconciled. - [UVAstudstaff] advantagesFranklin's figurative langu
+====================================================================================================
+A05 [A_basic_factual] Who is Professor Van Helsing and where is he from?
+  expected ['Page 218', 'Page 4'] | terms 2 | term_cov=0.5 | sim=0.7721
+  normalized: 'Who is Professor Van Helsing and where is he from?' | correction=None
+  selected:
+    - dracula      Page 621  sim=0.7862 :: Dracula think further; for so I should in my thoughts dishonour a noble woman! Van Helsing is coming to my study a little before the others. I shall try to open the subject with hi
+    - dracula      Page 531  sim=0.7708 :: Dracula “Ah, a sad accident! He will need very careful watching, and much attention. I shall stay with you myself; but I shall first dress myself. If you will remain I shall in a f
+    - dracula      Page 542  sim=0.7633 :: BRAM STOKER Van Helsing said solemnly, “You are always right; but this is life and death. All chambers are alike to the doctor; and even were they not they are all as one to me to-
+    - dracula      Page 287  sim=0.7611 :: Dracula I never saw in all my experience the Professor work in such deadly earnest. I knew⁠—⁠as he knew⁠—⁠that it was a stand-up fight with death, and in a pause told him so. He an
+  top ranked:
+    1  dracula      Page 621  sim=0.7862 sem=0.671 lex=1.0 :: Dracula think further; for so I should in my thoughts dishonour a noble woman! Van Helsing is coming to my study a littl
+    2  dracula      Page 531  sim=0.7708 sem=0.6475 lex=1.0 :: Dracula “Ah, a sad accident! He will need very careful watching, and much attention. I shall stay with you myself; but I
+    3  dracula      Page 542  sim=0.7633 sem=0.6359 lex=1.0 :: BRAM STOKER Van Helsing said solemnly, “You are always right; but this is life and death. All chambers are alike to the 
+    4  dracula      Page 287  sim=0.7611 sem=0.6324 lex=1.0 :: Dracula I never saw in all my experience the Professor work in such deadly earnest. I knew⁠—⁠as he knew⁠—⁠that it was a 
+    5  dracula      Page 393  sim=0.7588 sem=0.6289 lex=1.0 :: Dracula it all. I wonder if his mind can have become in any way unhinged. Surely there must be some rational explanation
+    6  dracula      Page 455  sim=0.7531 sem=0.6202 lex=1.0 :: Dracula we unconsciously formed a sort of board or committee. Professor Van Helsing took the head of the table, to which
+====================================================================================================
+B05 [B_detailed] What happened to the Demeter and its crew when it reached Whitby?
+  expected ['Page 156', 'Page 165'] | terms 3 | term_cov=0.3333 | sim=0.5943
+  normalized: 'What happened to the Demeter and its crew when it reached Whitby?' | correction=None
+  selected:
+    - dracula      Page 160  sim=0.5972 :: BRAM STOKER Whitby 9 August.⁠—⁠The sequel to the strange arrival of the derelict in the storm last night is almost more startling than the thing itself. It turns out that the schoo
+    - dracula      Page 162  sim=0.5398 :: BRAM STOKER been seized with some kind of mania before he had got well into blue water, and that this had developed persistently throughout the voyage. Of course my statement must 
+    - dracula      Page 153  sim=0.5446 :: Dracula midnight came a strange sound from over the sea, and high overhead the air began to carry a strange, faint, hollow booming. Then without warning the tempest broke. With a r
+    - dracula      Page 157  sim=0.5301 :: Dracula the shore was touched, an immense dog sprang up on deck from below, as if shot up by the concussion, and running forward, jumped from the bow on the sand. Making straight f
+  top ranked:
+    1  dracula      Page 160  sim=0.5972 sem=0.6495 lex=0.5 :: BRAM STOKER Whitby 9 August.⁠—⁠The sequel to the strange arrival of the derelict in the storm last night is almost more 
+    2  dracula      Page 126  sim=0.5891 sem=0.637 lex=0.5 :: Chapter 6 Mina Murray’s journal 24 July. Whitby.⁠—⁠Lucy met me at the station, looking sweeter and lovelier than ever, a
+    3  dracula      Page 160  sim=0.6756 sem=0.7701 lex=0.5 :: BRAM STOKER Whitby
+    4  dracula      Page 150  sim=0.5877 sem=0.635 lex=0.5 :: Chapter 7 Cutting from “The Dailygraph,” 8 August (Pasted in Mina Murray’s Journal.) From a Correspondent. Whitby. One o
+    5  dracula      Page 127  sim=0.5817 sem=0.6257 lex=0.5 :: Dracula which is the scene of part of “Marmion,” where the girl was built up in the wall. It is a most noble ruin, of im
+    6  dracula      Page 461  sim=0.5663 sem=0.602 lex=0.5 :: Dracula Whitby, when he tear open the dog; he can be as bat, as Madam Mina saw him on the window at Whitby, and as frien
+====================================================================================================
+B06 [B_detailed] Describe Franklin's schooling and early apprenticeship.
+  expected ['Page 6', 'Page 7', 'Page 8'] | terms 4 | term_cov=0.25 | sim=0.7174
+  normalized: "Describe Franklin's schooling and early apprenticeship." | correction=None
+  selected:
+    - franklin     Page 109  sim=0.7174 :: The fact of Franklin's apprenticeship, and his early departure from his brother's ship, which is coming up in in a few pages, informs much of this early part of the narrative. Duri
+    - franklin     Page 127  sim=0.5987 :: Franklin/01-01-02-0041. Franklin was not completely disintersted on this topic; he would soon secure the contract to print paper money in Pennsylvania as he was already doing in De
+    - franklin     Page 114  sim=0.5837 :: a printer and his character. After going bankrupt in Philadelphia, Keimer ended up in Barbados, and founded the first newspaper there, the Barbados Gazette . He died in Barbados in
+    - franklin     Page 110  sim=0.583 :: Technically, to be legal, an apprenticeship contract (called an “indenture”) had to be registered with municipal authorities so it could be used as evidence in case of disputes. Th
+  top ranked:
+    1  franklin     Page 109  sim=0.7174 sem=0.7806 lex=0.6 :: The fact of Franklin's apprenticeship, and his early departure from his brother's ship, which is coming up in in a few p
+    2  franklin     Page 109  sim=0.628 sem=0.7507 lex=0.4 :: practices of the English system, which dates back to the middle ages. One of the major pieces of legislation governing a
+    3  franklin     Page 127  sim=0.5987 sem=0.7057 lex=0.4 :: Franklin/01-01-02-0041. Franklin was not completely disintersted on this topic; he would soon secure the contract to pri
+    4  franklin     Page 114  sim=0.5837 sem=0.6827 lex=0.4 :: a printer and his character. After going bankrupt in Philadelphia, Keimer ended up in Barbados, and founded the first ne
+    5  franklin     Page 110  sim=0.583 sem=0.6815 lex=0.4 :: Technically, to be legal, an apprenticeship contract (called an “indenture”) had to be registered with municipal authori
+    6  franklin     Page 114  sim=0.5806 sem=0.6779 lex=0.4 :: kind of financial success that would come to Franklin later. - [UVAstudstaff] prophets The French Prophets, also known a
+====================================================================================================
+B07 [B_detailed] What is the story of "three feet from gold" in Think and Grow Rich?
+  expected ['Page 41', 'Page 42'] | terms 3 | term_cov=0.6667 | sim=0.7281
+  normalized: 'What is the story of "three feet from gold" in Think and Grow Rich?' | correction=None
+  selected:
+    - hill         Page 367  sim=0.946 :: Think and Grow Rich
+    - hill         Page 273  sim=0.8309 :: Think and Grow Rich And, by all means, STICK by a country whose inhabitants give up more than a million dollars a year for chewing gum, and another million for safety razor blades.
+    - hill         Page 51   sim=0.8298 :: Think and Grow Rich some idea, plan, or purpose which may spring into your mind as you read. One sound idea is all that one needs to achieve success. The principles described in th
+    - hill         Page 49   sim=0.7281 :: Think and Grow Rich benefit, this same irresistible power. The awareness of this power may come to you in the first chapter, or it may flash into your mind in some subsequent chapt
+  top ranked:
+    1  hill         Page 367  sim=0.946 sem=0.9169 lex=1.0 :: Think and Grow Rich
+    2  hill         Page 273  sim=0.8309 sem=0.7399 lex=1.0 :: Think and Grow Rich And, by all means, STICK by a country whose inhabitants give up more than a million dollars a year f
+    3  hill         Page 51   sim=0.8298 sem=0.7381 lex=1.0 :: Think and Grow Rich some idea, plan, or purpose which may spring into your mind as you read. One sound idea is all that 
+    4  hill         Page 203  sim=0.8059 sem=0.7013 lex=1.0 :: Think and Grow Rich Keep in mind these facts:⁠— First. You are engaged in an undertaking of major impor­ tance to you. T
+    5  hill         Page 343  sim=0.8016 sem=0.6948 lex=1.0 :: Think and Grow Rich passing judgment on it, either one way or another, will in no way benefit you. Some people undergo t
+    6  hill         Page 271  sim=0.8006 sem=0.6933 lex=1.0 :: Think and Grow Rich “Wall Street, Big Business, Capital Predatory Interests,” or whatever name you choose to give the sy
+====================================================================================================
+C02 [C_multi_hop] How does Jonathan Harker gradually learn that he is a prisoner in Dracula's castle?
+  expected ['Page 46', 'Page 57', 'Page 86'] | terms 3 | term_cov=0.0 | sim=0.7882
+  normalized: "How does Jonathan Harker gradually learn that he is a prisoner in Dracula's castle?" | correction=None
+  selected:
+    - dracula      Page 4    sim=0.7882 :: SYNOPSIS Jonathan Harker, a young English solicitor, travels to a castle in the Carpathian mountains to settle the purchase of a London house for Count Dracula, and slowly realises
+    - dracula      Page 608  sim=0.6264 :: BRAM STOKER Jonathan Harker’s Journal. 4 October.⁠—⁠When I read to Mina, Van Helsing’s message in the phonograph, the poor girl brightened up considerably. Already the certainty th
+    - dracula      Page 682  sim=0.5848 :: BRAM STOKER cannot escape to land⁠—⁠where he dares not raise the lid of his coffin-box lest his Slovak carriers should in fear leave him to perish⁠—⁠we shall go in the track where 
+    - dracula      Page 61   sim=0.5842 :: Dracula would only deceive me if I trusted him fully with the facts. So far as I can see, my only plan will be to keep my knowledge and my fears to myself, and my eyes open. I am, 
+    - dracula      Page 435  sim=0.6435 :: Dracula read the letters and the dates of his outbursts, I should have been prepared to sign for him after a brief time of observation. As it is, I am darkly suspicious. All those 
+    - dracula      Page 663  sim=0.6051 :: Dracula “You see, my friends. He is close to land: he has left his earth-chest. But he has yet to get on shore. In the night he may lie hidden somewhere; but if he be not carried o
+  top ranked:
+    1  dracula      Page 4    sim=0.7882 sem=0.7938 lex=0.7778 :: SYNOPSIS Jonathan Harker, a young English solicitor, travels to a castle in the Carpathian mountains to settle the purch
+    2  dracula      Page 608  sim=0.6264 sem=0.6645 lex=0.5556 :: BRAM STOKER Jonathan Harker’s Journal. 4 October.⁠—⁠When I read to Mina, Van Helsing’s message in the phonograph, the po
+    3  dracula      Page 682  sim=0.5848 sem=0.6604 lex=0.4444 :: BRAM STOKER cannot escape to land⁠—⁠where he dares not raise the lid of his coffin-box lest his Slovak carriers should i
+    4  dracula      Page 61   sim=0.5842 sem=0.6595 lex=0.4444 :: Dracula would only deceive me if I trusted him fully with the facts. So far as I can see, my only plan will be to keep m
+    5  dracula      Page 435  sim=0.6435 sem=0.6909 lex=0.5556 :: Dracula read the letters and the dates of his outbursts, I should have been prepared to sign for him after a brief time 
+    6  dracula      Page 663  sim=0.6051 sem=0.6916 lex=0.4444 :: Dracula “You see, my friends. He is close to land: he has left his earth-chest. But he has yet to get on shore. In the n
+====================================================================================================
+C04 [C_multi_hop] How does Hill's idea of a burning desire relate to Wattles' instruction to hold a clear mental image?
+  expected ['Page 36', 'Page 70'] | terms 2 | term_cov=1.0 | sim=0.5671
+  normalized: "How does Hill's idea of a burning desire relate to Wattles' instruction to hold a clear mental image?" | correction=None
+  selected:
+    - science      Page 42   sim=0.7273 :: And you cannot hold the mental image which is to make you rich if you fill your mind with pictures of poverty. Do not read books or papers which give circumstantial accounts of the
+    - science      Page 74   sim=0.7219 :: in his thoughts, while being deeply grateful to the Supreme that all his desires are granted to him. The man who wishes to get rich must spend his leisure hours in contemplating hi
+    - hill         Page 98   sim=0.575 :: NAPOLEON HILL How can one harness and use the power of DESIRE? This has been answered through this, and the subsequent chapters of this book. This message is going out to the world
+    - science      Page 36   sim=0.5828 :: ver, than merely to see the picture clearly. If that is all you do, you are only a dreamer, and will have little or no power for accomplishment. Behind your clear vision must be th
+    - science      Page 48   sim=0.5548 :: A thought, in this substance, Produces the thing that is imaged by the thought. Man can form things in his thought, and, by impressing his thought upon formless substance, can caus
+    - hill         Page 200  sim=0.5489 :: NAPOLEON HILL Ideas are intangible forces, but they have more power than the physical brains that give birth to them. They have the power to live on, after the brain that creates t
+  top ranked:
+    1  science      Page 42   sim=0.7273 sem=0.5805 lex=1.0 :: And you cannot hold the mental image which is to make you rich if you fill your mind with pictures of poverty. Do not re
+    2  science      Page 74   sim=0.7219 sem=0.5722 lex=1.0 :: in his thoughts, while being deeply grateful to the Supreme that all his desires are granted to him. The man who wishes 
+    3  hill         Page 98   sim=0.575 sem=0.6692 lex=0.4 :: NAPOLEON HILL How can one harness and use the power of DESIRE? This has been answered through this, and the subsequent c
+    4  science      Page 36   sim=0.5828 sem=0.6274 lex=0.5 :: ver, than merely to see the picture clearly. If that is all you do, you are only a dreamer, and will have little or no p
+    5  science      Page 48   sim=0.5548 sem=0.5843 lex=0.5 :: A thought, in this substance, Produces the thing that is imaged by the thought. Man can form things in his thought, and,
+    6  hill         Page 470  sim=0.5517 sem=0.5795 lex=0.5 :: NAPOLEON HILL destructive vibrations to the minds of all who come into contact with him, and destroys, also their chance
+====================================================================================================
+D01 [D_comparison] Compare Franklin's Junto with Hill's Master Mind.
+  expected ['Page 333', 'Page 37'] | terms 3 | term_cov=0.0 | sim=0.6524
+  normalized: "Compare Franklin's Junto with Hill's Master Mind." | correction=None
+  selected:
+    - franklin     Page 46   sim=0.7658 :: your character, and your peculiar style of thinking, it is not likely that any one besides yourself can be sufficiently master of the facts of your life, or the intentions of your 
+    - franklin     Page 10   sim=0.35 :: necessity of searching for variety, and also - 14 - have tended to fix that variety in my mind, and make me master of it. Therefore I took some of the tales and turned them into ve
+  top ranked:
+    1  franklin     Page 46   sim=0.7658 sem=0.6397 lex=1.0 :: your character, and your peculiar style of thinking, it is not likely that any one besides yourself can be sufficiently 
+    2  franklin     Page 10   sim=0.35 sem=None lex=1.0 :: necessity of searching for variety, and also - 14 - have tended to fix that variety in my mind, and make me master of it
+====================================================================================================
+D02 [D_comparison] Compare the role of gratitude in Wattles with the role of faith in Hill.
+  expected ['Page 33', 'Page 99'] | terms 2 | term_cov=0.5 | sim=0.5648
+  normalized: 'Compare the role of gratitude in Wattles with the role of faith in Hill.' | correction=None
+  selected:
+    - hill         Page 106  sim=0.7661 :: NAPOLEON HILL FAITH is the starting point of all accumulation of riches! FAITH is the basis of all “miracles,” and all mysteries which cannot be analyzed by the rules of science! F
+    - hill         Page 116  sim=0.766 :: NAPOLEON HILL The basis of Christianity is FAITH, no matter how many people may have perverted, or misinterpreted the meaning of this great force, and no matter how many dogmas and
+    - hill         Page 104  sim=0.7452 :: NAPOLEON HILL THE MATERIAL THING WHICH YOU ARE DEMANDING, when you call upon your subconscious mind. The subconscious mind will transmute into its physical equivalent, by the most 
+    - hill         Page 100  sim=0.7288 :: NAPOLEON HILL Love and faith are psychic; related to the spiritual side of man. Sex is purely biological, and related only to the physical. The mixing, or blending, of these three 
+    - hill         Page 144  sim=0.7225 :: NAPOLEON HILL of the emotions. Follow the instructions given in the chapter on FAITH. These instructions may, at first, seem abstract. Do not let this disturb you. Follow the instr
+    - hill         Page 480  sim=0.7119 :: NAPOLEON HILL What are you doing to correct them? Do you encourage other people to bring their worries to you for sympathy? Do you choose, from your daily experiences, lessons or i
+    - hill         Page 330  sim=0.708 :: NAPOLEON HILL had been one, set upon Mohammed. Then he retreated to the desert and demanded sovereignty over the world. “The rise of Islam began. Out of the desert came a flame whi
+  top ranked:
+    1  hill         Page 106  sim=0.7661 sem=0.6402 lex=1.0 :: NAPOLEON HILL FAITH is the starting point of all accumulation of riches! FAITH is the basis of all “miracles,” and all m
+    2  hill         Page 116  sim=0.766 sem=0.64 lex=1.0 :: NAPOLEON HILL The basis of Christianity is FAITH, no matter how many people may have perverted, or misinterpreted the me
+    3  hill         Page 104  sim=0.7452 sem=0.608 lex=1.0 :: NAPOLEON HILL THE MATERIAL THING WHICH YOU ARE DEMANDING, when you call upon your subconscious mind. The subconscious mi
+    4  hill         Page 100  sim=0.7288 sem=0.5828 lex=1.0 :: NAPOLEON HILL Love and faith are psychic; related to the spiritual side of man. Sex is purely biological, and related on
+    5  hill         Page 144  sim=0.7225 sem=0.5731 lex=1.0 :: NAPOLEON HILL of the emotions. Follow the instructions given in the chapter on FAITH. These instructions may, at first, 
+    6  hill         Page 480  sim=0.7119 sem=0.5567 lex=1.0 :: NAPOLEON HILL What are you doing to correct them? Do you encourage other people to bring their worries to you for sympat
+====================================================================================================
+D03 [D_comparison] What is the difference between the competitive plane and the creative plane in The Science of Getting Rich?
+  expected ['Page 25', 'Page 27'] | terms 2 | term_cov=1.0 | sim=0.7053
+  normalized: 'What is the difference between the competitive plane and the creative plane in The Science of Getting Rich?' | correction=None
+  selected:
+    - science      Page 9    sim=0.8462 :: CHAPTER 2. THERE IS A SCIENCE OF GETTING RICH
+    - science      Page 11   sim=0.8427 :: ss, and anybody else in your locality is getting rich in the same business, while you are not getting rich, it is because you are not doing things in the same Way that the other pe
+    - science      Page 45   sim=0.8284 :: You should interest yourself in the world's becoming rich. Think of the riches the world is coming into, instead of the poverty it is growing out of; and bear in mind that the only
+    - science      Page 10   sim=0.8177 :: Studying the people who have got rich, we find that they are an average lot in all respects, having no greater talents and abilities than other men. It is evident that they do not 
+    - science      Page 9    sim=0.8111 :: and poor living side by side, in the same environment, and often engaged in the same vocations. When two men are in the same locality, and in the same business, and one gets rich w
+    - science      Page 11   sim=0.8047 :: If anybody else in your town can get rich, so can you; and if anybody else in your state can get rich, so can you. Again, it is not a matter of choosing some particular business or
+    - science      Page 40   sim=0.8036 :: To get rich, you need only to use your will power upon yourself. When you know what to think and do, then you must use your will to compel yourself to think and do the right things
+  top ranked:
+    1  science      Page 9    sim=0.8462 sem=0.7634 lex=1.0 :: CHAPTER 2. THERE IS A SCIENCE OF GETTING RICH
+    2  science      Page 11   sim=0.8427 sem=0.7581 lex=1.0 :: ss, and anybody else in your locality is getting rich in the same business, while you are not getting rich, it is becaus
+    3  science      Page 45   sim=0.8284 sem=0.736 lex=1.0 :: You should interest yourself in the world's becoming rich. Think of the riches the world is coming into, instead of the 
+    4  science      Page 2    sim=0.8195 sem=0.7223 lex=1.0 :: CONTENTS Preface Chapter 1. The Right To Be Rich Chapter 2. There Is A Science Of Getting Rich Chapter 3. Is Opportunity
+    5  science      Page 10   sim=0.8177 sem=0.7195 lex=1.0 :: Studying the people who have got rich, we find that they are an average lot in all respects, having no greater talents a
+    6  science      Page 9    sim=0.8111 sem=0.7094 lex=1.0 :: and poor living side by side, in the same environment, and often engaged in the same vocations. When two men are in the 
+====================================================================================================
+D04 [D_comparison] Compare Epictetus and Hill on what a person can control.
+  expected ['Page 14', 'Page 432'] | terms 3 | term_cov=0.0 | sim=0.6707
+  normalized: 'Compare Epictetus and Hill on what a person can control.' | correction=None
+  selected:
+    - enchiridion  Page 34   sim=0.538 :: EPICTETUS is no good, consider how unreasonable and foolish you are. Besides, which would you rather have, a sum of money or a faithful and honorable friend? Rather assist me, then
+    - enchiridion  Page 42   sim=0.501 :: EPICTETUS in everything⁠—⁠in offices, in honors, before tribunals. When you have fully considered all these things, approach, if you please⁠—⁠that is, if, by parting with them, you
+    - enchiridion  Page 10   sim=0.483 :: EPICTETUS no one will hurt you, you will not have an enemy, nor will you suffer any harm. Aiming, therefore, at such great things, remember that you must not allow yourself any inc
+    - enchiridion  Page 68   sim=0.4821 :: EPICTETUS cannot exhibit actions that are harmonious and consonant with his discourse. 60
+    - enchiridion  Page 50   sim=0.4639 :: EPICTETUS will go against you. But abstain entirely from acclamations and derision and violent emotions. And when you come away, do not discourse a great deal on what has passed an
+  top ranked:
+    1  enchiridion  Page 34   sim=0.538 sem=0.6482 lex=0.3333 :: EPICTETUS is no good, consider how unreasonable and foolish you are. Besides, which would you rather have, a sum of mone
+    2  enchiridion  Page 42   sim=0.501 sem=0.681 lex=0.1667 :: EPICTETUS in everything⁠—⁠in offices, in honors, before tribunals. When you have fully considered all these things, appr
+    3  enchiridion  Page 10   sim=0.483 sem=0.6534 lex=0.1667 :: EPICTETUS no one will hurt you, you will not have an enemy, nor will you suffer any harm. Aiming, therefore, at such gre
+    4  enchiridion  Page 68   sim=0.4821 sem=0.652 lex=0.1667 :: EPICTETUS cannot exhibit actions that are harmonious and consonant with his discourse. 60
+    5  enchiridion  Page 50   sim=0.4639 sem=0.624 lex=0.1667 :: EPICTETUS will go against you. But abstain entirely from acclamations and derision and violent emotions. And when you co
+====================================================================================================
+D05 [D_comparison] Which book gives an explicit numbered procedure for acquiring money: The Science of Getting Rich or Think and Grow Rich?
+  expected ['Page 68', 'Page 69', 'Page 74'] | terms 2 | term_cov=0.0 | sim=0.6577
+  normalized: 'Which book gives an explicit numbered procedure for acquiring money: The Science of Getting Rich or Think and Grow Rich?' | correction=None
+  selected:
+    - hill         Page 367  sim=0.946 :: Think and Grow Rich
+    - hill         Page 273  sim=0.8309 :: Think and Grow Rich And, by all means, STICK by a country whose inhabitants give up more than a million dollars a year for chewing gum, and another million for safety razor blades.
+    - hill         Page 51   sim=0.8298 :: Think and Grow Rich some idea, plan, or purpose which may spring into your mind as you read. One sound idea is all that one needs to achieve success. The principles described in th
+    - hill         Page 21   sim=0.7984 :: Think and Grow Rich Moreover, the knowledge contained in the book never can be duplicated, at any cost, for the reason that more than half of the 500 men who supplied the informati
+  top ranked:
+    1  hill         Page 367  sim=0.946 sem=0.9169 lex=1.0 :: Think and Grow Rich
+    2  hill         Page 273  sim=0.8309 sem=0.7399 lex=1.0 :: Think and Grow Rich And, by all means, STICK by a country whose inhabitants give up more than a million dollars a year f
+    3  hill         Page 51   sim=0.8298 sem=0.7381 lex=1.0 :: Think and Grow Rich some idea, plan, or purpose which may spring into your mind as you read. One sound idea is all that 
+    4  hill         Page 203  sim=0.8059 sem=0.7013 lex=1.0 :: Think and Grow Rich Keep in mind these facts:⁠— First. You are engaged in an undertaking of major impor­ tance to you. T
+    5  hill         Page 343  sim=0.8016 sem=0.6948 lex=1.0 :: Think and Grow Rich passing judgment on it, either one way or another, will in no way benefit you. Some people undergo t
+    6  hill         Page 271  sim=0.8006 sem=0.6933 lex=1.0 :: Think and Grow Rich “Wall Street, Big Business, Capital Predatory Interests,” or whatever name you choose to give the sy
+====================================================================================================
+E03 [E_multi_document] Which documents discuss fear, and what do they say about it?
+  expected ['Page 14', 'Page 432'] | terms 2 | term_cov=0.5 | sim=0.6195
+  normalized: 'Which documents discuss fear, and what do they say about it?' | correction=None
+  selected:
+    - hill         Page 314  sim=0.6798 :: NAPOLEON HILL the habit of gambling, endeavoring to drive “sharp” bargains. 16. FEAR OF CRITICISM, failure to create plans and to put them into action, because of what other people
+    - dracula      Page 233  sim=0.6925 :: your peoples say. Take then good note of it. Nothing is too small. I counsel you, put down in record even your doubts and surmises. Hereafter it may be of interest to you to see ho
+    - franklin     Page 12   sim=0.674 :: people, even of superior knowledge, into concessions, the consequences of which they did not foresee, entangling them in difficulties out of which they could not extricate themselv
+    - hill         Page 469  sim=0.6205 :: Think and Grow Rich The six basic fears become translated into a state of worry, through indecision. Relieve yourself, forever of the fear of death, by reaching a decision to accep
+  top ranked:
+    1  hill         Page 314  sim=0.6798 sem=0.642 lex=0.75 :: NAPOLEON HILL the habit of gambling, endeavoring to drive “sharp” bargains. 16. FEAR OF CRITICISM, failure to create pla
+    2  dracula      Page 233  sim=0.6925 sem=0.5269 lex=1.0 :: your peoples say. Take then good note of it. Nothing is too small. I counsel you, put down in record even your doubts an
+    3  franklin     Page 12   sim=0.674 sem=0.4984 lex=1.0 :: people, even of superior knowledge, into concessions, the consequences of which they did not foresee, entangling them in
+    4  hill         Page 469  sim=0.6205 sem=0.647 lex=0.5714 :: Think and Grow Rich The six basic fears become translated into a state of worry, through indecision. Relieve yourself, f
+    5  hill         Page 432  sim=0.5998 sem=0.692 lex=0.4286 :: NAPOLEON HILL 15.1 The six basic fears There are six basic fears, with some combination of which every human suffers at 
+    6  hill         Page 428  sim=0.5935 sem=0.6438 lex=0.5 :: NAPOLEON HILL 14.2 Faith vs. fear! Previous chapters have described how to develop FAITH, through Auto-suggestion, Desir
+====================================================================================================
+E04 [E_multi_document] Which documents present a method of self-improvement rather than a narrative?
+  expected ['Page 37', 'Page 68', 'Page 71', 'Page 74'] | terms 4 | term_cov=0.0 | sim=0.5121
+  normalized: 'Which documents present a method of self-improvement rather than a narrative?' | correction=None
+  selected:
+    - dracula      Page 161  sim=0.6898 :: est; and a more strange narrative than the two between them unfold it has not been my lot to come across. As there is no motive for concealment, I am permitted to use them, and acc
+    - science      Page 46   sim=0.5121 :: do is to arouse their desire by showing them the happiness that comes from being rightly rich. Others still are poor because, while they have some notion of science, they have beco
+    - enchiridion  Page 62   sim=0.5186 :: Chapter 44 These reasonings have no logical connection: “I am richer than you, therefore I am your superior.” “I am more eloquent than you, therefore I am your superior.” The true 
+    - franklin     Page 15   sim=0.4954 :: en translated into most of the languages of Europe, and suppose it has been more generally read than any other book, except perhaps the Bible. Honest John was the first that I know
+  top ranked:
+    1  dracula      Page 161  sim=0.6898 sem=0.5228 lex=1.0 :: est; and a more strange narrative than the two between them unfold it has not been my lot to come across. As there is no
+    2  science      Page 46   sim=0.5121 sem=0.634 lex=0.2857 :: do is to arouse their desire by showing them the happiness that comes from being rightly rich. Others still are poor bec
+    3  enchiridion  Page 62   sim=0.5186 sem=0.5286 lex=0.5 :: Chapter 44 These reasonings have no logical connection: “I am richer than you, therefore I am your superior.” “I am more
+    4  hill         Page 422  sim=0.5109 sem=0.5167 lex=0.5 :: , from my own attitude in connection with such matters, that I would be misunderstood if I described my unusual experien
+    5  hill         Page 4    sim=0.5052 sem=0.5079 lex=0.5 :: SYNOPSIS Napoleon Hill spent twenty years interviewing the wealthiest men of his day, on a commission Andrew Carnegie ha
+    6  dracula      Page 555  sim=0.35 sem=None lex=1.0 :: Dracula meekness and righteousness all my days. God pity me! Look down on a poor soul in worse than mortal peril; and in
+====================================================================================================
+E05 [E_multi_document] Which document contains the statement that there is a thinking stuff from which all things are made?
+  expected ['Page 74'] | terms 1 | term_cov=0.0 | sim=0.7313
+  normalized: 'Which document contains the statement that there is a thinking stuff from which all things are made?' | correction=None
+  selected:
+    - hill         Page 135  sim=0.5697 :: Think and Grow Rich NO THOUGHT, whether it be negative or positive, CAN ENTER THE SUBCONSCIOUS MIND WITHOUT THE AID OF THE PRINCIPLE OF AUTO-SUGGESTION, with the exception of thoug
+    - hill         Page 107  sim=0.5232 :: Think and Grow Rich be true or false. If a man repeats a lie over and over, he will eventually accept the lie as truth. Moreover, he will BELIEVE it to be the truth. Every man is w
+    - hill         Page 434  sim=0.5286 :: NAPOLEON HILL which are picked up through the ether, by mere chance (thoughts which have been released by other minds) may determine one’s financial, business, professional, or soc
+    - hill         Page 102  sim=0.5283 :: NAPOLEON HILL This is the equivalent of saying that any impulse of thought which is repeatedly passed on to the subconscious mind is, finally, accepted and acted upon by the subcon
+  top ranked:
+    1  hill         Page 135  sim=0.5697 sem=0.6745 lex=0.375 :: Think and Grow Rich NO THOUGHT, whether it be negative or positive, CAN ENTER THE SUBCONSCIOUS MIND WITHOUT THE AID OF T
+    2  hill         Page 107  sim=0.5232 sem=0.6704 lex=0.25 :: Think and Grow Rich be true or false. If a man repeats a lie over and over, he will eventually accept the lie as truth. 
+    3  hill         Page 434  sim=0.5286 sem=0.6786 lex=0.25 :: NAPOLEON HILL which are picked up through the ether, by mere chance (thoughts which have been released by other minds) m
+    4  hill         Page 102  sim=0.5283 sem=0.6781 lex=0.25 :: NAPOLEON HILL This is the equivalent of saying that any impulse of thought which is repeatedly passed on to the subconsc
+    5  hill         Page 179  sim=0.4806 sem=0.6796 lex=0.1111 :: yourself, and every other material thing are the result of evolutionary change, through which microscopic bits of matter
+    6  hill         Page 99   sim=0.4798 sem=0.6783 lex=0.1111 :: 3 Faith Visualization of, and belief in attainment of desire The Second Step toward Riches FAITH is the head chemist of 
+====================================================================================================
+F03 [F_summarization] Summarize the plot of Dracula as described in the document.
+  expected ['Page 4'] | terms 4 | term_cov=0.5 | sim=0.6337
+  normalized: 'Summarize the plot of Dracula as described in the document.' | correction=None
+  selected:
+    - dracula      Page 5    sim=0.6678 :: HO W TO READ THIS BOOK Dracula is a novel made of documents. Before Chapter 1 comes an unsigned note which explains that the papers have been placed in sequence and that every reco
+    - dracula      Page 609  sim=0.6408 :: Dracula yet of the future. It is better to wait till we see the Professor and the others after their investigations. The day is running by more quickly than I ever thought a day co
+    - dracula      Page 543  sim=0.581 :: Dracula right hand gripped her by the back of the neck, forcing her face down on his bosom. Her white nightdress was smeared with blood, and a thin stream trickled down the man’s b
+    - dracula      Page 277  sim=0.5878 :: Dracula Memorandum left by Lucy Westenra. 17 September. Night.⁠—⁠I write this and leave it to be seen, so that no one may by any chance get into trouble through me. This is an exac
+    - dracula      Page 13   sim=0.5738 :: Dracula enter here some of my notes, as they may refresh my memory when I talk over my travels with Mina. In the population of Transylvania there are four distinct nationalities: S
+    - dracula      Page 391  sim=0.5728 :: Dracula Note left by Van Helsing in his portmanteau, Berkeley Hotel directed to John Seward, M. D. (Not delivered.) “27 September. “Friend John,⁠— “I write this in case anything sh
+    - dracula      Page 87   sim=0.5719 :: Dracula book. They are peculiar to this part of the world, though allied to the ordinary gipsies all the world over. There are thousands of them in Hungary and Transylvania, who ar
+  top ranked:
+    1  dracula      Page 5    sim=0.6678 sem=0.7043 lex=0.6 :: HO W TO READ THIS BOOK Dracula is a novel made of documents. Before Chapter 1 comes an unsigned note which explains that
+    2  dracula      Page 609  sim=0.6408 sem=0.6627 lex=0.6 :: Dracula yet of the future. It is better to wait till we see the Professor and the others after their investigations. The
+    3  dracula      Page 543  sim=0.581 sem=0.6247 lex=0.5 :: Dracula right hand gripped her by the back of the neck, forcing her face down on his bosom. Her white nightdress was sme
+    4  dracula      Page 277  sim=0.5878 sem=0.6889 lex=0.4 :: Dracula Memorandum left by Lucy Westenra. 17 September. Night.⁠—⁠I write this and leave it to be seen, so that no one ma
+    5  dracula      Page 13   sim=0.5738 sem=0.6674 lex=0.4 :: Dracula enter here some of my notes, as they may refresh my memory when I talk over my travels with Mina. In the populat
+    6  dracula      Page 391  sim=0.5728 sem=0.6659 lex=0.4 :: Dracula Note left by Van Helsing in his portmanteau, Berkeley Hotel directed to John Seward, M. D. (Not delivered.) “27 
+====================================================================================================
+F04 [F_summarization] Summarize Franklin's account of the Junto.
+  expected ['Page 37'] | terms 4 | term_cov=0.5 | sim=0.594
+  normalized: "Summarize Franklin's account of the Junto." | correction=None
+  selected:
+    - franklin     Page 61   sim=0.5425 :: sentiments of the Junto. The project was approv'd, and every member undertook to form his club, but they did not all succeed. Five or six only were compleated, which were called by
+    - franklin     Page 45   sim=0.594 :: moment, wise, practical and good, your account of yourself (for I suppose the parallel I am drawing for Dr. Franklin, will hold not only in point of character, but of private
+    - franklin     Page 61   sim=0.5135 :: sentiments of the Junto. The project was approv'd, and every member undertook to form his club, but they did not all succeed. Five or six only were compleated, which were called by
+    - franklin     Page 114  sim=0.5244 :: kind of financial success that would come to Franklin later. - [UVAstudstaff] prophets The French Prophets, also known as the Camisards, were a millenarian sect who preached in Lon
+    - franklin     Page 106  sim=0.5202 :: switched over to the Gregorian calendar in 1752 A.D. by an act of Parliament, resulting in the "loss" of several dates. For this reason, Franklin had to celebrate his birthday on t
+    - franklin     Page 126  sim=0.5066 :: erve in the Norton critical edition that in 1754, William Franklin got his salary, of precisely that amount, which had been disputed by the Pennsylvania Assembly. They suggest that
+    - franklin     Page 112  sim=0.503 :: n. Franklin seems to have a read a lot of deist philosophy, which was widely influential in this period. - [UVAstudstaff] judiciouslyThese lines are from the 1711 poem "An Essay on
+  top ranked:
+    1  franklin     Page 61   sim=0.5425 sem=0.7 lex=0.25 :: sentiments of the Junto. The project was approv'd, and every member undertook to form his club, but they did not all suc
+    2  franklin     Page 45   sim=0.594 sem=0.6447 lex=0.5 :: moment, wise, practical and good, your account of yourself (for I suppose the parallel I am drawing for Dr. Franklin, wi
+    3  franklin     Page 61   sim=0.5135 sem=0.6554 lex=0.25 :: sentiments of the Junto. The project was approv'd, and every member undertook to form his club, but they did not all suc
+    4  franklin     Page 114  sim=0.5244 sem=0.6722 lex=0.25 :: kind of financial success that would come to Franklin later. - [UVAstudstaff] prophets The French Prophets, also known a
+    5  franklin     Page 106  sim=0.5202 sem=0.6657 lex=0.25 :: switched over to the Gregorian calendar in 1752 A.D. by an act of Parliament, resulting in the "loss" of several dates. 
+    6  franklin     Page 104  sim=0.5173 sem=0.6613 lex=0.25 :: their thanks in form when I return'd. But the proprietaries were enraged at Governor Denny for having pass'd the act, an
+====================================================================================================
+G01 [G_scenario] Suppose a reader wants to save 10,000 dollars in one year. How would Hill's six steps apply to that goal?
+  expected ['Page 68', 'Page 69', 'Page 70'] | terms 4 | term_cov=0.5 | sim=0.5893
+  normalized: "Suppose a reader wants to save 10,000 dollars in one year. How would Hill's six steps apply to that goal?" | correction=None
+  selected:
+    - hill         Page 64   sim=0.7382 :: at goal. He did not become the partner of Edison the day he arrived. He was content to start in the most menial work, as long as it provided an opportunity to take even one step to
+    - hill         Page 241  sim=0.6919 :: son who does not have a central purpose, or definite goal at which to aim. Ninety-eight out of every hundred of those whom I have analyzed, had no such aim. Perhaps this was the 3.
+    - hill         Page 20   sim=0.5893 :: NAPOLEON HILL It describes the famous Andrew Carnegie formula of personal achievement by which he accumulated hundreds of millions of dollars for himself and made no fewer than a s
+    - hill         Page 71   sim=0.5676 :: Think and Grow Rich Carnegie, who began as an ordinary laborer in the steel mills, but managed, despite his humble beginning, to make these principles yield him a fortune of consid
+  top ranked:
+    1  hill         Page 64   sim=0.7382 sem=0.5973 lex=1.0 :: at goal. He did not become the partner of Edison the day he arrived. He was content to start in the most menial work, as
+    2  hill         Page 241  sim=0.6919 sem=0.526 lex=1.0 :: son who does not have a central purpose, or definite goal at which to aim. Ninety-eight out of every hundred of those wh
+    3  hill         Page 64   sim=0.6804 sem=0.5083 lex=1.0 :: NAPOLEON HILL Barnes’ desire was not a hope! It was not a wish! It was a keen, pulsating DESIRE, which transcended every
+    4  hill         Page 20   sim=0.5893 sem=0.6913 lex=0.4 :: NAPOLEON HILL It describes the famous Andrew Carnegie formula of personal achievement by which he accumulated hundreds o
+    5  hill         Page 71   sim=0.5676 sem=0.6578 lex=0.4 :: Think and Grow Rich Carnegie, who began as an ordinary laborer in the steel mills, but managed, despite his humble begin
+    6  hill         Page 11   sim=0.463 sem=0.6404 lex=0.1333 :: What do you want most? Is It Money, Fame, Power, Contentment, Personality, Peace of Mind, Happiness? The Thirteen Steps 
+====================================================================================================
+G02 [G_scenario] If a person is passed over for a promotion, what would Epictetus advise according to the Enchiridion?
+  expected ['Page 17', 'Page 26'] | terms 3 | term_cov=0.0 | sim=0.5532
+  normalized: 'If a person is passed over for a promotion, what would Epictetus advise according to the Enchiridion?' | correction=None
+  selected:
+    - enchiridion  Page 5    sim=0.5975 :: HOW TO READ THIS BOOK The Enchiridion is made up of 51 short chapters, numbered and without titles, and each chapter stands on its own, so you can read them in order or open the bo
+    - enchiridion  Page 49   sim=0.5968 :: The Enchiridion Avoid public and vulgar entertainments; but if ever an occasion calls you to them, keep your attention upon the stretch, that you may not imperceptibly slide into v
+    - enchiridion  Page 4    sim=0.5596 :: SYNOPSIS The Enchiridion, whose Greek title means “handbook”, gathers what Epictetus taught. Epictetus had been a slave before he became a Stoic teacher, and his pupil Arrian drew 
+    - enchiridion  Page 50   sim=0.5532 :: EPICTETUS will go against you. But abstain entirely from acclamations and derision and violent emotions. And when you come away, do not discourse a great deal on what has passed an
+  top ranked:
+    1  enchiridion  Page 5    sim=0.5975 sem=0.65 lex=0.5 :: HOW TO READ THIS BOOK The Enchiridion is made up of 51 short chapters, numbered and without titles, and each chapter sta
+    2  enchiridion  Page 49   sim=0.5968 sem=0.649 lex=0.5 :: The Enchiridion Avoid public and vulgar entertainments; but if ever an occasion calls you to them, keep your attention u
+    3  enchiridion  Page 41   sim=0.5598 sem=0.592 lex=0.5 :: The Enchiridion notice, you will behave like children who sometimes play wrestlers, sometimes gladiators, sometimes blow
+    4  enchiridion  Page 4    sim=0.5596 sem=0.5917 lex=0.5 :: SYNOPSIS The Enchiridion, whose Greek title means “handbook”, gathers what Epictetus taught. Epictetus had been a slave 
+    5  enchiridion  Page 51   sim=0.5593 sem=0.5913 lex=0.5 :: The Enchiridion In company, avoid a frequent and excessive mention of your own actions and dangers. For however agreeabl
+    6  enchiridion  Page 47   sim=0.5521 sem=0.5801 lex=0.5 :: The Enchiridion ought not to consult the oracle as to whether we shall share it with them or not. For though the diviner
+====================================================================================================
+G03 [G_scenario] If a business owner faces strong competition, what does Wattles recommend?
+  expected ['Page 25', 'Page 27'] | terms 2 | term_cov=0.0 | sim=0.4731
+  normalized: 'If a business owner faces strong competition, what does Wattles recommend?' | correction=None
+  selected:
+    - franklin     Page 24   sim=0.4674 :: - 44 - Watson was a pious, sensible young man, of great integrity; the others rather more lax in their principles of religion, particularly Ralph, who, as well as Collins, had been
+    - science      Page 59   sim=0.4776 :: ent; the desire to invent mechanical devices is the mechanical talent seeking expression and development. Where there is no power, either developed or undeveloped, to do a thing, t
+    - science      Page 13   sim=0.4642 :: CHAPTER 3. IS OPPORTUNITY MONOPOLIZED? NO man is kept poor because opportunity has been taken away from him; because other people have monopolized the wealth, and have put a fence 
+    - hill         Page 382  sim=0.3969 :: e and tactfully caters to it, need have no fear of competition from other women. Men may be “giants” with indomitable will-power when dealing with other men, but they are easily ma
+  top ranked:
+    1  franklin     Page 24   sim=0.4674 sem=0.4499 lex=0.5 :: - 44 - Watson was a pious, sensible young man, of great integrity; the others rather more lax in their principles of rel
+    2  science      Page 59   sim=0.4776 sem=0.5553 lex=0.3333 :: ent; the desire to invent mechanical devices is the mechanical talent seeking expression and development. Where there is
+    3  science      Page 13   sim=0.4642 sem=0.5346 lex=0.3333 :: CHAPTER 3. IS OPPORTUNITY MONOPOLIZED? NO man is kept poor because opportunity has been taken away from him; because oth
+    4  hill         Page 246  sim=0.4605 sem=0.5888 lex=0.2222 :: NAPOLEON HILL in business. In marketing personal services, one should use great care to select an employer who will be a
+    5  science      Page 28   sim=0.4665 sem=0.5381 lex=0.3333 :: business that it will be filled with the principle of advancement, and so that each employee who wishes to do so may adv
+    6  science      Page 72   sim=0.4582 sem=0.5703 lex=0.25 :: Never speak of the times as being hard, or of business conditions as being doubtful. Times may be hard and business doub
+====================================================================================================
+H03 [H_numerical] How many questions are in Hill's Organized Planning questionnaire?
+  expected ['Page 5'] | terms 1 | term_cov=0.0 | sim=0.5755
+  normalized: "How many questions are in Hill's Organized Planning questionnaire?" | correction=None
+  selected:
+    - hill         Page 7    sim=0.735 :: 7 Organized Planning . . . . . . . . . . . . . . . . . . . . . . . . . . ⁠191 7.1 Planning the sale of services . . . . . . . . . . . . . . . . . . ⁠197 7.2 The major attributes of
+    - hill         Page 170  sim=0.5787 :: NAPOLEON HILL planning. Also, that is why so much space has been devoted to a description of this new profession, created by a woman who was inspired to do a fine job of PLANNING b
+    - hill         Page 4    sim=0.5485 :: SYNOPSIS Napoleon Hill spent twenty years interviewing the wealthiest men of his day, on a commission Andrew Carnegie handed him when he was barely more than a boy. Out of that wor
+    - hill         Page 251  sim=0.5379 :: Think and Grow Rich disclose a DECREASE IN FAULTS, and an increase in VIRTUES. One goes ahead, stands still, or goes backward in life. One’s object should be, of course, to go ahea
+  top ranked:
+    1  hill         Page 7    sim=0.735 sem=0.5922 lex=1.0 :: 7 Organized Planning . . . . . . . . . . . . . . . . . . . . . . . . . . ⁠191 7.1 Planning the sale of services . . . . 
+    2  hill         Page 170  sim=0.5787 sem=0.6211 lex=0.5 :: NAPOLEON HILL planning. Also, that is why so much space has been devoted to a description of this new profession, create
+    3  hill         Page 4    sim=0.5485 sem=0.5746 lex=0.5 :: SYNOPSIS Napoleon Hill spent twenty years interviewing the wealthiest men of his day, on a commission Andrew Carnegie ha
+    4  hill         Page 251  sim=0.5379 sem=0.5584 lex=0.5 :: Think and Grow Rich disclose a DECREASE IN FAULTS, and an increase in VIRTUES. One goes ahead, stands still, or goes bac
+    5  hill         Page 299  sim=0.537 sem=0.557 lex=0.5 :: Think and Grow Rich PLAN, and DEMAND these things. The person who desires riches in the same spirit that Samuel Adams de
+    6  hill         Page 201  sim=0.5341 sem=0.5525 lex=0.5 :: 7 Organized Planning The crystallization of desire into action The Sixth Step toward Riches You have learned that everyt
+====================================================================================================
+I01 [I_ambiguous_conversational] Tell me more about him.
+  expected ['Page 37', 'Page 6'] | terms 1 | term_cov=1.0 | sim=0.6112
+  normalized: 'Tell me more about Benjamin Franklin.' | correction=None
+  selected:
+    - franklin     Page 105  sim=0.8048 :: jamin met a few times after the war, but never really reconciled. - [UVAstudstaff] advantagesFranklin's figurative language wryly draws on his experience as a printer here and many
+    - franklin     Page 112  sim=0.8026 :: n. Franklin seems to have a read a lot of deist philosophy, which was widely influential in this period. - [UVAstudstaff] judiciouslyThese lines are from the 1711 poem "An Essay on
+    - franklin     Page 104  sim=0.7879 :: 71, when Franklin, then living in London and serving as the representative for several of the American colonies, was on an extended visit to the country home of his friend Jonathan
+    - franklin     Page 107  sim=0.7878 :: public outcry. At the same time, James Franklin published numerous articles against inoculation in the Courant. Years later, and after his own child contracted smallpox, Franklin c
+  top ranked:
+    1  franklin     Page 105  sim=0.8048 sem=0.6996 lex=1.0 :: jamin met a few times after the war, but never really reconciled. - [UVAstudstaff] advantagesFranklin's figurative langu
+    2  franklin     Page 112  sim=0.8026 sem=0.6963 lex=1.0 :: n. Franklin seems to have a read a lot of deist philosophy, which was widely influential in this period. - [UVAstudstaff
+    3  franklin     Page 104  sim=0.7879 sem=0.6737 lex=1.0 :: 71, when Franklin, then living in London and serving as the representative for several of the American colonies, was on 
+    4  franklin     Page 107  sim=0.7878 sem=0.6735 lex=1.0 :: public outcry. At the same time, James Franklin published numerous articles against inoculation in the Courant. Years la
+    5  franklin     Page 104  sim=0.7729 sem=0.6507 lex=1.0 :: their thanks in form when I return'd. But the proprietaries were enraged at Governor Denny for having pass'd the act, an
+    6  franklin     Page 107  sim=0.7697 sem=0.6457 lex=1.0 :: elt his influence—most notably through Mather’s Essays to do Good . While working as an apprentice in his brother’s prin
+====================================================================================================
+I03 [I_ambiguous_conversational] Explain the second point.
+  expected ['Page 69'] | terms 2 | term_cov=0.5 | sim=0.7075
+  normalized: "Explain the second of Hill's six steps." | correction=None
+  selected:
+    - hill         Page 142  sim=0.7075 :: NAPOLEON HILL The instructions given in connection with the six steps in the second chapter will now be summarized, and blended with the principles covered by this chapter, as foll
+    - hill         Page 302  sim=0.5908 :: NAPOLEON HILL on with your daily routine, and never comply with those instructions. The author is checking you up at this point, because lack of persistence is one of the major cau
+    - hill         Page 5    sim=0.5866 :: HOW TO READ THIS BOOK Think and Grow Rich opens with four pieces that come before the first chapter: “What do you want most?”, the “Tributes to the author” from American leaders, t
+    - hill         Page 70   sim=0.5545 :: ciples of the human mind, these instructions may appear impractical. It may be helpful, to all who fail to recognize the soundness of the six steps, to know that the information th
+    - hill         Page 201  sim=0.5103 :: 7 Organized Planning The crystallization of desire into action The Sixth Step toward Riches You have learned that everything man creates or acquires, begins in the form of DESIRE, 
+    - hill         Page 432  sim=0.5507 :: NAPOLEON HILL 15.1 The six basic fears There are six basic fears, with some combination of which every human suffers at one time or another. Most people are fortunate if they do no
+  top ranked:
+    1  hill         Page 142  sim=0.7075 sem=0.6577 lex=0.8 :: NAPOLEON HILL The instructions given in connection with the six steps in the second chapter will now be summarized, and 
+    2  hill         Page 302  sim=0.5908 sem=0.5859 lex=0.6 :: NAPOLEON HILL on with your daily routine, and never comply with those instructions. The author is checking you up at thi
+    3  hill         Page 5    sim=0.5866 sem=0.5793 lex=0.6 :: HOW TO READ THIS BOOK Think and Grow Rich opens with four pieces that come before the first chapter: “What do you want m
+    4  hill         Page 70   sim=0.5545 sem=0.6377 lex=0.4 :: ciples of the human mind, these instructions may appear impractical. It may be helpful, to all who fail to recognize the
+    5  hill         Page 201  sim=0.5103 sem=0.5697 lex=0.4 :: 7 Organized Planning The crystallization of desire into action The Sixth Step toward Riches You have learned that everyt
+    6  hill         Page 432  sim=0.5507 sem=0.6319 lex=0.4 :: NAPOLEON HILL 15.1 The six basic fears There are six basic fears, with some combination of which every human suffers at 
+====================================================================================================
+I05 [I_ambiguous_conversational] Explain it in simple language.
+  expected ['Page 37'] | terms 2 | term_cov=0.5 | sim=0.5469
+  normalized: 'Explain the Junto in simple language.' | correction=None
+  selected:
+    - franklin     Page 61   sim=0.5685 :: sentiments of the Junto. The project was approv'd, and every member undertook to form his club, but they did not all succeed. Five or six only were compleated, which were called by
+    - franklin     Page 60   sim=0.5267 :: xt meeting. As we play'd pretty equally, we thus beat one another into that language. I afterwards with a little painstaking, acquir'd as much of the Spanish as to read their books
+    - hill         Page 122  sim=0.5192 :: activity. “It is probable, however, that it was a ‘homely’ speech, somewhat ungrammatical (for the niceties of language never bothered Schwab), full of epigram and threaded with wi
+    - hill         Page 344  sim=0.35 :: 11 The Mystery of Sex Transmutation The Tenth Step toward Riches The meaning of the word “transmute” is, in simple language, “the changing, or transferring of one element, or form 
+    - franklin     Page 60   sim=0.4851 :: practice of our common teachers. He afterward acknowledg'd to me that none of those he preach'd were his own; adding, that his memory was such as enabled him to retain and repeat a
+    - hill         Page 408  sim=0.4308 :: NAPOLEON HILL The procedure is very simple. We sit down at a conference table, clearly state the nature of the problem we have under consideration, then begin discussing it. Each c
+  top ranked:
+    1  franklin     Page 61   sim=0.5685 sem=0.6951 lex=0.3333 :: sentiments of the Junto. The project was approv'd, and every member undertook to form his club, but they did not all suc
+    2  franklin     Page 60   sim=0.5267 sem=0.541 lex=0.5 :: xt meeting. As we play'd pretty equally, we thus beat one another into that language. I afterwards with a little painsta
+    3  hill         Page 122  sim=0.5192 sem=0.5296 lex=0.5 :: activity. “It is probable, however, that it was a ‘homely’ speech, somewhat ungrammatical (for the niceties of language 
+    4  hill         Page 344  sim=0.35 sem=None lex=1.0 :: 11 The Mystery of Sex Transmutation The Tenth Step toward Riches The meaning of the word “transmute” is, in simple langu
+    5  franklin     Page 60   sim=0.4851 sem=0.4772 lex=0.5 :: practice of our common teachers. He afterward acknowledg'd to me that none of those he preach'd were his own; adding, th
+    6  franklin     Page 61   sim=0.4955 sem=0.5828 lex=0.3333 :: sentiments of the Junto. The project was approv'd, and every member undertook to form his club, but they did not all suc
+====================================================================================================
+K01 [K_spelling] whois benjaminfranklin
+  expected ['Page 37', 'Page 6'] | terms 1 | term_cov=1.0 | sim=0.3621
+  normalized: 'whois benjaminfranklin' | correction=None
+  selected:
+    - franklin     Page 4    sim=0.3621 :: believe of woolens. Benjamin was bred a silk dyer, serving an apprenticeship at London. - 3 - He was an ingenious man. I remember him well, for when I was a boy he came over to my 
+    - franklin     Page 124  sim=0.3234 :: use. - [MD] fallaciousContaining fault or fallacy. Source: Oxford English Dictionary - [MD] pecuniaryMonetary. Source: Oxford English Dictionary - [MD] Joseph Joseph Breintnal (die
+    - franklin     Page 107  sim=0.3075 :: elt his influence—most notably through Mather’s Essays to do Good . While working as an apprentice in his brother’s print shop in 1722, sixteen-year-old Franklin wrote essays under
+    - franklin     Page 24   sim=0.3011 :: "that Franklin had been capable of such a performance; such painting, such force, such fire! He has even improv'd the original. In his common conversation he seems to have no choic
+  top ranked:
+    1  franklin     Page 4    sim=0.3621 sem=0.5571 lex=0.0 :: believe of woolens. Benjamin was bred a silk dyer, serving an apprenticeship at London. - 3 - He was an ingenious man. I
+    2  franklin     Page 124  sim=0.3234 sem=0.4976 lex=0.0 :: use. - [MD] fallaciousContaining fault or fallacy. Source: Oxford English Dictionary - [MD] pecuniaryMonetary. Source: O
+    3  franklin     Page 107  sim=0.3075 sem=0.473 lex=0.0 :: elt his influence—most notably through Mather’s Essays to do Good . While working as an apprentice in his brother’s prin
+    4  franklin     Page 122  sim=0.3036 sem=0.4671 lex=0.0 :: seeing What might Franklin have seen in these months? We have no way of knowing which of these plays he attended, but th
+    5  franklin     Page 104  sim=0.3014 sem=0.4637 lex=0.0 :: 71, when Franklin, then living in London and serving as the representative for several of the American colonies, was on 
+    6  franklin     Page 24   sim=0.3011 sem=0.4632 lex=0.0 :: "that Franklin had been capable of such a performance; such painting, such force, such fire! He has even improv'd the or
+====================================================================================================
+K02 [K_spelling] whaat is benjmin frankln
+  expected ['Page 37', 'Page 6'] | terms 1 | term_cov=1.0 | sim=0.7925
+  normalized: 'what is benjamin franklin' | correction={'from': 'whaat is benjmin frankln', 'to': 'what is benjamin franklin'}
+  selected:
+    - franklin     Page 105  sim=0.7703 :: jamin met a few times after the war, but never really reconciled. - [UVAstudstaff] advantagesFranklin's figurative language wryly draws on his experience as a printer here and many
+    - franklin     Page 112  sim=0.7696 :: n. Franklin seems to have a read a lot of deist philosophy, which was widely influential in this period. - [UVAstudstaff] judiciouslyThese lines are from the 1711 poem "An Essay on
+    - franklin     Page 107  sim=0.7325 :: public outcry. At the same time, James Franklin published numerous articles against inoculation in the Courant. Years later, and after his own child contracted smallpox, Franklin c
+    - franklin     Page 4    sim=0.7275 :: believe of woolens. Benjamin was bred a silk dyer, serving an apprenticeship at London. - 3 - He was an ingenious man. I remember him well, for when I was a boy he came over to my 
+  top ranked:
+    1  franklin     Page 105  sim=0.7703 sem=0.6467 lex=1.0 :: jamin met a few times after the war, but never really reconciled. - [UVAstudstaff] advantagesFranklin's figurative langu
+    2  franklin     Page 112  sim=0.7696 sem=0.6455 lex=1.0 :: n. Franklin seems to have a read a lot of deist philosophy, which was widely influential in this period. - [UVAstudstaff
+    3  franklin     Page 104  sim=0.7336 sem=0.5901 lex=1.0 :: 71, when Franklin, then living in London and serving as the representative for several of the American colonies, was on 
+    4  franklin     Page 107  sim=0.7325 sem=0.5884 lex=1.0 :: public outcry. At the same time, James Franklin published numerous articles against inoculation in the Courant. Years la
+    5  franklin     Page 4    sim=0.7275 sem=0.5807 lex=1.0 :: believe of woolens. Benjamin was bred a silk dyer, serving an apprenticeship at London. - 3 - He was an ingenious man. I
+    6  franklin     Page 107  sim=0.7263 sem=0.5789 lex=1.0 :: elt his influence—most notably through Mather’s Essays to do Good . While working as an apprentice in his brother’s prin
+====================================================================================================
+K03 [K_spelling] explane the contrubutions of benjamin
+  expected ['Page 37', 'Page 43', 'Page 6'] | terms 1 | term_cov=1.0 | sim=0.5731
+  normalized: 'explained the contributions of benjamin' | correction={'from': 'explane the contrubutions of benjamin', 'to': 'explained the contributions of benjamin'}
+  selected:
+    - franklin     Page 4    sim=0.5731 :: believe of woolens. Benjamin was bred a silk dyer, serving an apprenticeship at London. - 3 - He was an ingenious man. I remember him well, for when I was a boy he came over to my 
+    - franklin     Page 105  sim=0.5302 :: wrote the first section of this memoir while he was visiting Shipley and his family at Twyford House for several weeks in July and August 1771. - [UVAstudstaff] William William Fra
+    - franklin     Page 110  sim=0.5273 :: Technically, to be legal, an apprenticeship contract (called an “indenture”) had to be registered with municipal authorities so it could be used as evidence in case of disputes. Th
+    - franklin     Page 107  sim=0.5236 :: public outcry. At the same time, James Franklin published numerous articles against inoculation in the Courant. Years later, and after his own child contracted smallpox, Franklin c
+    - franklin     Page 104  sim=0.515 :: 71, when Franklin, then living in London and serving as the representative for several of the American colonies, was on an extended visit to the country home of his friend Jonathan
+    - franklin     Page 72   sim=0.5157 :: increas'd by contributions in Britain and grants of land from the proprietaries, to which the Assembly has since made considerable addition; and thus was established the present Un
+  top ranked:
+    1  franklin     Page 4    sim=0.5731 sem=0.7022 lex=0.3333 :: believe of woolens. Benjamin was bred a silk dyer, serving an apprenticeship at London. - 3 - He was an ingenious man. I
+    2  franklin     Page 105  sim=0.5302 sem=0.6362 lex=0.3333 :: wrote the first section of this memoir while he was visiting Shipley and his family at Twyford House for several weeks i
+    3  franklin     Page 110  sim=0.5273 sem=0.6318 lex=0.3333 :: Technically, to be legal, an apprenticeship contract (called an “indenture”) had to be registered with municipal authori
+    4  franklin     Page 107  sim=0.5236 sem=0.6261 lex=0.3333 :: public outcry. At the same time, James Franklin published numerous articles against inoculation in the Courant. Years la
+    5  franklin     Page 105  sim=0.5229 sem=0.6249 lex=0.3333 :: jamin met a few times after the war, but never really reconciled. - [UVAstudstaff] advantagesFranklin's figurative langu
+    6  franklin     Page 104  sim=0.515 sem=0.6128 lex=0.3333 :: 71, when Franklin, then living in London and serving as the representative for several of the American colonies, was on 
+====================================================================================================
+K04 [K_spelling] who is dracula and wht does he do
+  expected ['Page 4'] | terms 1 | term_cov=1.0 | sim=0.7267
+  normalized: 'who is dracula and wht does he do' | correction=None
+  selected:
+    - dracula      Page 617  sim=0.7267 :: Dracula “Aha!” he said, “your simile of the tiger good, for me, and I shall adopt him. Your man-eater, as they of India call the tiger who has once tasted blood of the human, care 
+    - dracula      Page 611  sim=0.6669 :: Dracula suit not him or the time. That he scatter his money in making quick inquiry as to what ship sails for the Black Sea and for where. Some took him to the office and then to t
+    - dracula      Page 461  sim=0.6648 :: Dracula Whitby, when he tear open the dog; he can be as bat, as Madam Mina saw him on the window at Whitby, and as friend John saw him fly from this so near house, and as my friend
+    - dracula      Page 615  sim=0.6631 :: Dracula small measure in darkness and not knowing. All this have I told these others; you, my dear Madam Mina, will learn it in the phonograph of my friend John, or in that of your
+  top ranked:
+    1  dracula      Page 617  sim=0.7267 sem=0.6872 lex=0.8 :: Dracula “Aha!” he said, “your simile of the tiger good, for me, and I shall adopt him. Your man-eater, as they of India 
+    2  dracula      Page 611  sim=0.6669 sem=0.7029 lex=0.6 :: Dracula suit not him or the time. That he scatter his money in making quick inquiry as to what ship sails for the Black 
+    3  dracula      Page 461  sim=0.6648 sem=0.6997 lex=0.6 :: Dracula Whitby, when he tear open the dog; he can be as bat, as Madam Mina saw him on the window at Whitby, and as frien
+    4  dracula      Page 615  sim=0.6631 sem=0.6971 lex=0.6 :: Dracula small measure in darkness and not knowing. All this have I told these others; you, my dear Madam Mina, will lear
+    5  dracula      Page 657  sim=0.6561 sem=0.6863 lex=0.6 :: Dracula ‘Give me a fulcrum, and I shall move the world!’ To do once, is the fulcrum whereby child-brain become man-brain
+    6  dracula      Page 255  sim=0.6533 sem=0.682 lex=0.6 :: Dracula to others that make so inquisitive questions. We must obey, and silence is a part of obedience; and obedience is
+====================================================================================================
+K05 [K_spelling] tell me abot the importnt events
+  expected ['Page 4'] | terms 2 | term_cov=0.0 | sim=0.3803
+  normalized: 'tell me abot the important events' | correction={'from': 'tell me abot the importnt events', 'to': 'tell me abot the important events'}
+  selected:
+    - hill         Page 38   sim=0.35 :: NAPOLEON HILL is willing to stake his entire future on a single turn of the wheel in order to get it, he is sure to win. I gave him the opportunity he asked for, because I saw he h
+    - hill         Page 448  sim=0.35 :: NAPOLEON HILL articles of wearing apparel change. Who establishes the styles? Certainly not the purchaser of clothing, but the manufacturer. Why does he change the styles so often?
+    - hill         Page 295  sim=0.486 :: Think and Grow Rich read the most momentous DECISION ever placed upon paper. “When in the course of human events it is necessary for one people to dissolve the political bands whic
+    - hill         Page 282  sim=0.3769 :: NAPOLEON HILL knowledge, or your LACK of it! Genuine wisdom is usually conspicuous through modesty and silence. Keep in mind the fact that every person with whom you associate is, 
+  top ranked:
+    1  hill         Page 38   sim=0.35 sem=None lex=1.0 :: NAPOLEON HILL is willing to stake his entire future on a single turn of the wheel in order to get it, he is sure to win.
+    2  hill         Page 448  sim=0.35 sem=None lex=1.0 :: NAPOLEON HILL articles of wearing apparel change. Who establishes the styles? Certainly not the purchaser of clothing, b
+    3  hill         Page 295  sim=0.486 sem=0.4784 lex=0.5 :: Think and Grow Rich read the most momentous DECISION ever placed upon paper. “When in the course of human events it is n
+    4  hill         Page 34   sim=0.3776 sem=0.4732 lex=0.2 :: NAPOLEON HILL Somewhere, as you read, the secret to which I refer will jump from the page and stand boldly before you, I
+    5  enchiridion  Page 17   sim=0.485 sem=0.477 lex=0.5 :: Chapter 8 Demand not that events should happen as you wish; but wish them to happen as they do happen, and you will go o
+    6  hill         Page 282  sim=0.3769 sem=0.4721 lex=0.2 :: NAPOLEON HILL knowledge, or your LACK of it! Genuine wisdom is usually conspicuous through modesty and silence. Keep in 
