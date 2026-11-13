@@ -105,6 +105,42 @@ def test_boilerplate_penalty_skipped_when_query_asks_about_downloads():
     assert [h["id"] for h in about_store][:1] == ["notice"]
 
 
+def test_editorial_apparatus_is_demoted_even_with_high_query_coverage():
+    # The old gate only demoted apparatus when the chunk had little lexical
+    # relation to the query. Editorial notes that repeat the subject's name have
+    # high coverage, so they escaped and outranked the real source passage.
+    query = "In which city was Benjamin Franklin born?"
+    content = ("I was born in Boston in New England. My elder brothers were put "
+               "apprentices to different trades, and my father intended to put me "
+               "to the business of a tallow chandler.")
+    commentary = ("Benjamin Franklin was born in Boston. Franklin's birth in Boston "
+                  "is recorded by several later writers. - [UVAstudstaff] Notes on "
+                  "Franklin's birth in Boston, Massachusetts.")
+    ranked = rerank(query, [
+        _chunk(content, page="Page 6", chunk_id="content"),
+        _chunk(commentary, page="Page 106", chunk_id="commentary"),
+    ])
+    scores = {h["id"]: h for h in ranked}
+    assert scores["commentary"]["query_term_coverage"] > 0.25
+    assert scores["commentary"]["boilerplate"] is True
+    assert scores["content"]["rerank_score"] > scores["commentary"]["rerank_score"]
+
+
+def test_contents_page_is_kept_for_a_chapter_title_question():
+    # A table of contents is a legitimate source for a chapter-title question,
+    # so structural front matter is not demoted when it relates to the query.
+    query = "What is the title of Chapter 17 of The Science of Getting Rich?"
+    toc = ("CONTENTS Preface Chapter 1. The Right To Be Rich Chapter 17. Summary "
+           "of the Science of Getting Rich")
+    ranked = rerank(query, [
+        _chunk("A general passage about the science of getting rich.", page="Page 9", chunk_id="other"),
+        _chunk(toc, page="Page 2", chunk_id="toc"),
+    ])
+    scores = {h["id"]: h for h in ranked}
+    assert not scores["toc"].get("boilerplate", False)
+    assert ranked[0]["id"] == "toc"
+
+
 def test_answer_bearing_statement_ranks_above_incidental_mention():
     ranked = rerank("What notice period does the contract require?", [
         _chunk("The contract mentions notice in its standard terms.", page="Page 2", chunk_id="mention"),
